@@ -46,5 +46,12 @@ class TestEntranceSahaayiV2(unittest.TestCase):
         jee_rec = next(r for r in analysis["recommendations"] if "JEE" in r["exam"])
         self.assertIn("Eligible", jee_rec["eligibility_verdict"])
 
+    def test_parse_and_analyze_marksheet(self):
+        doc_path = os.path.join(self.data_dir, "documents", "JEE_Main_Information_Brochure.txt")
+        if os.path.exists(doc_path):
+            result = self.rag.parse_and_analyze_marksheet(doc_path, interests=["AI", "Engineering"])
+            self.assertIn("recommendations", result)
+            self.assertIn("detected_percentage", result)
+
 if __name__ == "__main__":
     unittest.main()
