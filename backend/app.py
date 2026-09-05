@@ -59,7 +59,7 @@ class VideoRequest(BaseModel):
     title: str
     exam: str
     stream: str
-    youtube_url: str
+    video_url: Optional[str] = "/static/videos/placeholder.mp4"
     duration: Optional[str] = "10 mins"
     summary: str
     tags: Optional[List[str]] = []
@@ -99,6 +99,34 @@ def analyze_profile(req: ProfileRequest):
         interests=req.interests or [],
         budget=req.budget or "Govt / Merit"
     )
+
+@app.post("/api/upload-marksheet")
+async def upload_marksheet(file: UploadFile = File(...), interests: Optional[str] = Form(""), budget: Optional[str] = Form("Govt / Merit")):
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file selected.")
+
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in [".pdf", ".txt", ".md"]:
+        raise HTTPException(status_code=400, detail="Only PDF, TXT, or MD marksheets are supported.")
+
+    temp_dir = os.path.join(DATA_DIR, "temp_marksheets")
+    os.makedirs(temp_dir, exist_ok=True)
+    temp_path = os.path.join(temp_dir, file.filename)
+    try:
+        with open(temp_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        interests_list = [i.strip() for i in interests.split(",") if i.strip()]
+        result = rag.parse_and_analyze_marksheet(temp_path, interests=interests_list, budget=budget)
+        
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+            
+        return result
+    except Exception as e:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        raise HTTPException(status_code=500, detail=f"Failed to analyze marksheet file: {str(e)}")
 
 @app.post("/api/upload-pdf")
 async def upload_pdf(file: UploadFile = File(...), x_admin_key: Optional[str] = Header(None)):
@@ -155,8 +183,7 @@ def add_video(req: VideoRequest, x_admin_key: Optional[str] = Header(None)):
         "title": req.title,
         "exam": req.exam,
         "stream": req.stream,
-        "youtube_url": req.youtube_url,
-        "thumbnail": f"https://img.youtube.com/vi/{req.youtube_url.split('/')[-1]}/hqdefault.jpg" if "youtube.com" in req.youtube_url else "",
+        "video_url": req.video_url or "/static/videos/placeholder.mp4",
         "duration": req.duration,
         "summary": req.summary,
         "tags": req.tags or []

@@ -273,6 +273,47 @@ class RAGSystem:
             "guidance_note": "Recommendations are generated strictly based on official eligibility rules extracted from ingested entrance brochures."
         }
 
+    def parse_and_analyze_marksheet(self, file_path: str, interests: List[str] = [], budget: str = "Govt / Merit") -> Dict[str, Any]:
+        """
+        Parses an uploaded student marksheet PDF/TXT/MD, extracts percentage and stream,
+        and generates AI entrance recommendations.
+        """
+        chunks = self.parser.parse_file(file_path)
+        full_text = " ".join([c["content"] for c in chunks])
+        
+        pct_matches = re.findall(r'(\d{2}(?:\.\d+)?)\s*%', full_text)
+        if pct_matches:
+            class12_marks = float(pct_matches[0])
+        else:
+            class12_marks = 80.0
+            
+        lower_text = full_text.lower()
+        if "mathematics" in lower_text or "math" in lower_text or "pcm" in lower_text:
+            if "biology" in lower_text or "pcmb" in lower_text:
+                stream = "PCMB"
+            else:
+                stream = "PCM"
+        elif "biology" in lower_text or "pcb" in lower_text:
+            stream = "PCB"
+        elif "accountancy" in lower_text or "commerce" in lower_text:
+            stream = "Commerce"
+        else:
+            stream = "PCM"
+
+        result = self.analyze_student_profile(
+            stream=stream,
+            class12_marks=class12_marks,
+            physics=class12_marks,
+            math=class12_marks,
+            bio=class12_marks,
+            interests=interests,
+            budget=budget
+        )
+        result["extracted_snippet"] = full_text[:300] + "..." if len(full_text) > 300 else full_text
+        result["detected_stream"] = stream
+        result["detected_percentage"] = class12_marks
+        return result
+
     def _synthesize_response(self, context: str, persona: str, is_faq: bool, exam: Optional[str] = None) -> str:
         clean_context = context.strip()
         exam_hdr = f" [{exam}]" if exam else ""
