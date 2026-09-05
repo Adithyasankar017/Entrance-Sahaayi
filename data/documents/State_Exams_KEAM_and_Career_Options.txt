@@ -1,0 +1,21 @@
+SECTION 1: KEAM & STATE ENTRANCE EXAMS (KERALA & STATE BOARDS)
+KEAM (Kerala Engineering Architecture Medical Entrance Examination) is managed by the Commissioner for Entrance Examinations (CEE), Government of Kerala.
+- Courses Covered: B.Tech (Engineering), B.Pharm (Pharmacy), Architecture (via NATA score), and Centralized Allotment Process (CAP) for Medical & Allied courses.
+
+SECTION 2: KEAM ENGINEERING RANK CALCULATION
+- Engineering Rank Formula: 50:50 Weightage.
+  * 50% weightage given to the marks obtained in the KEAM Entrance Examination.
+  * 50% weightage given to final Class 12th board exam marks in Physics, Chemistry, and Mathematics (PCM).
+- Normalization: Board marks from CBSE, ICSE, and Kerala Higher Secondary State Board are normalized using statistical formulas to ensure fairness.
+
+SECTION 3: OPTION REGISTRATION & SEAT ALLOTMENT (CAP)
+- Step 1: Publication of Rank List.
+- Step 2: Online Option Registration on CEE portal (www.cee.kerala.gov.in) where students order college and course preferences.
+- Step 3: Trial Allotment followed by Phase 1, Phase 2, and Final Mop-up seat allotments.
+- Category Reservation: Govt seats reserved for Mandatory Reservation (SEBC, EWS, SC, ST, PwD, Sports quota).
+
+SECTION 4: COMPREHENSIVE CAREER GUIDE FOR PARENTS
+When evaluating options after Class 12th:
+1. Financial Investment vs ROI: Government colleges have fees around Rs 8,000 to Rs 15,000 per semester; Self-financing Govt controlled colleges charge approx Rs 35,000 to Rs 75,000 per semester; Management/NRI seats vary from Rs 1 Lakh to Rs 3 Lakh per year.
+2. Accreditation & Placements: Ensure the institution is NAAC accredited and NBA accredited for engineering streams, with an active Training & Placement Cell.
+3. Emerging vs Core Streams: Encourage children towards fields matching their core aptitude rather than parental pressure.

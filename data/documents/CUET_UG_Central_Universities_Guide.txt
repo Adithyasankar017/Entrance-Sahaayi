@@ -1,0 +1,20 @@
+SECTION 1: OVERVIEW OF CUET UG EXAM
+CUET-UG (Common University Entrance Test Undergraduate) is conducted by NTA for admission to all undergraduate programs in 45+ Central Universities (including Delhi University, Banaras Hindu University, Jawaharlal Nehru University, Jamia Millia Islamia, Aligarh Muslim University) and over 150 state, private, and deemed universities across India.
+
+SECTION 2: TEST STRUCTURE & SECTIONS
+CUET UG consists of three distinct sections:
+1. Section IA & IB (Languages): 33 Languages available (e.g. English, Hindi, Malayalam, Tamil, French, German). Candidates test reading comprehension, literary aptitude, and vocabulary.
+2. Section II (Domain Specific Subjects): 27 Subjects available (e.g. Physics, Accountancy, Economics, Business Studies, History, Political Science, Computer Science, Psychology, Sociology). Questions are based strictly on Class 12th NCERT syllabus.
+3. Section III (General Test): Tests General Knowledge, Current Affairs, Mental Ability, Numerical Ability, Quantitative Reasoning, and Logical Reasoning.
+
+SECTION 3: ELIGIBILITY & SUBJECT COMBINATIONS
+- Eligibility: Passed Class 12 from any recognized board in any stream (Science, Commerce, Arts).
+- Course Specific Eligibility:
+  * For B.Com (Hons) at DU: Mathematics / Accountancy + Any 2 Domain subjects + Language test.
+  * For B.Sc Computer Science: Physics + Mathematics + Computer Science/Chemistry + Language test.
+  * For B.A Political Science / Psychology / Economics: Domain subjects corresponding to Class 12 subjects or General Test.
+
+SECTION 4: TOP CAREER SCOPES VIA CUET
+- B.A (Hons) Economics / Psychology / Mass Communication - Top demand in corporate strategy, media, marketing, research.
+- B.Com (Hons) / BBA (FIA) - Direct gateway into finance, investment banking, consulting.
+- B.Sc (Hons) Computer Science / Statistics / Data Science.

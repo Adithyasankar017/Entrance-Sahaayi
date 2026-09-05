@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrance Sahaayi | AI Career Guidance & Entrance Assistant</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- SCREEN 1: WELCOME & ROLE LOGIN MODAL -->
+        <div id="loginScreen" class="screen-view active">
+            <div class="login-box">
+                <div class="logo-icon-lg">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <h1 class="portal-title">Entrance Sahaayi</h1>
+                <p class="portal-subtitle">AI-Based Career Guidance & Entrance Exam Platform after Class 12</p>
+
+                <div class="role-cards-container">
+                    <div class="role-card" data-role="Student">
+                        <div class="role-icon"><i class="fa-solid fa-user-graduate"></i></div>
+                        <h3>Student Login</h3>
+                        <p>Explore entrance exams, watch video briefings, and chat with AI for career paths.</p>
+                        <button class="role-select-btn">Continue as Student</button>
+                    </div>
+
+                    <div class="role-card" data-role="Parent">
+                        <div class="role-icon"><i class="fa-solid fa-user-tie"></i></div>
+                        <h3>Parent Login</h3>
+                        <p>Get clear summaries on eligibility, college costs, and guidance for your child.</p>
+                        <button class="role-select-btn">Continue as Parent</button>
+                    </div>
+
+                    <div class="role-card admin-card" data-role="Admin">
+                        <div class="role-icon"><i class="fa-solid fa-user-shield"></i></div>
+                        <h3>Admin / Programmer</h3>
+                        <p>Manage knowledge base, upload official PDFs, edit FAQs, and configure videos.</p>
+                        <button class="role-select-btn admin-btn">Admin Portal</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: POST-LOGIN WELCOMING LANDING PAGE -->
+        <div id="landingScreen" class="screen-view hidden">
+            <!-- App Navbar -->
+            <header class="navbar">
+                <div class="logo-group">
+                    <div class="logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                    <div>
+                        <h1 class="app-title">Entrance Sahaayi</h1>
+                        <p class="app-subtitle">AI Career Guidance Assistant</p>
+                    </div>
+                </div>
+
+                <div class="header-controls">
+                    <span class="user-role-badge" id="activeRoleBadge"><i class="fa-solid fa-user"></i> Student Mode</span>
+                    
+                    <!-- Voice Language Selector -->
+                    <div class="lang-selector">
+                        <i class="fa-solid fa-language"></i>
+                        <select id="speechLanguage">
+                            <option value="en-IN">English (India)</option>
+                            <option value="hi-IN">Hindi (हिंदी)</option>
+                            <option value="ml-IN">Malayalam (മലയാളം)</option>
+                            <option value="ta-IN">Tamil (தமிழ்)</option>
+                            <option value="te-IN">Telugu (తెలుగు)</option>
+                        </select>
+                    </div>
+
+                    <!-- Admin Button (if admin logged in) -->
+                    <button id="adminPanelBtn" class="btn-admin-nav hidden"><i class="fa-solid fa-sliders"></i> Knowledge Control</button>
+                    
+                    <!-- Logout -->
+                    <button id="logoutBtn" class="logout-btn" title="Switch User Role"><i class="fa-solid fa-right-from-bracket"></i> Switch Role</button>
+                </div>
+            </header>
+
+            <!-- Welcoming Banner -->
+            <div class="hero-welcome">
+                <h2 id="welcomeHeading">Welcome, Student! 👋</h2>
+                <p>Navigating career choices after Class 12 is critical. Choose how you would like to proceed today:</p>
+            </div>
+
+            <!-- Two Pathway Selection Cards -->
+            <div class="pathways-grid">
+                <!-- Pathway A: Target Entrance Exam Finalized -->
+                <div class="pathway-card">
+                    <div class="pathway-badge">Option A</div>
+                    <div class="pathway-icon"><i class="fa-solid fa-bullseye"></i></div>
+                    <h3>I Know Which Entrance Exam I Want to Pursue</h3>
+                    <p>Select your target entrance exam from the dropdown menu to watch the explainer video briefing and chat with the AI assistant for specific queries.</p>
+
+                    <div class="dropdown-wrapper">
+                        <label for="examDropdown"><i class="fa-solid fa-list-check"></i> Select Target Entrance Exam:</label>
+                        <select id="examDropdown">
+                            <option value="" disabled selected>-- Select an Entrance Exam --</option>
+                            <option value="JEE Main">JEE Main / Advanced (Engineering & Tech)</option>
+                            <option value="NEET-UG">NEET-UG (Medical & Healthcare)</option>
+                            <option value="CUET-UG">CUET-UG (Central Universities - DU, BHU, JNU)</option>
+                            <option value="KEAM">KEAM (State Engineering & Pharmacy - Kerala)</option>
+                            <option value="CLAT">CLAT (Integrated Law Programs)</option>
+                            <option value="NATA / NIFT">NATA / NIFT (Architecture & Design)</option>
+                        </select>
+                    </div>
+
+                    <button id="goToExamBtn" class="btn-pathway btn-accent" disabled>
+                        <span>View Exam Details & Chat</span> <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <!-- Pathway B: Undecided / Career Assistance Needed -->
+                <div class="pathway-card">
+                    <div class="pathway-badge">Option B</div>
+                    <div class="pathway-icon"><i class="fa-solid fa-compass"></i></div>
+                    <h3>Help Me Figure Out My Entrance & Career Path</h3>
+                    <p>Not sure which entrance exam or career stream suits you best? Enter your Class 10/12 marks, subject stream, and interests for AI evaluation.</p>
+
+                    <div class="analyzer-preview-box">
+                        <ul>
+                            <li><i class="fa-solid fa-circle-check"></i> Evaluates Class 10 & 12 board marks</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Analyzes PCM / PCB / Commerce eligibility</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Matches your personal career interests</li>
+                        </ul>
+                    </div>
+
+                    <button id="openAnalyzerBtn" class="btn-pathway btn-teal">
+                        <span>Launch Marksheet & Interest Analyzer</span> <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: EXAM DETAIL & VIDEO BRIEFING PAGE (WITH AI CHATBOT) -->
+        <div id="examDetailScreen" class="screen-view hidden">
+            <div class="screen-header">
+                <button class="back-btn" id="backToLandingFromExam"><i class="fa-solid fa-arrow-left"></i> Back to Main Menu</button>
+                <div class="exam-title-badge">
+                    <h2 id="detailExamTitle">JEE Main / Advanced</h2>
+                    <span id="detailExamStream" class="stream-pill">Engineering (PCM)</span>
+                </div>
+            </div>
+
+            <div class="exam-content-layout">
+                <!-- Top Left: Video Explainer Container -->
+                <div class="video-container-card">
+                    <div class="card-label"><i class="fa-solid fa-video"></i> Entrance Exam Video Briefing</div>
+                    <div class="video-player-wrapper" id="videoPlayerBox">
+                        <iframe id="examVideoIframe" src="https://www.youtube.com/embed/dQw4w9WgXcQ" allowfullscreen></iframe>
+                    </div>
+                    <p class="video-note"><i class="fa-solid fa-info-circle"></i> Official video explainer provided by the programmer/institution.</p>
+                </div>
+
+                <!-- Top Right: Exam Quick Summary -->
+                <div class="exam-summary-card">
+                    <h3><i class="fa-solid fa-file-contract"></i> Official Brochure Summary</h3>
+                    <div id="examSummaryBody" class="summary-body">
+                        <!-- Loaded dynamically based on exam selection -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Section: AI Career Assistant Chatbot -->
+            <div class="chat-section-wrapper">
+                <div class="chat-header">
+                    <div class="chat-title-group">
+                        <i class="fa-solid fa-robot"></i>
+                        <div>
+                            <h3>AI Career Assistant — Ask Queries about <span id="chatExamContextName">JEE Main</span></h3>
+                            <p>Answers are generated <strong>strictly from official uploaded brochures and documents</strong>.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-history" id="examChatHistory">
+                    <div class="message bot-message">
+                        <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+                        <div class="message-content">
+                            <div class="sender-name">Entrance Sahaayi Assistant</div>
+                            <p>Have further questions after watching the video briefing for <strong id="chatExamWelcomeName">JEE Main</strong>? Ask me anything about eligibility criteria, subject weightage, seat allocation, or rank calculation!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Controls -->
+                <div class="chat-input-container">
+                    <div class="voice-recording-banner hidden" id="voiceBanner">
+                        <span class="pulse-dot"></span> Listening in <span id="currentLangLabel">English</span>...
+                        <button id="cancelVoiceBtn" class="cancel-voice-btn">Stop</button>
+                    </div>
+
+                    <form id="examChatForm" class="input-form">
+                        <button type="button" id="micBtn" class="mic-btn" title="Speak question"><i class="fa-solid fa-microphone"></i></button>
+                        <input type="text" id="userInput" placeholder="Type or speak your question about this entrance exam..." autocomplete="off" required>
+                        <button type="submit" class="send-btn"><span>Send</span> <i class="fa-solid fa-paper-plane"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 4: UNDECIDED STUDENT MARKSHEET & INTEREST ANALYZER -->
+        <div id="analyzerScreen" class="screen-view hidden">
+            <div class="screen-header">
+                <button class="back-btn" id="backToLandingFromAnalyzer"><i class="fa-solid fa-arrow-left"></i> Back to Main Menu</button>
+                <h2><i class="fa-solid fa-wand-magic-sparkles"></i> Student Marksheet & Interest Profile Analyzer</h2>
+            </div>
+
+            <div class="analyzer-layout">
+                <!-- Form Inputs -->
+                <div class="analyzer-card form-card">
+                    <h3><i class="fa-solid fa-user-pen"></i> Enter Your Academic & Career Profile</h3>
+                    <form id="analyzerForm" class="analyzer-form">
+                        <div class="form-group">
+                            <label>Class 12 Subject Stream:</label>
+                            <select id="anStream" required>
+                                <option value="PCM">Science - PCM (Physics, Chem, Math)</option>
+                                <option value="PCB">Science - PCB (Physics, Chem, Biology)</option>
+                                <option value="PCMB">Science - PCMB (Physics, Chem, Math, Bio)</option>
+                                <option value="Commerce">Commerce with Math / Accountancy</option>
+                                <option value="Humanities">Humanities / Arts</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Class 12 Overall Aggregate Percentage (%):</label>
+                            <input type="number" id="anClass12" min="35" max="100" step="0.1" placeholder="e.g. 82.5" required>
+                        </div>
+
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label>Physics / Math Marks (%):</label>
+                                <input type="number" id="anMathPhysics" min="0" max="100" placeholder="e.g. 85">
+                            </div>
+                            <div class="form-group">
+                                <label>Biology Marks (%) (if applicable):</label>
+                                <input type="number" id="anBio" min="0" max="100" placeholder="e.g. 90">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Primary Career Interests (comma separated):</label>
+                            <input type="text" id="anInterests" placeholder="e.g. Artificial Intelligence, Medicine, Robotics, Design, Finance">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Preferred Fee Structure / Institution Type:</label>
+                            <select id="anBudget">
+                                <option value="Govt / Merit">Government Colleges (Lowest Fees)</option>
+                                <option value="Govt Controlled Self Financing">Govt-Controlled Self Financing</option>
+                                <option value="Private / Management">Private Universities & Deemed Institutes</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn-primary-lg"><i class="fa-solid fa-calculator"></i> Analyze Profile & Recommend Entrances</button>
+                    </form>
+                </div>
+
+                <!-- Analysis Results -->
+                <div class="analyzer-card result-card">
+                    <h3><i class="fa-solid fa-chart-pie"></i> AI Entrance Recommendations</h3>
+                    <div id="analyzerOutput" class="analyzer-output-placeholder">
+                        <i class="fa-solid fa-arrow-left"></i> Fill in your marks and interests on the left to generate personalized entrance exam recommendations.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 5: ADMIN CONTROL PANEL (ADMIN ROLE ONLY) -->
+        <div id="adminScreen" class="screen-view hidden">
+            <div class="screen-header">
+                <button class="back-btn" id="backToLandingFromAdmin"><i class="fa-solid fa-arrow-left"></i> Exit Admin Mode</button>
+                <h2><i class="fa-solid fa-user-shield"></i> Programmer & Admin Knowledge Control Panel</h2>
+            </div>
+
+            <div class="kb-layout">
+                <!-- PDF Upload Card -->
+                <div class="kb-card upload-card">
+                    <h3><i class="fa-solid fa-cloud-arrow-up"></i> Ingest Official Entrance Brochure (PDF / TXT)</h3>
+                    <p class="card-desc">Only documents uploaded here by the programmer are indexed into the strict RAG knowledge base.</p>
+                    
+                    <div class="drop-zone" id="dropZone">
+                        <i class="fa-solid fa-file-pdf drop-icon"></i>
+                        <p>Drag & Drop Official Exam Brochure PDF or <span>Browse File</span></p>
+                        <input type="file" id="pdfFileInput" accept=".pdf,.txt,.md" hidden>
+                    </div>
+                    <div id="uploadStatus" class="status-msg"></div>
+
+                    <hr class="divider">
+
+                    <h3><i class="fa-solid fa-plus-circle"></i> Add Instant Cached FAQ</h3>
+                    <form id="faqForm" class="faq-form">
+                        <input type="text" id="faqQuestion" placeholder="FAQ Question..." required>
+                        <textarea id="faqAnswer" placeholder="Strict Answer..." rows="3" required></textarea>
+                        <div class="form-row">
+                            <select id="faqCategory">
+                                <option value="Engineering">Engineering</option>
+                                <option value="Medical">Medical</option>
+                                <option value="General">General</option>
+                                <option value="State Entrance">State Entrance</option>
+                            </select>
+                            <button type="submit" class="btn-primary"><i class="fa-solid fa-save"></i> Save FAQ</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Database Stats -->
+                <div class="kb-card stats-card">
+                    <h3><i class="fa-solid fa-database"></i> Live Vector Database Index</h3>
+                    <div class="stats-grid">
+                        <div class="stat-box"><span class="stat-number" id="statDocs">0</span><span class="stat-label">Official Files</span></div>
+                        <div class="stat-box"><span class="stat-number" id="statChunks">0</span><span class="stat-label">Vector Chunks</span></div>
+                        <div class="stat-box"><span class="stat-number" id="statFaqs">0</span><span class="stat-label">Cached FAQs</span></div>
+                        <div class="stat-box"><span class="stat-number" id="statVideos">0</span><span class="stat-label">Video Guides</span></div>
+                    </div>
+
+                    <h4 class="mt-4"><i class="fa-solid fa-file-lines"></i> Ingested Brochure Files</h4>
+                    <ul class="doc-list" id="docList"></ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Admin Passcode Dialog -->
+    <div id="adminPasscodeModal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <h3><i class="fa-solid fa-lock"></i> Admin Passcode Verification</h3>
+            <p>Enter programmer passcode to access Admin Control Panel:</p>
+            <input type="password" id="adminPasscodeInput" placeholder="Passcode (Default: admin123)" autocomplete="off">
+            <div class="modal-buttons">
+                <button id="cancelAdminPasscode" class="btn-secondary">Cancel</button>
+                <button id="submitAdminPasscode" class="btn-primary">Authenticate</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "faq_1",
+    "question": "What is the minimum eligibility criteria for JEE Main?",
+    "answer": "To be eligible for JEE Main, candidates must have passed Class 12 (or equivalent examination) with Physics, Chemistry, and Mathematics (PCM). For admission to NITs, IIITs, and CFTIs, candidates should secure at least 75% marks in Class 12 exam or be in the top 20 percentile in their respective board examination. For SC/ST candidates, the aggregate mark requirement is 65%.",
+    "category": "Engineering",
+    "target": "Both"
+  },
+  {
+    "id": "faq_2",
+    "question": "What is the age limit for NEET UG exam?",
+    "answer": "As per NMC guidelines, there is NO upper age limit for appearing in NEET-UG. However, candidates must be at least 17 years old by December 31st of the year of admission.",
+    "category": "Medical",
+    "target": "Both"
+  },
+  {
+    "id": "faq_3",
+    "question": "What is CUET UG and who should write it?",
+    "answer": "CUET (Common University Entrance Test) UG is a single window national-level exam conducted by NTA for admission to undergraduate programs in all Central Universities (like DU, JNU, BHU) and participating state/private universities. Students after 12th in any stream (Science, Commerce, Arts) can write CUET for BA, BSc, BCom, BBA, and integrated programs.",
+    "category": "General",
+    "target": "Both"
+  },
+  {
+    "id": "faq_4",
+    "question": "What are the best career options after 12th Computer Science PCM?",
+    "answer": "After 12th PCM with Computer Science, top options include: 1. B.Tech / B.E in Artificial Intelligence & Machine Learning, Data Science, Cyber Security, or Computer Science Engineering. 2. Integrated M.Sc in Data Science / Mathematics. 3. BCA / B.Sc Computer Science. 4. B.Des / Animation & UI-UX Design. 5. Defense Services via NDA examination.",
+    "category": "Engineering",
+    "target": "Student"
+  },
+  {
+    "id": "faq_5",
+    "question": "What is KEAM entrance exam?",
+    "answer": "KEAM (Kerala Engineering Architecture Medical) is a state-level entrance exam conducted by CEE Kerala for admission to Engineering and Pharmacy courses in Govt/Self-financing colleges across Kerala. Engineering rank is calculated based on a 50:50 equal weightage between KEAM exam score and Class 12 PCM marks.",
+    "category": "State Entrance",
+    "target": "Parent"
+  },
+  {
+    "id": "faq_6",
+    "question": "How can my child choose between Engineering and Medical after Class 12?",
+    "answer": "For Engineering (PCM): Focuses on problem-solving, mathematics, coding, electronics, and design. Duration is usually 4 years. For Medical (PCB): Requires high memory retention, biological sciences, patience, and long-term commitment (5.5 years for MBBS + residency). If the child loves math and analytical building, Engineering is suitable; if interested in human biology and healthcare, Medical/Allied Health is ideal.",
+    "category": "Counseling",
+    "target": "Parent"
+  }
+]

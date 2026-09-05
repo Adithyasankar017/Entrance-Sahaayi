@@ -1,0 +1,57 @@
+[
+  {
+    "id": "vid_1",
+    "title": "Complete JEE Main & Advanced Roadmap 2025-2026",
+    "exam": "JEE Main / Advanced",
+    "stream": "Engineering (PCM)",
+    "youtube_url": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    "thumbnail": "https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+    "duration": "12 mins",
+    "summary": "Detailed guide on JEE syllabus structure, high-weightage chapters in Physics, Chemistry, Math, cutoffs for top NITs & IITs, and preparation strategy.",
+    "tags": ["JEE", "Engineering", "Class 12", "IIT"]
+  },
+  {
+    "id": "vid_2",
+    "title": "NEET-UG Exam Pattern, Marking Scheme & Counseling Guide",
+    "exam": "NEET-UG",
+    "stream": "Medical (PCB)",
+    "youtube_url": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    "thumbnail": "https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+    "duration": "15 mins",
+    "summary": "Overview of 720 marks NEET exam structure, Biology NCERT importance, MCC All-India quota counseling vs State quota seats.",
+    "tags": ["NEET", "MBBS", "Medical", "PCB"]
+  },
+  {
+    "id": "vid_3",
+    "title": "CUET UG Masterclass: College & Course Selection",
+    "exam": "CUET-UG",
+    "stream": "All Streams",
+    "youtube_url": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    "thumbnail": "https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+    "duration": "10 mins",
+    "summary": "How to select Domain subjects, Language tests, and General Test for admissions into Delhi University, BHU, JNU, and central universities.",
+    "tags": ["CUET", "DU", "Arts", "Commerce", "BSc"]
+  },
+  {
+    "id": "vid_4",
+    "title": "KEAM & State Entrance Exams Guidance for Kerala Students",
+    "exam": "KEAM",
+    "stream": "Engineering & Pharmacy",
+    "youtube_url": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    "thumbnail": "https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+    "duration": "8 mins",
+    "summary": "Understanding KEAM normalization process, CEE option registration portal (CAP), govt vs merit seats, and fee structure.",
+    "tags": ["KEAM", "Kerala", "CEE", "Engineering"]
+  },
+  {
+    "id": "vid_5",
+    "title": "High Scope Careers Beyond Engineering & Medicine after 12th",
+    "exam": "General Career Guidance",
+    "stream": "All Streams",
+    "youtube_url": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    "thumbnail": "https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+    "duration": "14 mins",
+    "summary": "Exploring emerging fields: Data Analytics, AI & UX Design, Chartered Accountancy (CA), Commercial Pilot, Integrated Law (CLAT), and Hotel Management.",
+    "tags": ["Career Scope", "Design", "CA", "Law", "Parents"]
+  }
+]

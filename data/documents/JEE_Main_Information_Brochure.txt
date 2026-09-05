@@ -1,0 +1,26 @@
+SECTION 1: OVERVIEW OF JEE MAIN & ADVANCED EXAMS
+JEE Main (Joint Entrance Examination Main) is the premier national-level engineering entrance examination conducted by the National Testing Agency (NTA) in India.
+It serves as the gateway for admission into Bachelor of Technology (B.Tech), Bachelor of Engineering (B.E), B.Arch, and B.Planning programs across National Institutes of Technology (NITs), Indian Institutes of Information Technology (IIITs), Centrally Funded Technical Institutes (CFTIs), and several top State Universities.
+
+SECTION 2: ELIGIBILITY CRITERIA
+1. Educational Qualification: Candidates must have passed Class 12th or equivalent examination with Physics, Chemistry, and Mathematics (PCM).
+2. Qualifying Marks: For admission to NITs/IIITs/CFTIs, candidates must secure at least 75% aggregate marks in Class 12th examination (65% for SC/ST/PwD candidates) OR be in the top 20 percentile of their respective Class 12 board examination.
+3. Age Limit: There is no age limit for candidates appearing in JEE Main.
+4. Attempts: Candidates can appear in JEE Main for 3 consecutive years after passing Class 12th.
+
+SECTION 3: EXAM PATTERN & MARKING SCHEME
+- Mode of Exam: Computer Based Test (CBT).
+- Total Questions: 90 Questions (30 each in Physics, Chemistry, Mathematics). Candidates need to attempt 75 questions (25 in each subject).
+- Marking Scheme: +4 marks for correct answers, -1 mark for wrong answers in Multiple Choice Questions (MCQs) and Numerical Value Questions.
+- Total Score: 300 Marks. Duration: 3 Hours (180 Minutes).
+
+SECTION 4: CUTOFFS & TOP BRANCHES
+Top B.Tech branches in demand:
+1. Computer Science and Engineering (CSE) - Highest cutoffs, average placement salary ranges from 12 LPA to 45 LPA.
+2. Artificial Intelligence & Data Science (AI/DS) - Rapidly growing demand in tech sectors.
+3. Electronics & Communication Engineering (ECE) - High scope in core semiconductor, telecom, and software domain.
+4. Electrical Engineering (EE) & Mechanical Engineering (ME).
+5. Aerospace & Robotics Engineering.
+
+SECTION 5: JEE ADVANCED & IIT ADMISSIONS
+The top 2,50,000 rank holders in JEE Main qualify to write JEE Advanced, which is conducted by one of the 7 zonal IITs for admission to the 23 Indian Institutes of Technology (IITs).
