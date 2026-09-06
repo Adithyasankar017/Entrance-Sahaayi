@@ -208,11 +208,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (role === "Admin") {
             adminPanelBtn.classList.remove("hidden");
+            fetchDBStats();
+            switchScreen(adminScreen);
         } else {
             adminPanelBtn.classList.add("hidden");
+            switchScreen(landingScreen);
         }
-
-        switchScreen(landingScreen);
         applyLanguage();
     }
 
@@ -228,7 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.getElementById("backToLandingFromExam").addEventListener("click", () => switchScreen(landingScreen));
-    document.getElementById("backToLandingFromAdmin").addEventListener("click", () => switchScreen(landingScreen));
+    document.getElementById("backToLandingFromAdmin").addEventListener("click", () => switchScreen(loginScreen));
 
     function switchScreen(targetScreen) {
         [loginScreen, landingScreen, examDetailScreen, adminScreen].forEach(s => s.classList.add("hidden"));
