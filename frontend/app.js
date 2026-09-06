@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentExamContext = null;
     let currentLanguage = "en-IN";
     let uploadedVideos = [];
+    let activeSpeech = null;
     let adminPasscode = "";
     let isRecording = false;
     let recognition = null;
@@ -468,7 +469,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
         let audioBtnHtml = "";
         if (isBot) {
-            audioBtnHtml = `<button class="audio-play-btn" onclick="speakText(\`${escapeQuotes(text)}\`)"><i class="fa-solid fa-volume-high"></i> ${t("listen")}</button>`;
+            const safeText = escapeQuotes(text);
+            audioBtnHtml = `
+                <div class="audio-controls" aria-label="Voice response controls">
+                    <button class="audio-play-btn" type="button" onclick="speakText(\`${safeText}\`, this)" title="Play or resume response">
+                        <i class="fa-solid fa-play"></i> ${t("listen")}
+                    </button>
+                    <button class="audio-pause-btn" type="button" onclick="pauseSpeech(this)" title="Pause response" disabled>
+                        <i class="fa-solid fa-pause"></i> Pause
+                    </button>
+                    <button class="audio-restart-btn" type="button" onclick="restartSpeech(this, \`${safeText}\`)" title="Play response from beginning">
+                        <i class="fa-solid fa-rotate-left"></i> From Beginning
+                    </button>
+                </div>`;
         }
 
         msgDiv.innerHTML = `
@@ -549,15 +562,64 @@ document.addEventListener("DOMContentLoaded", () => {
         if (voiceBanner) voiceBanner.classList.add("hidden");
     }
 
-    window.speakText = function(text) {
+    window.speakText = function(text, button) {
         if ('speechSynthesis' in window) {
+            if (activeSpeech && activeSpeech.button === button && window.speechSynthesis.paused) {
+                window.speechSynthesis.resume();
+                setSpeechControls(activeSpeech, true);
+                return;
+            }
+
+            if (activeSpeech) resetSpeechControls(activeSpeech);
             window.speechSynthesis.cancel();
             const cleanText = text.replace(/[*#_`]/g, '');
             const utterance = new SpeechSynthesisUtterance(cleanText);
             utterance.lang = currentLanguage;
+            const pauseButton = button.parentElement.querySelector(".audio-pause-btn");
+            const speech = { button, pauseButton, utterance };
+            activeSpeech = speech;
+            setSpeechControls(speech, true);
+            utterance.onend = () => resetSpeechControls(speech);
+            utterance.onerror = () => resetSpeechControls(speech);
             window.speechSynthesis.speak(utterance);
         }
     };
+
+    window.pauseSpeech = function(button) {
+        if (activeSpeech && activeSpeech.pauseButton === button && window.speechSynthesis.speaking) {
+            window.speechSynthesis.pause();
+            setSpeechControls(activeSpeech, false);
+        }
+    };
+
+    window.restartSpeech = function(button, text) {
+        const controls = button.parentElement;
+        const playButton = controls.querySelector(".audio-play-btn");
+        if (playButton) {
+            if (activeSpeech) resetSpeechControls(activeSpeech);
+            window.speechSynthesis.cancel();
+            speakText(text, playButton);
+        }
+    };
+
+    function setSpeechControls(speech, isPlaying) {
+        if (!speech || !speech.button || !speech.pauseButton) return;
+        speech.button.disabled = false;
+        speech.button.innerHTML = isPlaying
+            ? '<i class="fa-solid fa-play"></i> Playing'
+            : '<i class="fa-solid fa-play"></i> Resume';
+        speech.pauseButton.disabled = !isPlaying;
+    }
+
+    function resetSpeechControls(speech) {
+        if (!speech) return;
+        if (speech.button) {
+            speech.button.disabled = false;
+            speech.button.innerHTML = `<i class="fa-solid fa-play"></i> ${t("listen")}`;
+        }
+        if (speech.pauseButton) speech.pauseButton.disabled = true;
+        if (activeSpeech === speech) activeSpeech = null;
+    }
 
     // -------------------------------------------------------------
     // 5. ADMIN CONTROL PANEL LOGIC (PROGRAMMER ROLE ONLY)
@@ -688,6 +750,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function escapeQuotes(str) {
-        return str.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, ' ');
+        return str.replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, ' ');
     }
 });

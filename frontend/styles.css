@@ -785,6 +785,12 @@ body.admin-mode #landingScreen {
 .modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 999; }
 .modal-content { background: var(--bg-card); border: 1px solid var(--bg-card-border); border-radius: var(--radius-lg); padding: 28px; width: 90%; max-width: 400px; text-align: center; }
 .modal-content input { width: 100%; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--bg-card-border); padding: 12px; border-radius: var(--radius-sm); color: #fff; font-size: 0.9rem; margin: 16px 0; outline: none; }
+
+.audio-controls { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+.audio-play-btn, .audio-pause-btn { border: 1px solid var(--bg-card-border); border-radius: var(--radius-sm); padding: 7px 10px; color: var(--text-primary); background: rgba(37, 99, 235, 0.2); cursor: pointer; font-size: 0.78rem; }
+.audio-pause-btn { background: rgba(100, 116, 139, 0.28); }
+.audio-restart-btn { border: 1px solid var(--bg-card-border); border-radius: var(--radius-sm); padding: 7px 10px; color: var(--text-primary); background: rgba(13, 148, 136, 0.22); cursor: pointer; font-size: 0.78rem; }
+.audio-play-btn:disabled, .audio-pause-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; }
 .btn-secondary { background: rgba(255, 255, 255, 0.1); border: none; color: #fff; padding: 10px 16px; border-radius: var(--radius-sm); cursor: pointer; }
 .btn-primary { background: var(--accent-blue); border: none; color: #fff; padding: 10px 16px; border-radius: var(--radius-sm); cursor: pointer; }
