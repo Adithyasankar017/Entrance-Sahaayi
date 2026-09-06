@@ -110,7 +110,7 @@ class RAGSystem:
         self.faq_tfidf_matrix = self.faq_vectorizer.fit_transform(faq_questions)
         return new_faq
 
-    def query(self, user_query: str, persona: str = "Student", exam_context: Optional[str] = None, top_k: int = 3) -> Dict[str, Any]:
+    def query(self, user_query: str, persona: str = "Student", exam_context: Optional[str] = None, language: str = "en-IN", top_k: int = 3) -> Dict[str, Any]:
         """
         Executes strictly grounded query retrieval pipeline:
         1. Checks FAQ Cache for short-circuit matching.
@@ -120,7 +120,7 @@ class RAGSystem:
         query_text = user_query.strip()
         if not query_text:
             return {
-                "answer": "Please ask a specific question about entrance exams, eligibility, cutoffs, or career options.",
+                "answer": self._translate("Please ask a specific question about entrance exams, eligibility, cutoffs, or career options.", language),
                 "sources": [],
                 "confidence": 0.0,
                 "is_faq_short_circuit": False
@@ -138,7 +138,7 @@ class RAGSystem:
 
             if best_faq_sim >= 0.52:
                 faq_match = self.faqs[best_faq_idx]
-                synthesized = self._synthesize_response(faq_match["answer"], persona, is_faq=True, exam=exam_context)
+                synthesized = self._synthesize_response(faq_match["answer"], persona, is_faq=True, exam=exam_context, language=language)
                 return {
                     "answer": synthesized,
                     "sources": [{
@@ -154,7 +154,7 @@ class RAGSystem:
         # 2. Vector Document Search
         if self.tfidf_matrix is None or not self.chunks:
             return {
-                "answer": "⚠️ *Strict Document Grounding Notice:* No official brochures have been uploaded yet to answer this query. Please ask the administrator to upload official exam PDFs.",
+                "answer": self._translate("⚠️ *Strict Document Grounding Notice:* No official brochures have been uploaded yet to answer this query. Please ask the administrator to upload official exam PDFs.", language),
                 "sources": [],
                 "confidence": 0.0,
                 "is_faq_short_circuit": False
@@ -191,7 +191,7 @@ class RAGSystem:
         # 3. Strict Grounding Verification
         if not retrieved_texts:
             return {
-                "answer": "ℹ️ **Strict Grounding Notice:** The official brochures and documents currently in our knowledge base do not contain specific information regarding your query. Entrance Sahaayi only provides verified details directly extracted from official exam guides.",
+                "answer": self._translate("ℹ️ **Strict Grounding Notice:** The official brochures and documents currently in our knowledge base do not contain specific information regarding your query. Entrance Sahaayi only provides verified details directly extracted from official exam guides.", language),
                 "sources": [],
                 "confidence": 0.0,
                 "is_faq_short_circuit": False
@@ -199,7 +199,7 @@ class RAGSystem:
 
         avg_confidence = round(float(np.mean([s["relevance"] for s in retrieved_sources])), 1)
         raw_context = "\n\n---\n\n".join(retrieved_texts)
-        synthesized_answer = self._synthesize_response(raw_context, persona, is_faq=False, exam=exam_context)
+        synthesized_answer = self._synthesize_response(raw_context, persona, is_faq=False, exam=exam_context, language=language)
 
         return {
             "answer": synthesized_answer,
@@ -314,25 +314,40 @@ class RAGSystem:
         result["detected_percentage"] = class12_marks
         return result
 
-    def _synthesize_response(self, context: str, persona: str, is_faq: bool, exam: Optional[str] = None) -> str:
+    def _synthesize_response(self, context: str, persona: str, is_faq: bool, exam: Optional[str] = None, language: str = "en-IN") -> str:
         clean_context = context.strip()
         exam_hdr = f" [{exam}]" if exam else ""
 
+        labels = {
+            "hi-IN": ("अभिभावक मार्गदर्शन", "अभिभावकों के लिए मुख्य कार्य", "आधिकारिक पोर्टल पर पंजीकरण और काउंसलिंग की अंतिम तिथियां जांचें।", "संस्थान की फीस संरचना जांचें।", "विद्यार्थी की रुचि का समर्थन करें और तनावमुक्त पढ़ाई में मदद करें।", "विद्यार्थी के लिए मुख्य बातें", "आधिकारिक ब्रोशर संदर्भ: सामग्री केवल आधिकारिक प्रवेश मार्गदर्शिका से ली गई है।"),
+            "ml-IN": ("രക്ഷിതാക്കള്‍ക്കുള്ള മാര്‍ഗ്ഗനിര്‍ദ്ദേശം", "രക്ഷിതാക്കള്‍ക്കുള്ള പ്രധാന കാര്യങ്ങള്‍", "ഔദ്യോഗിക പോര്‍ട്ടലിലെ രജിസ്ട്രേഷന്‍, കൗണ്‍സലിംഗ് അവസാന തീയതികള്‍ പരിശോധിക്കുക.", "സ്ഥാപനങ്ങളുടെ ഫീസ് ഘടന പരിശോധിക്കുക.", "വിദ്യാര്‍ത്ഥിയുടെ താല്‍പര്യത്തെ പിന്തുണച്ച് സമ്മര്‍ദ്ദരഹിതമായ പഠനാന്തരീക്ഷം ഒരുക്കുക.", "വിദ്യാര്‍ത്ഥിക്കുള്ള പ്രധാന കാര്യങ്ങള്‍", "ഉള്ളടക്കം ഔദ്യോഗിക പ്രവേശന മാര്‍ഗ്ഗനിര്‍ദ്ദേശങ്ങളില്‍ നിന്ന് മാത്രം എടുത്തതാണ്."),
+            "ta-IN": ("பெற்றோர் வழிகாட்டுதல்", "பெற்றோருக்கான முக்கிய செயல்கள்", "அதிகாரப்பூர்வ இணையதளங்களில் பதிவு மற்றும் கலந்தாய்வு கடைசி தேதிகளை சரிபார்க்கவும்.", "கல்வி நிறுவனங்களின் கட்டண அமைப்பை சரிபார்க்கவும்.", "மாணவரின் விருப்பத்தை ஆதரித்து மன அழுத்தமில்லாத படிப்பு சூழலை உருவாக்கவும்.", "மாணவருக்கான முக்கிய குறிப்புகள்", "தகவல்கள் அதிகாரப்பூர்வ சேர்க்கை வழிகாட்டிகளில் இருந்து மட்டுமே எடுக்கப்பட்டவை."),
+            "te-IN": ("తల్లిదండ్రుల మార్గదర్శకం", "తల్లిదండ్రుల కోసం ముఖ్య చర్యలు", "అధికారిక పోర్టల్స్‌లో నమోదు మరియు కౌన్సెలింగ్ చివరి తేదీలను తనిఖీ చేయండి.", "సంస్థల ఫీజు నిర్మాణాన్ని తనిఖీ చేయండి.", "విద్యార్థి ఆసక్తికి మద్దతు ఇచ్చి ఒత్తిడి లేని చదువు వాతావరణాన్ని కల్పించండి.", "విద్యార్థి ముఖ్యాంశాలు", "సమాచారం అధికారిక ప్రవేశ మార్గదర్శకాల నుండి మాత్రమే తీసుకోబడింది.")
+        }.get(language, ("Parent Guidance Briefing", "Key Action Points for Parents", "Verify registration & counseling deadlines on official portals.", "Check institutional fee structures (Govt vs Management seats).", "Support your child's stream interest and maintain stress-free study routine.", "Student Key Takeaways", "Official Brochure Reference: Content extracted strictly from official entrance guide documents."))
+
         if persona.lower() == "parent":
             return (
-                f"👨‍👩‍👧 **Parent Guidance Briefing{exam_hdr}:**\n\n"
+                f"👨‍👩‍👧 **{labels[0]}{exam_hdr}:**\n\n"
                 f"{clean_context}\n\n"
-                "💡 **Key Action Points for Parents:**\n"
-                "• Verify registration & counseling deadlines on official portals.\n"
-                "• Check institutional fee structures (Govt vs Management seats).\n"
-                "• Support your child's stream interest and maintain stress-free study routine."
+                f"💡 **{labels[1]}:**\n"
+                f"• {labels[2]}\n• {labels[3]}\n• {labels[4]}"
             )
         else:
             return (
-                f"🎓 **Student Key Takeaways{exam_hdr}:**\n\n"
+                f"🎓 **{labels[5]}{exam_hdr}:**\n\n"
                 f"{clean_context}\n\n"
-                "📌 *Official Brochure Reference: Content extracted strictly from official entrance guide documents.*"
+                f"📌 *{labels[6]}*"
             )
+
+    def _translate(self, text: str, language: str) -> str:
+        translations = {
+            "hi-IN": {
+                "Please ask a specific question about entrance exams, eligibility, cutoffs, or career options.": "कृपया प्रवेश परीक्षाओं, पात्रता, कटऑफ या करियर विकल्पों के बारे में स्पष्ट प्रश्न पूछें।",
+                "⚠️ *Strict Document Grounding Notice:* No official brochures have been uploaded yet to answer this query. Please ask the administrator to upload official exam PDFs.": "⚠️ *सख्त दस्तावेज़ सूचना:* इस प्रश्न का उत्तर देने के लिए कोई आधिकारिक ब्रोशर अपलोड नहीं है। कृपया व्यवस्थापक से आधिकारिक परीक्षा PDF अपलोड करने को कहें।",
+                "ℹ️ **Strict Grounding Notice:** The official brochures and documents currently in our knowledge base do not contain specific information regarding your query. Entrance Sahaayi only provides verified details directly extracted from official exam guides.": "ℹ️ **सख्त दस्तावेज़ सूचना:** वर्तमान आधिकारिक ब्रोशर में आपके प्रश्न की विशेष जानकारी नहीं है। Entrance Sahaayi केवल आधिकारिक परीक्षा मार्गदर्शिकाओं से निकली सत्यापित जानकारी देता है।"
+            }
+        }
+        return translations.get(language, {}).get(text, text)
 
     def get_stats(self) -> Dict[str, Any]:
         file_counts = {}

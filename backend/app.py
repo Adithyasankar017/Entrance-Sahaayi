@@ -39,6 +39,7 @@ class ChatRequest(BaseModel):
     query: str
     persona: Optional[str] = "Student"
     exam_context: Optional[str] = None
+    language: Optional[str] = "en-IN"
 
 class ProfileRequest(BaseModel):
     stream: str
@@ -84,7 +85,8 @@ def chat_endpoint(req: ChatRequest):
     result = rag.query(
         user_query=req.query,
         persona=req.persona,
-        exam_context=req.exam_context
+        exam_context=req.exam_context,
+        language=req.language or "en-IN"
     )
     return result
 

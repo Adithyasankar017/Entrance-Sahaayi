@@ -54,6 +54,10 @@ body {
     display: none !important;
 }
 
+.hidden {
+    display: none !important;
+}
+
 /* SCREEN 1: LOGIN / ROLE SELECTION */
 .login-box {
     background: var(--bg-card);

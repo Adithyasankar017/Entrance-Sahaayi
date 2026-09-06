@@ -9,6 +9,38 @@ document.addEventListener("DOMContentLoaded", () => {
     let isRecording = false;
     let recognition = null;
 
+    const UI_TRANSLATIONS = {
+        "en-IN": { portalSubtitle: "AI-Based Career Guidance & Entrance Exam Assistant after Class 12", studentLogin: "Student Login", parentLogin: "Parent Login", adminLogin: "Admin / Programmer", studentDescription: "Explore entrance exams, watch explainer video briefings, and chat with AI for career paths.", parentDescription: "Review eligibility criteria, college cost summaries, and guidance for your child.", adminDescription: "Upload official entrance PDFs, brochures, and manage vector knowledge base.", continueStudent: "Continue as Student", continueParent: "Continue as Parent", adminPortal: "Admin Portal", appSubtitle: "AI Career Guidance Assistant", welcome: role => `Welcome, ${role}!`, welcomeIntro: "Navigating entrance exams and career choices after Class 12 made easy. Choose how you would like to proceed today:", path1: "Path 1: Finalized Entrance Selection", path2: "Path 2: Undecided / Career Guidance", examPrompt: "I Know Which Entrance Exam I Want to Pursue", examDescription: "If you have already decided on an entrance exam, select it from the dropdown list below to view the explainer video briefing and ask any queries to the AI assistant.", guidancePrompt: "Help Me Choose the Right Entrance Exam & Career Path", guidanceDescription: "Not sure which entrance exam suits your academic background and interests? Upload your marksheet or fill in your subject marks below so our AI Assistant can analyze your profile and recommend suitable entrance exams.", uploadProfile: "1. Upload Marksheet or Enter Profile", recommendations: "2. AI Entrance Recommendations", assistant: "AI Assistant", askAbout: "Ask Queries About", send: "Send", listen: "Listen", you: "You", typing: exam => `Searching ingested brochures for ${exam || "exam"}...`, greeting: exam => `Have further questions after reviewing the video briefing for ${exam}? Ask me anything about eligibility criteria, subject weightage, seat allocation, or rank calculation!`, languageName: "English" },
+        "hi-IN": { portalSubtitle: "कक्षा 12 के बाद AI करियर मार्गदर्शन और प्रवेश परीक्षा सहायक", studentLogin: "विद्यार्थी लॉगिन", parentLogin: "अभिभावक लॉगिन", adminLogin: "व्यवस्थापक / प्रोग्रामर", studentDescription: "प्रवेश परीक्षाएं देखें, वीडियो जानकारी प्राप्त करें और करियर के लिए AI से बात करें।", parentDescription: "पात्रता, कॉलेज शुल्क और अपने बच्चे के लिए मार्गदर्शन देखें।", adminDescription: "आधिकारिक प्रवेश PDF और ब्रोशर अपलोड करें तथा ज्ञान आधार प्रबंधित करें।", continueStudent: "विद्यार्थी के रूप में जारी रखें", continueParent: "अभिभावक के रूप में जारी रखें", adminPortal: "व्यवस्थापक पोर्टल", appSubtitle: "AI करियर मार्गदर्शन सहायक", welcome: role => `स्वागत है, ${role}!`, welcomeIntro: "कक्षा 12 के बाद प्रवेश परीक्षाओं और करियर विकल्पों को आसान बनाएं। आज आगे बढ़ने का तरीका चुनें:", path1: "मार्ग 1: प्रवेश परीक्षा तय है", path2: "मार्ग 2: करियर मार्गदर्शन", examPrompt: "मुझे पता है कि मुझे कौन सी प्रवेश परीक्षा देनी है", examDescription: "अपनी परीक्षा चुनें और वीडियो जानकारी देखें तथा AI सहायक से प्रश्न पूछें।", guidancePrompt: "सही प्रवेश परीक्षा और करियर चुनने में मदद करें", guidanceDescription: "अपनी अंकतालिका अपलोड करें या अंक भरें ताकि AI सहायक आपके लिए उपयुक्त परीक्षाओं की सिफारिश कर सके।", uploadProfile: "1. अंकतालिका अपलोड करें या प्रोफ़ाइल भरें", recommendations: "2. AI प्रवेश परीक्षा सिफारिशें", assistant: "AI सहायक", askAbout: "इसके बारे में प्रश्न पूछें", send: "भेजें", listen: "सुनें", you: "आप", typing: exam => `${exam || "परीक्षा"} के आधिकारिक ब्रोशर खोजे जा रहे हैं...`, greeting: exam => `${exam} के बारे में और प्रश्न हैं? पात्रता, विषय भार, सीट आवंटन या रैंक गणना के बारे में पूछें!`, languageName: "हिंदी" },
+        "ml-IN": { portalSubtitle: "പ്ലസ് ടുവിന് ശേഷമുള്ള AI കരിയര്‍ മാര്‍ഗ്ഗനിര്‍ദ്ദേശവും പ്രവേശന പരീക്ഷാ സഹായിയും", studentLogin: "വിദ്യാര്‍ത്ഥി ലോഗിന്‍", parentLogin: "രക്ഷിതാക്കളുടെ ലോഗിന്‍", adminLogin: "അഡ്മിന്‍ / പ്രോഗ്രാമര്‍", studentDescription: "പ്രവേശന പരീക്ഷകള്‍ കണ്ടെത്തുകയും AI-യുമായി കരിയര്‍ ചര്‍ച്ച ചെയ്യുകയും ചെയ്യുക.", parentDescription: "യോഗ്യതയും കോളേജ് ഫീസ് വിവരങ്ങളും പരിശോധിക്കുക.", adminDescription: "ഔദ്യോഗിക പ്രവേശന PDF-കളും ബ്രോഷറുകളും അപ്‌ലോഡ് ചെയ്യുക.", continueStudent: "വിദ്യാര്‍ത്ഥിയായി തുടരുക", continueParent: "രക്ഷിതാവായി തുടരുക", adminPortal: "അഡ്മിന്‍ പോര്‍ട്ടല്‍", appSubtitle: "AI കരിയര്‍ മാര്‍ഗ്ഗനിര്‍ദ്ദേശ സഹായി", welcome: role => `സ്വാഗതം, ${role}!`, welcomeIntro: "പ്രവേശന പരീക്ഷകളും കരിയര്‍ തിരഞ്ഞെടുപ്പുകളും എളുപ്പമാക്കാം.", path1: "വഴി 1: പ്രവേശന പരീക്ഷ തിരഞ്ഞെടുത്തു", path2: "വഴി 2: കരിയര്‍ മാര്‍ഗ്ഗനിര്‍ദ്ദേശം", examPrompt: "എനിക്ക് തിരഞ്ഞെടുക്കേണ്ട പ്രവേശന പരീക്ഷ അറിയാം", examDescription: "ഒരു പരീക്ഷ തിരഞ്ഞെടുത്ത് വീഡിയോ വിവരങ്ങളും AI സഹായവും നേടുക.", guidancePrompt: "ശരിയായ പ്രവേശന പരീക്ഷയും കരിയറും തിരഞ്ഞെടുക്കാന്‍ സഹായിക്കുക", guidanceDescription: "നിങ്ങളുടെ മാര്‍ക്ക് ലിസ്റ്റ് അപ്‌ലോഡ് ചെയ്യുകയോ മാര്‍ക്കുകള്‍ നല്‍കുകയോ ചെയ്യുക.", uploadProfile: "1. മാര്‍ക്ക് ലിസ്റ്റ് അപ്‌ലോഡ് ചെയ്യുക അല്ലെങ്കില്‍ പ്രൊഫൈല്‍ നല്‍കുക", recommendations: "2. AI പ്രവേശന ശുപാര്‍ശകള്‍", assistant: "AI സഹായി", askAbout: "ഇതിനെക്കുറിച്ച് ചോദിക്കുക", send: "അയയ്ക്കുക", listen: "കേള്‍ക്കുക", you: "നിങ്ങള്‍", typing: exam => `${exam || "പരീക്ഷ"}യുടെ ഔദ്യോഗിക ബ്രോഷറുകള്‍ തിരയുന്നു...`, greeting: exam => `${exam}യെക്കുറിച്ച് കൂടുതല്‍ ചോദ്യങ്ങളുണ്ടോ? യോഗ്യത, സീറ്റ് അലോട്ട്മെന്റ്, റാങ്ക് കണക്കാക്കല്‍ എന്നിവ ചോദിക്കാം!`, languageName: "മലയാളം" },
+        "ta-IN": { portalSubtitle: "12ஆம் வகுப்புக்குப் பிறகு AI தொழில் வழிகாட்டி மற்றும் நுழைவுத் தேர்வு உதவி", studentLogin: "மாணவர் உள்நுழைவு", parentLogin: "பெற்றோர் உள்நுழைவு", adminLogin: "நிர்வாகி / நிரலாளர்", studentDescription: "நுழைவுத் தேர்வுகளை ஆராய்ந்து AI-யிடம் தொழில் வழிகாட்டுதலைப் பெறுங்கள்.", parentDescription: "தகுதி மற்றும் கல்லூரி கட்டணத் தகவல்களைப் பாருங்கள்.", adminDescription: "அதிகாரப்பூர்வ நுழைவுத் தேர்வு PDF-களைப் பதிவேற்றுங்கள்.", continueStudent: "மாணவராகத் தொடர்க", continueParent: "பெற்றோராகத் தொடர்க", adminPortal: "நிர்வாகி போர்டல்", appSubtitle: "AI தொழில் வழிகாட்டி", welcome: role => `வரவேற்கிறோம், ${role}!`, welcomeIntro: "நுழைவுத் தேர்வுகளையும் தொழில் தேர்வுகளையும் எளிதாக்குங்கள்.", path1: "வழி 1: நுழைவுத் தேர்வு முடிவு செய்யப்பட்டது", path2: "வழி 2: தொழில் வழிகாட்டுதல்", examPrompt: "எந்த நுழைவுத் தேர்வை எழுத வேண்டும் என்று எனக்குத் தெரியும்", examDescription: "தேர்வைத் தேர்ந்தெடுத்து வீடியோ விளக்கத்தையும் AI உதவியையும் பெறுங்கள்.", guidancePrompt: "சரியான நுழைவுத் தேர்வு மற்றும் தொழிலைத் தேர்ந்தெடுக்க உதவுங்கள்", guidanceDescription: "மதிப்பெண் பட்டியலைப் பதிவேற்றுங்கள் அல்லது மதிப்பெண்களை உள்ளிடுங்கள்.", uploadProfile: "1. மதிப்பெண் பட்டியலைப் பதிவேற்றவும் அல்லது சுயவிவரம் உள்ளிடவும்", recommendations: "2. AI நுழைவுத் தேர்வு பரிந்துரைகள்", assistant: "AI உதவியாளர்", askAbout: "இதுபற்றி கேளுங்கள்", send: "அனுப்பு", listen: "கேளுங்கள்", you: "நீங்கள்", typing: exam => `${exam || "தேர்வு"} அதிகாரப்பூர்வ விளக்கங்கள் தேடப்படுகின்றன...`, greeting: exam => `${exam} பற்றி மேலும் கேள்விகள் உள்ளதா? தகுதி, இட ஒதுக்கீடு அல்லது தரவரிசை பற்றி கேளுங்கள்!`, languageName: "தமிழ்" },
+        "te-IN": { portalSubtitle: "12వ తరగతి తర్వాత AI కెరీర్ మార్గదర్శకం మరియు ప్రవేశ పరీక్ష సహాయకుడు", studentLogin: "విద్యార్థి లాగిన్", parentLogin: "తల్లిదండ్రుల లాగిన్", adminLogin: "అడ్మిన్ / ప్రోగ్రామర్", studentDescription: "ప్రవేశ పరీక్షలను అన్వేషించి AIతో కెరీర్ మార్గదర్శకం పొందండి.", parentDescription: "అర్హత మరియు కళాశాల ఫీజు వివరాలను చూడండి.", adminDescription: "అధికారిక ప్రవేశ పరీక్ష PDFలను అప్‌లోడ్ చేయండి.", continueStudent: "విద్యార్థిగా కొనసాగండి", continueParent: "తల్లిదండ్రిగా కొనసాగండి", adminPortal: "అడ్మిన్ పోర్టల్", appSubtitle: "AI కెరీర్ మార్గదర్శక సహాయకుడు", welcome: role => `స్వాగతం, ${role}!`, welcomeIntro: "ప్రవేశ పరీక్షలు మరియు కెరీర్ ఎంపికలను సులభం చేసుకోండి.", path1: "మార్గం 1: ప్రవేశ పరీక్ష నిర్ణయించబడింది", path2: "మార్గం 2: కెరీర్ మార్గదర్శకం", examPrompt: "ఏ ప్రవేశ పరీక్ష రాయాలో నాకు తెలుసు", examDescription: "పరీక్షను ఎంచుకుని వీడియో వివరణ మరియు AI సహాయం పొందండి.", guidancePrompt: "సరైన ప్రవేశ పరీక్ష మరియు కెరీర్‌ను ఎంచుకోవడానికి సహాయం చేయండి", guidanceDescription: "మీ మార్కుల పట్టికను అప్‌లోడ్ చేయండి లేదా మార్కులను నమోదు చేయండి.", uploadProfile: "1. మార్కుల పట్టికను అప్‌లోడ్ చేయండి లేదా ప్రొఫైల్ నమోదు చేయండి", recommendations: "2. AI ప్రవేశ పరీక్ష సిఫార్సులు", assistant: "AI సహాయకుడు", askAbout: "దీని గురించి ప్రశ్నలు అడగండి", send: "పంపండి", listen: "వినండి", you: "మీరు", typing: exam => `${exam || "పరీక్ష"} అధికారిక బ్రోచర్లను వెతుకుతున్నాము...`, greeting: exam => `${exam} గురించి మరిన్ని ప్రశ్నలు ఉన్నాయా? అర్హత, సీట్ల కేటాయింపు లేదా ర్యాంక్ గురించి అడగండి!`, languageName: "తెలుగు" }
+    };
+
+    function t(key, ...args) {
+        const value = (UI_TRANSLATIONS[currentLanguage] || UI_TRANSLATIONS["en-IN"])[key];
+        return typeof value === "function" ? value(...args) : (value || key);
+    }
+
+    function applyLanguage() {
+        const selectors = {
+            ".portal-subtitle": "portalSubtitle", ".app-subtitle": "appSubtitle", ".hero-welcome p": "welcomeIntro",
+            ".role-card:nth-child(1) h3": "studentLogin", ".role-card:nth-child(2) h3": "parentLogin", ".role-card:nth-child(3) h3": "adminLogin",
+            ".role-card:nth-child(1) p": "studentDescription", ".role-card:nth-child(2) p": "parentDescription", ".role-card:nth-child(3) p": "adminDescription",
+            ".role-card:nth-child(1) button": "continueStudent", ".role-card:nth-child(2) button": "continueParent", ".role-card:nth-child(3) button": "adminPortal",
+            ".pathway-section:nth-child(1) .section-badge": "path1", ".pathway-section:nth-child(2) .section-badge": "path2", ".pathway-section:nth-child(1) h3": "examPrompt", ".pathway-section:nth-child(1) .section-header-box p": "examDescription",
+            ".pathway-section:nth-child(2) h3": "guidancePrompt", ".pathway-section:nth-child(2) .section-header-box p": "guidanceDescription", ".input-card h4": "uploadProfile", ".output-card h4": "recommendations",
+            ".send-btn span": "send"
+        };
+        Object.entries(selectors).forEach(([selector, key]) => {
+            const element = document.querySelector(selector);
+            if (element) element.textContent = t(key);
+        });
+        if (welcomeHeading && currentUserRole) welcomeHeading.textContent = t("welcome", currentUserRole);
+        if (currentLangLabel) currentLangLabel.textContent = t("languageName");
+        document.documentElement.lang = currentLanguage;
+    }
+
     // Exam Summaries Catalog for Briefings
     const EXAM_SUMMARIES = {
         "JEE Main": {
@@ -82,6 +114,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const examDetailScreen = document.getElementById("examDetailScreen");
     const adminScreen = document.getElementById("adminScreen");
     const adminPasscodeModal = document.getElementById("adminPasscodeModal");
+    const adminPasscodeInput = document.getElementById("adminPasscodeInput");
+    const submitAdminPasscode = document.getElementById("submitAdminPasscode");
 
     // Header & Role Elements
     const activeRoleBadge = document.getElementById("activeRoleBadge");
@@ -118,6 +152,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const currentLangLabel = document.getElementById("currentLangLabel");
     const cancelVoiceBtn = document.getElementById("cancelVoiceBtn");
 
+    applyLanguage();
+
     // Admin Elements
     const dropZone = document.getElementById("dropZone");
     const pdfFileInput = document.getElementById("pdfFileInput");
@@ -135,6 +171,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const role = card.dataset.role;
             if (role === "Admin") {
                 adminPasscodeModal.classList.remove("hidden");
+                adminPasscodeInput.value = "";
+                adminPasscodeInput.focus();
             } else {
                 loginUser(role);
             }
@@ -145,15 +183,22 @@ document.addEventListener("DOMContentLoaded", () => {
         adminPasscodeModal.classList.add("hidden");
     });
 
-    document.getElementById("submitAdminPasscode").addEventListener("click", () => {
-        const pass = document.getElementById("adminPasscodeInput").value;
+    function authenticateAdmin() {
+        const pass = adminPasscodeInput.value.trim();
         if (pass === "admin123") {
             adminPasscode = pass;
             adminPasscodeModal.classList.add("hidden");
             loginUser("Admin");
         } else {
-            alert("Invalid Admin Passcode. Default is 'admin123'.");
+            adminPasscodeInput.value = "";
+            adminPasscodeInput.focus();
+            alert("Invalid Admin Passcode. Please try again.");
         }
+    }
+
+    submitAdminPasscode.addEventListener("click", authenticateAdmin);
+    adminPasscodeInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") authenticateAdmin();
     });
 
     function loginUser(role) {
@@ -168,6 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         switchScreen(landingScreen);
+        applyLanguage();
     }
 
     logoutBtn.addEventListener("click", () => {
@@ -231,8 +277,8 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="message bot-message">
                 <div class="avatar"><i class="fa-solid fa-robot"></i></div>
                 <div class="message-content">
-                    <div class="sender-name">Entrance Sahaayi Assistant (${currentUserRole} Mode)</div>
-                    <p>Have further questions after reviewing the video briefing for <strong>${examName}</strong>? Ask me anything about eligibility criteria, subject weightage, seat allocation, or rank calculation!</p>
+                    <div class="sender-name">Entrance Sahaayi ${t("assistant")} (${currentUserRole} Mode)</div>
+                    <p>${t("greeting", examName)}</p>
                 </div>
             </div>
         `;
@@ -371,7 +417,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: JSON.stringify({
                     query: query,
                     persona: currentUserRole || "Student",
-                    exam_context: currentExamContext
+                    exam_context: currentExamContext,
+                    language: currentLanguage
                 })
             });
 
@@ -395,7 +442,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const isBot = sender === "bot";
         const icon = isBot ? "fa-robot" : "fa-user";
-        const senderLabel = isBot ? `Entrance Sahaayi (${role || 'Student'} Mode)` : "You";
+        const senderLabel = isBot ? `Entrance Sahaayi (${role || 'Student'} Mode)` : t("you");
 
         let sourcesHtml = "";
         if (isBot && sources && sources.length > 0) {
@@ -405,7 +452,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         let audioBtnHtml = "";
         if (isBot) {
-            audioBtnHtml = `<button class="audio-play-btn" onclick="speakText(\`${escapeQuotes(text)}\`)"><i class="fa-solid fa-volume-high"></i> Listen</button>`;
+            audioBtnHtml = `<button class="audio-play-btn" onclick="speakText(\`${escapeQuotes(text)}\`)"><i class="fa-solid fa-volume-high"></i> ${t("listen")}</button>`;
         }
 
         msgDiv.innerHTML = `
@@ -427,7 +474,7 @@ document.addEventListener("DOMContentLoaded", () => {
         typingDiv.className = "message bot-message";
         typingDiv.innerHTML = `
             <div class="avatar"><i class="fa-solid fa-robot"></i></div>
-            <div class="message-content"><i class="fa-solid fa-circle-notch fa-spin"></i> Searching ingested brochures for ${currentExamContext || 'exam'}...</div>
+            <div class="message-content"><i class="fa-solid fa-circle-notch fa-spin"></i> ${t("typing", currentExamContext)}</div>
         `;
         examChatHistory.appendChild(typingDiv);
         examChatHistory.scrollTop = examChatHistory.scrollHeight;
@@ -440,6 +487,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const selectedText = speechLanguageSelect.options[speechLanguageSelect.selectedIndex].text;
         if (currentLangLabel) currentLangLabel.textContent = selectedText.split(" ")[0];
         if (recognition) recognition.lang = currentLanguage;
+        applyLanguage();
+        if (currentExamContext) {
+            const welcome = examChatHistory.querySelector(".bot-message p");
+            if (welcome) welcome.textContent = t("greeting", currentExamContext);
+        }
     });
 
     function initSpeechRecognition() {
