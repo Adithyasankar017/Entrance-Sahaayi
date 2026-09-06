@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentUserRole = null; // 'Student', 'Parent', 'Admin'
     let currentExamContext = null;
     let currentLanguage = "en-IN";
+    let uploadedVideos = [];
     let adminPasscode = "";
     let isRecording = false;
     let recognition = null;
@@ -151,8 +152,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const voiceBanner = document.getElementById("voiceBanner");
     const currentLangLabel = document.getElementById("currentLangLabel");
     const cancelVoiceBtn = document.getElementById("cancelVoiceBtn");
+    const videoUploadForm = document.getElementById("videoUploadForm");
+    const videoUploadStatus = document.getElementById("videoUploadStatus");
 
     applyLanguage();
+    loadUploadedVideos();
 
     // Admin Elements
     const dropZone = document.getElementById("dropZone");
@@ -203,6 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function loginUser(role) {
         currentUserRole = role;
+        document.body.classList.toggle("admin-mode", role === "Admin");
         activeRoleBadge.innerHTML = `<i class="fa-solid fa-user"></i> ${role} Mode`;
         welcomeHeading.textContent = `Welcome, ${role}! 👋`;
 
@@ -220,6 +225,7 @@ document.addEventListener("DOMContentLoaded", () => {
     logoutBtn.addEventListener("click", () => {
         currentUserRole = null;
         currentExamContext = null;
+        document.body.classList.remove("admin-mode");
         switchScreen(loginScreen);
     });
 
@@ -261,6 +267,8 @@ document.addEventListener("DOMContentLoaded", () => {
             videoUrl: "/static/videos/placeholder.mp4",
             summaryHtml: `<p>Official information extracted from ingested brochures.</p>`
         };
+        const uploadedVideo = uploadedVideos.slice().reverse().find(video => video.exam === examName && video.video_url);
+        const videoUrl = uploadedVideo ? uploadedVideo.video_url : info.videoUrl;
 
         detailExamTitle.textContent = examName;
         detailExamStream.textContent = info.stream;
@@ -269,9 +277,16 @@ document.addEventListener("DOMContentLoaded", () => {
         chatExamContextName.textContent = examName;
         chatExamWelcomeName.textContent = examName;
 
-        // Video Player Placeholder handling
-        videoPlaceholder.classList.remove("hidden");
-        examVideoPlayer.classList.add("hidden");
+        if (videoUrl && !videoUrl.includes("placeholder")) {
+            examVideoPlayer.src = videoUrl;
+            examVideoPlayer.classList.remove("hidden");
+            videoPlaceholder.classList.add("hidden");
+        } else {
+            examVideoPlayer.removeAttribute("src");
+            examVideoPlayer.load();
+            videoPlaceholder.classList.remove("hidden");
+            examVideoPlayer.classList.add("hidden");
+        }
 
         // Reset Chat
         examChatHistory.innerHTML = `
@@ -547,6 +562,49 @@ document.addEventListener("DOMContentLoaded", () => {
     // -------------------------------------------------------------
     // 5. ADMIN CONTROL PANEL LOGIC (PROGRAMMER ROLE ONLY)
     // -------------------------------------------------------------
+    async function loadUploadedVideos() {
+        try {
+            const res = await fetch("/api/videos");
+            if (res.ok) uploadedVideos = await res.json();
+        } catch (err) {
+            console.error("Error loading explainer videos:", err);
+        }
+    }
+
+    if (videoUploadForm) {
+        videoUploadForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const file = document.getElementById("videoFileInput").files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("title", document.getElementById("videoTitle").value);
+            formData.append("exam", document.getElementById("videoExam").value);
+            formData.append("stream", document.getElementById("videoStream").value);
+            formData.append("duration", document.getElementById("videoDuration").value);
+            formData.append("summary", document.getElementById("videoSummary").value);
+            formData.append("tags", document.getElementById("videoTags").value);
+            videoUploadStatus.textContent = "Uploading video...";
+
+            try {
+                const res = await fetch("/api/upload-video", {
+                    method: "POST",
+                    headers: { "x-admin-key": adminPasscode },
+                    body: formData
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || "Video upload failed.");
+                uploadedVideos.push(data.video);
+                videoUploadStatus.textContent = data.message;
+                videoUploadForm.reset();
+                fetchDBStats();
+            } catch (err) {
+                videoUploadStatus.textContent = err.message;
+            }
+        });
+    }
+
     if (dropZone) dropZone.addEventListener("click", () => pdfFileInput.click());
 
     if (pdfFileInput) {

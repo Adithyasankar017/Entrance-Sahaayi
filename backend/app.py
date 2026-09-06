@@ -65,6 +65,8 @@ class VideoRequest(BaseModel):
     summary: str
     tags: Optional[List[str]] = []
 
+VIDEO_EXTENSIONS = {".mp4", ".webm", ".ogg", ".mov"}
+
 def verify_admin(x_admin_key: Optional[str] = Header(None)):
     if x_admin_key != ADMIN_PASSCODE:
         raise HTTPException(status_code=403, detail="Admin authorization passcode required for Knowledge Base modification.")
@@ -176,6 +178,47 @@ def add_faq(req: FAQRequest, x_admin_key: Optional[str] = Header(None)):
 @app.get("/api/videos")
 def get_videos():
     return rag.videos
+
+@app.post("/api/upload-video")
+async def upload_video(
+    file: UploadFile = File(...),
+    title: str = Form(...),
+    exam: str = Form(...),
+    stream: str = Form(...),
+    duration: str = Form(""),
+    summary: str = Form(""),
+    tags: str = Form(""),
+    x_admin_key: Optional[str] = Header(None)
+):
+    verify_admin(x_admin_key)
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No video selected.")
+
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in VIDEO_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="Only MP4, WebM, OGG, or MOV videos are supported.")
+
+    videos_dir = os.path.join(FRONTEND_DIR, "videos")
+    os.makedirs(videos_dir, exist_ok=True)
+    safe_filename = os.path.basename(file.filename)
+    save_path = os.path.join(videos_dir, safe_filename)
+    with open(save_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    new_video = {
+        "id": f"vid_{len(rag.videos) + 1}",
+        "title": title,
+        "exam": exam,
+        "stream": stream,
+        "video_url": f"/static/videos/{safe_filename}",
+        "duration": duration,
+        "summary": summary,
+        "tags": [tag.strip() for tag in tags.split(",") if tag.strip()]
+    }
+    rag.videos.append(new_video)
+    with open(rag.videos_file, "w", encoding="utf-8") as f:
+        json.dump(rag.videos, f, indent=2)
+    return {"message": f"Video '{safe_filename}' uploaded by Admin!", "video": new_video}
 
 @app.post("/api/videos")
 def add_video(req: VideoRequest, x_admin_key: Optional[str] = Header(None)):

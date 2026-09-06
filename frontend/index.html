@@ -20,7 +20,7 @@
         <div id="loginScreen" class="screen-view active">
             <div class="login-box">
                 <div class="logo-icon-lg">
-                    <i class="fa-solid fa-graduation-cap"></i>
+                    <img src="/static/logo.png" alt="Entrance Sahaayi logo">
                 </div>
                 <h1 class="portal-title">Entrance Sahaayi</h1>
                 <p class="portal-subtitle">AI-Based Career Guidance & Entrance Exam Assistant after Class 12</p>
@@ -55,7 +55,7 @@
             <!-- App Navbar -->
             <header class="navbar">
                 <div class="logo-group">
-                    <div class="logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                    <div class="logo-icon"><img src="/static/logo.png" alt="Entrance Sahaayi logo"></div>
                     <div>
                         <h1 class="app-title">Entrance Sahaayi</h1>
                         <p class="app-subtitle">AI Career Guidance Assistant</p>
@@ -311,6 +311,22 @@
 
                     <hr class="divider">
 
+                    <h3><i class="fa-solid fa-video"></i> Upload Explainer Video</h3>
+                    <p class="card-desc">Upload the video that students and parents will see for the selected entrance exam.</p>
+                    <form id="videoUploadForm" class="faq-form">
+                        <input type="file" id="videoFileInput" accept=".mp4,.webm,.ogg,.mov" required>
+                        <input type="text" id="videoTitle" placeholder="Video title" required>
+                        <input type="text" id="videoExam" placeholder="Exam name, e.g. JEE Main" required>
+                        <input type="text" id="videoStream" placeholder="Stream, e.g. Engineering (PCM)" required>
+                        <input type="text" id="videoDuration" placeholder="Duration, e.g. 8 minutes">
+                        <textarea id="videoSummary" placeholder="Short description" rows="3"></textarea>
+                        <input type="text" id="videoTags" placeholder="Tags separated by commas">
+                        <button type="submit" class="btn-primary"><i class="fa-solid fa-upload"></i> Upload Explainer Video</button>
+                    </form>
+                    <div id="videoUploadStatus" class="status-msg"></div>
+
+                    <hr class="divider">
+
                     <h3><i class="fa-solid fa-plus-circle"></i> Add Instant Cached FAQ</h3>
                     <form id="faqForm" class="faq-form">
                         <input type="text" id="faqQuestion" placeholder="FAQ Question..." required>
@@ -359,6 +375,6 @@
     </div>
 
     <!-- Script -->
-    <script src="/static/app.js"></script>
+    <script src="/static/app.js?v=admin-routing"></script>
 </body>
 </html>
