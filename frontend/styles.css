@@ -262,6 +262,16 @@ body.admin-mode #landingScreen {
     cursor: pointer;
 }
 
+.lang-selector select option {
+    background: #0f172a;
+    color: #fff;
+}
+
+.login-language-selector {
+    width: fit-content;
+    margin: 18px auto 24px;
+}
+
 .logout-btn, .btn-admin-nav {
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid var(--bg-card-border);
@@ -789,8 +799,8 @@ body.admin-mode #landingScreen {
 .audio-controls { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
 .audio-play-btn, .audio-pause-btn { border: 1px solid var(--bg-card-border); border-radius: var(--radius-sm); padding: 7px 10px; color: var(--text-primary); background: rgba(37, 99, 235, 0.2); cursor: pointer; font-size: 0.78rem; }
 .audio-pause-btn { background: rgba(100, 116, 139, 0.28); }
-.audio-restart-btn { border: 1px solid var(--bg-card-border); border-radius: var(--radius-sm); padding: 7px 10px; color: var(--text-primary); background: rgba(13, 148, 136, 0.22); cursor: pointer; font-size: 0.78rem; }
-.audio-play-btn:disabled, .audio-pause-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.audio-resume-btn, .audio-restart-btn { border: 1px solid var(--bg-card-border); border-radius: var(--radius-sm); padding: 7px 10px; color: var(--text-primary); background: rgba(13, 148, 136, 0.22); cursor: pointer; font-size: 0.78rem; }
+.audio-play-btn:disabled, .audio-pause-btn:disabled, .audio-resume-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; }
 .btn-secondary { background: rgba(255, 255, 255, 0.1); border: none; color: #fff; padding: 10px 16px; border-radius: var(--radius-sm); cursor: pointer; }
 .btn-primary { background: var(--accent-blue); border: none; color: #fff; padding: 10px 16px; border-radius: var(--radius-sm); cursor: pointer; }

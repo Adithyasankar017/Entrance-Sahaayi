@@ -110,6 +110,47 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
+    const SUMMARY_LABEL_TRANSLATIONS = {
+        "hi-IN": {
+            "Conducting Body": "आयोजक संस्था", "Eligibility": "पात्रता", "Exam Pattern": "परीक्षा पैटर्न",
+            "Top Career Streams": "प्रमुख करियर क्षेत्र", "Top Courses": "प्रमुख पाठ्यक्रम", "Sections": "खंड",
+            "Target Colleges": "लक्षित कॉलेज", "Rank Formula": "रैंक फॉर्मूला", "Process": "प्रक्रिया",
+            "NATA": "NATA", "NIFT": "NIFT"
+        },
+        "ml-IN": {
+            "Conducting Body": "നടത്തുന്ന സ്ഥാപനം", "Eligibility": "യോഗ്യത", "Exam Pattern": "പരീക്ഷാ രീതി",
+            "Top Career Streams": "പ്രധാന കരിയർ മേഖലകൾ", "Top Courses": "പ്രധാന കോഴ്സുകൾ", "Sections": "വിഭാഗങ്ങൾ",
+            "Target Colleges": "ലക്ഷ്യ കോളേജുകൾ", "Rank Formula": "റാങ്ക് ഫോർമുല", "Process": "പ്രക്രിയ",
+            "NATA": "NATA", "NIFT": "NIFT"
+        },
+        "ta-IN": {
+            "Conducting Body": "நடத்தும் நிறுவனம்", "Eligibility": "தகுதி", "Exam Pattern": "தேர்வு முறை",
+            "Top Career Streams": "முக்கிய துறைகள்", "Top Courses": "முக்கிய படிப்புகள்", "Sections": "பிரிவுகள்",
+            "Target Colleges": "இலக்கு கல்லூரிகள்", "Rank Formula": "தரவரிசை முறை", "Process": "செயல்முறை",
+            "NATA": "NATA", "NIFT": "NIFT"
+        },
+        "te-IN": {
+            "Conducting Body": "నిర్వహణ సంస్థ", "Eligibility": "అర్హత", "Exam Pattern": "పరీక్షా విధానం",
+            "Top Career Streams": "ప్రధాన కెరీర్ రంగాలు", "Top Courses": "ప్రధాన కోర్సులు", "Sections": "విభాగాలు",
+            "Target Colleges": "లక్ష్య కళాశాలలు", "Rank Formula": "ర్యాంక్ ఫార్ములా", "Process": "ప్రక్రియ",
+            "NATA": "NATA", "NIFT": "NIFT"
+        }
+    };
+
+    function getExamSummary(examName) {
+        const info = EXAM_SUMMARIES[examName];
+        if (!info) return `<p>Official information extracted from ingested brochures.</p>`;
+
+        let summaryHtml = info.summaryHtml;
+        const translations = SUMMARY_LABEL_TRANSLATIONS[currentLanguage];
+        if (translations) {
+            Object.entries(translations).forEach(([englishLabel, translatedLabel]) => {
+                summaryHtml = summaryHtml.replaceAll(`<strong>${englishLabel}:</strong>`, `<strong>${translatedLabel}:</strong>`);
+            });
+        }
+        return summaryHtml;
+    }
+
     // DOM Screen Elements
     const loginScreen = document.getElementById("loginScreen");
     const landingScreen = document.getElementById("landingScreen");
@@ -123,6 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const activeRoleBadge = document.getElementById("activeRoleBadge");
     const welcomeHeading = document.getElementById("welcomeHeading");
     const speechLanguageSelect = document.getElementById("speechLanguage");
+    const loginLanguageSelect = document.getElementById("loginLanguageSelect");
     const logoutBtn = document.getElementById("logoutBtn");
     const adminPanelBtn = document.getElementById("adminPanelBtn");
 
@@ -274,7 +316,7 @@ document.addEventListener("DOMContentLoaded", () => {
         detailExamTitle.textContent = examName;
         detailExamStream.textContent = info.stream;
         videoExamNameLabel.textContent = examName;
-        examSummaryBody.innerHTML = info.summaryHtml;
+        examSummaryBody.innerHTML = getExamSummary(examName);
         chatExamContextName.textContent = examName;
         chatExamWelcomeName.textContent = examName;
 
@@ -478,6 +520,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     <button class="audio-pause-btn" type="button" onclick="pauseSpeech(this)" title="Pause response" disabled>
                         <i class="fa-solid fa-pause"></i> Pause
                     </button>
+                    <button class="audio-resume-btn" type="button" onclick="resumeSpeech(this)" title="Resume response" disabled>
+                        <i class="fa-solid fa-play"></i> Resume
+                    </button>
                     <button class="audio-restart-btn" type="button" onclick="restartSpeech(this, \`${safeText}\`)" title="Play response from beginning">
                         <i class="fa-solid fa-rotate-left"></i> From Beginning
                     </button>
@@ -511,17 +556,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Speech Recognition
-    speechLanguageSelect.addEventListener("change", (e) => {
-        currentLanguage = e.target.value;
+    function changeLanguage(language) {
+        currentLanguage = language;
+        speechLanguageSelect.value = language;
+        if (loginLanguageSelect) loginLanguageSelect.value = language;
         const selectedText = speechLanguageSelect.options[speechLanguageSelect.selectedIndex].text;
         if (currentLangLabel) currentLangLabel.textContent = selectedText.split(" ")[0];
         if (recognition) recognition.lang = currentLanguage;
         applyLanguage();
+        if (currentExamContext) examSummaryBody.innerHTML = getExamSummary(currentExamContext);
         if (currentExamContext) {
             const welcome = examChatHistory.querySelector(".bot-message p");
             if (welcome) welcome.textContent = t("greeting", currentExamContext);
         }
-    });
+    }
+
+    speechLanguageSelect.addEventListener("change", (e) => changeLanguage(e.target.value));
+    if (loginLanguageSelect) {
+        loginLanguageSelect.addEventListener("change", (e) => changeLanguage(e.target.value));
+    }
 
     function initSpeechRecognition() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -564,19 +617,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.speakText = function(text, button) {
         if ('speechSynthesis' in window) {
-            if (activeSpeech && activeSpeech.button === button && window.speechSynthesis.paused) {
-                window.speechSynthesis.resume();
-                setSpeechControls(activeSpeech, true);
-                return;
-            }
-
             if (activeSpeech) resetSpeechControls(activeSpeech);
             window.speechSynthesis.cancel();
             const cleanText = text.replace(/[*#_`]/g, '');
             const utterance = new SpeechSynthesisUtterance(cleanText);
             utterance.lang = currentLanguage;
             const pauseButton = button.parentElement.querySelector(".audio-pause-btn");
-            const speech = { button, pauseButton, utterance };
+            const resumeButton = button.parentElement.querySelector(".audio-resume-btn");
+            const speech = { button, pauseButton, resumeButton, utterance, isPaused: false };
             activeSpeech = speech;
             setSpeechControls(speech, true);
             utterance.onend = () => resetSpeechControls(speech);
@@ -586,9 +634,18 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     window.pauseSpeech = function(button) {
-        if (activeSpeech && activeSpeech.pauseButton === button && window.speechSynthesis.speaking) {
+        if (activeSpeech && activeSpeech.pauseButton === button && !activeSpeech.isPaused) {
             window.speechSynthesis.pause();
+            activeSpeech.isPaused = true;
             setSpeechControls(activeSpeech, false);
+        }
+    };
+
+    window.resumeSpeech = function(button) {
+        if (activeSpeech && activeSpeech.resumeButton === button && activeSpeech.isPaused) {
+            window.speechSynthesis.resume();
+            activeSpeech.isPaused = false;
+            setSpeechControls(activeSpeech, true);
         }
     };
 
@@ -596,8 +653,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const controls = button.parentElement;
         const playButton = controls.querySelector(".audio-play-btn");
         if (playButton) {
-            if (activeSpeech) resetSpeechControls(activeSpeech);
-            window.speechSynthesis.cancel();
+            // Start one fresh session; speakText resets the previous response.
             speakText(text, playButton);
         }
     };
@@ -605,10 +661,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function setSpeechControls(speech, isPlaying) {
         if (!speech || !speech.button || !speech.pauseButton) return;
         speech.button.disabled = false;
-        speech.button.innerHTML = isPlaying
-            ? '<i class="fa-solid fa-play"></i> Playing'
-            : '<i class="fa-solid fa-play"></i> Resume';
+        speech.button.innerHTML = '<i class="fa-solid fa-play"></i> Listen';
         speech.pauseButton.disabled = !isPlaying;
+        if (speech.resumeButton) speech.resumeButton.disabled = isPlaying;
     }
 
     function resetSpeechControls(speech) {
@@ -618,6 +673,7 @@ document.addEventListener("DOMContentLoaded", () => {
             speech.button.innerHTML = `<i class="fa-solid fa-play"></i> ${t("listen")}`;
         }
         if (speech.pauseButton) speech.pauseButton.disabled = true;
+        if (speech.resumeButton) speech.resumeButton.disabled = true;
         if (activeSpeech === speech) activeSpeech = null;
     }
 
