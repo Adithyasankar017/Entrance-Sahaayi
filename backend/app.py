@@ -14,10 +14,11 @@ if BASE_DIR not in sys.path:
     sys.path.append(BASE_DIR)
 
 from rag_engine import RAGSystem
+from database import DatabaseManager
 
 app = FastAPI(
     title="Entrance Sahaayi API",
-    description="AI-Based Career Guidance Chatbot with Strict RAG Grounding & Marksheet Analyzer",
+    description="AI-Based Career Guidance Chatbot with Strict RAG Grounding & User Profile Session History",
     version="2.0.0"
 )
 
@@ -33,13 +34,47 @@ DATA_DIR = os.path.join(os.path.dirname(BASE_DIR), "data")
 FRONTEND_DIR = os.path.join(os.path.dirname(BASE_DIR), "frontend")
 
 rag = RAGSystem(data_dir=DATA_DIR)
+db = DatabaseManager()
 ADMIN_PASSCODE = "admin123"
+
+# -------------------------------------------------------------
+# Request & Response Models
+# -------------------------------------------------------------
+class RegisterRequest(BaseModel):
+    email: str
+    password: str
+    full_name: str
+    role: Optional[str] = "Student"
+    profile: Optional[Dict[str, Any]] = {}
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class UpdateProfileRequest(BaseModel):
+    stream: Optional[str] = None
+    class12_marks: Optional[float] = None
+    physics: Optional[float] = None
+    math: Optional[float] = None
+    bio: Optional[float] = None
+    interests: Optional[List[str]] = None
+    budget: Optional[str] = None
+
+class CreateSessionRequest(BaseModel):
+    title: Optional[str] = "New Topic"
+    persona: Optional[str] = "Student"
+    exam_context: Optional[str] = None
+    language: Optional[str] = "en-IN"
+
+class RenameSessionRequest(BaseModel):
+    title: str
 
 class ChatRequest(BaseModel):
     query: str
     persona: Optional[str] = "Student"
     exam_context: Optional[str] = None
     language: Optional[str] = "en-IN"
+    session_id: Optional[str] = None
 
 class ProfileRequest(BaseModel):
     stream: str
@@ -67,9 +102,26 @@ class VideoRequest(BaseModel):
 
 VIDEO_EXTENSIONS = {".mp4", ".webm", ".ogg", ".mov"}
 
+# -------------------------------------------------------------
+# Auth & Security Helpers
+# -------------------------------------------------------------
 def verify_admin(x_admin_key: Optional[str] = Header(None)):
     if x_admin_key != ADMIN_PASSCODE:
         raise HTTPException(status_code=403, detail="Admin authorization passcode required for Knowledge Base modification.")
+
+def get_current_user(x_user_token: Optional[str] = Header(None), authorization: Optional[str] = Header(None)) -> Optional[Dict[str, Any]]:
+    token = x_user_token
+    if not token and authorization and authorization.startswith("Bearer "):
+        token = authorization.split("Bearer ")[1].strip()
+    if not token:
+        return None
+    return db.get_user_by_token(token)
+
+def require_current_user(x_user_token: Optional[str] = Header(None), authorization: Optional[str] = Header(None)) -> Dict[str, Any]:
+    user = get_current_user(x_user_token=x_user_token, authorization=authorization)
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required. Please log in.")
+    return user
 
 @app.get("/api/health")
 def health_check():
@@ -79,18 +131,173 @@ def health_check():
         "vector_stats": rag.get_stats()
     }
 
-@app.post("/api/chat")
-def chat_endpoint(req: ChatRequest):
-    if not req.query or not req.query.strip():
-        raise HTTPException(status_code=400, detail="Query cannot be empty.")
+# -------------------------------------------------------------
+# User Profile & Authentication Endpoints
+# -------------------------------------------------------------
+@app.post("/api/auth/register")
+def register_user(req: RegisterRequest):
+    try:
+        user = db.register_user(
+            email=req.email,
+            password=req.password,
+            full_name=req.full_name,
+            role=req.role or "Student",
+            profile_data=req.profile
+        )
+        return {"message": "Account created successfully!", "user": user}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
+
+@app.post("/api/auth/login")
+def login_user(req: LoginRequest):
+    try:
+        user = db.authenticate_user(email=req.email, password=req.password)
+        return {"message": "Logged in successfully!", "user": user}
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+
+@app.get("/api/auth/me")
+def get_me(user: Dict[str, Any] = Depends(require_current_user) if 'Depends' in globals() else None, x_user_token: Optional[str] = Header(None), authorization: Optional[str] = Header(None)):
+    current_user = get_current_user(x_user_token=x_user_token, authorization=authorization)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required.")
+    return {"user": current_user}
+
+@app.put("/api/auth/profile")
+def update_profile(req: UpdateProfileRequest, x_user_token: Optional[str] = Header(None), authorization: Optional[str] = Header(None)):
+    current_user = get_current_user(x_user_token=x_user_token, authorization=authorization)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required.")
     
-    result = rag.query(
-        user_query=req.query,
-        persona=req.persona,
+    update_data = {k: v for k, v in req.dict().items() if v is not None}
+    updated_profile = db.update_user_profile(current_user["id"], update_data)
+    return {"message": "Profile updated successfully!", "profile": updated_profile}
+
+# -------------------------------------------------------------
+# ChatGPT / Gemini Style Chat Sessions & History Endpoints
+# -------------------------------------------------------------
+@app.get("/api/chat/sessions")
+def list_user_sessions(x_user_token: Optional[str] = Header(None), authorization: Optional[str] = Header(None)):
+    current_user = get_current_user(x_user_token=x_user_token, authorization=authorization)
+    if not current_user:
+        return {"sessions": []}
+    sessions = db.get_user_chat_sessions(current_user["id"])
+    return {"sessions": sessions}
+
+@app.post("/api/chat/sessions")
+def create_session(req: CreateSessionRequest, x_user_token: Optional[str] = Header(None), authorization: Optional[str] = Header(None)):
+    current_user = get_current_user(x_user_token=x_user_token, authorization=authorization)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required to save chat history.")
+    
+    session = db.create_chat_session(
+        user_id=current_user["id"],
+        title=req.title or "New Topic",
+        persona=req.persona or current_user["role"],
         exam_context=req.exam_context,
         language=req.language or "en-IN"
     )
+    return {"session": session}
+
+@app.get("/api/chat/sessions/{session_id}")
+def get_session_details(session_id: str, x_user_token: Optional[str] = Header(None), authorization: Optional[str] = Header(None)):
+    current_user = get_current_user(x_user_token=x_user_token, authorization=authorization)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required.")
+    
+    session = db.get_chat_session(session_id, current_user["id"])
+    if not session:
+        raise HTTPException(status_code=404, detail="Topic session not found.")
+    return {"session": session}
+
+@app.put("/api/chat/sessions/{session_id}")
+def rename_session(session_id: str, req: RenameSessionRequest, x_user_token: Optional[str] = Header(None), authorization: Optional[str] = Header(None)):
+    current_user = get_current_user(x_user_token=x_user_token, authorization=authorization)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required.")
+    
+    success = db.rename_chat_session(session_id, current_user["id"], req.title)
+    if not success:
+        raise HTTPException(status_code=400, detail="Failed to rename session.")
+    return {"message": "Session renamed successfully!"}
+
+@app.delete("/api/chat/sessions/{session_id}")
+def delete_session(session_id: str, x_user_token: Optional[str] = Header(None), authorization: Optional[str] = Header(None)):
+    current_user = get_current_user(x_user_token=x_user_token, authorization=authorization)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required.")
+    
+    success = db.delete_chat_session(session_id, current_user["id"])
+    if not success:
+        raise HTTPException(status_code=404, detail="Session not found.")
+    return {"message": "Session deleted successfully!"}
+
+# -------------------------------------------------------------
+# Main Chat Endpoint with History & Grounding Integration
+# -------------------------------------------------------------
+@app.post("/api/chat")
+def chat_endpoint(req: ChatRequest, x_user_token: Optional[str] = Header(None), authorization: Optional[str] = Header(None)):
+    if not req.query or not req.query.strip():
+        raise HTTPException(status_code=400, detail="Query cannot be empty.")
+    
+    current_user = get_current_user(x_user_token=x_user_token, authorization=authorization)
+    session_id = req.session_id
+    history = []
+    
+    # If user is logged in, handle conversation session & history
+    if current_user:
+        if session_id:
+            session_data = db.get_chat_session(session_id, current_user["id"])
+            if session_data:
+                history = session_data.get("messages", [])
+        else:
+            # Auto-create session if user is logged in but hasn't specified one
+            new_title = req.query[:35] + "..." if len(req.query) > 35 else req.query
+            new_sess = db.create_chat_session(
+                user_id=current_user["id"],
+                title=new_title,
+                persona=req.persona or current_user["role"],
+                exam_context=req.exam_context,
+                language=req.language or "en-IN"
+            )
+            session_id = new_sess["id"]
+    
+    # RAG Query Execution with conversational history
+    result = rag.query(
+        user_query=req.query,
+        persona=req.persona or (current_user["role"] if current_user else "Student"),
+        exam_context=req.exam_context,
+        language=req.language or "en-IN",
+        history=history
+    )
+    
+    # Persist user question and bot answer to database if logged in
+    if current_user and session_id:
+        db.add_chat_message(
+            session_id=session_id,
+            user_id=current_user["id"],
+            sender="user",
+            content=req.query
+        )
+        db.add_chat_message(
+            session_id=session_id,
+            user_id=current_user["id"],
+            sender="bot",
+            content=result["answer"],
+            sources=result.get("sources", []),
+            confidence=result.get("confidence", 0.0),
+            is_faq=result.get("is_faq_short_circuit", False)
+        )
+        # Fetch updated session data (with title if auto-updated)
+        updated_session = db.get_chat_session(session_id, current_user["id"])
+        result["session_id"] = session_id
+        if updated_session:
+            result["session_title"] = updated_session["title"]
+            
     return result
+
 
 @app.post("/api/analyze-profile")
 def analyze_profile(req: ProfileRequest):

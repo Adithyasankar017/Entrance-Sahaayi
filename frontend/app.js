@@ -27,9 +27,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function applyLanguage() {
         const selectors = {
             ".portal-subtitle": "portalSubtitle", ".app-subtitle": "appSubtitle", ".hero-welcome p": "welcomeIntro",
-            ".role-card:nth-child(1) h3": "studentLogin", ".role-card:nth-child(2) h3": "parentLogin", ".role-card:nth-child(3) h3": "adminLogin",
-            ".role-card:nth-child(1) p": "studentDescription", ".role-card:nth-child(2) p": "parentDescription", ".role-card:nth-child(3) p": "adminDescription",
-            ".role-card:nth-child(1) button": "continueStudent", ".role-card:nth-child(2) button": "continueParent", ".role-card:nth-child(3) button": "adminPortal",
+            "#loginScreen .role-card:nth-child(1) h3": "studentLogin", "#loginScreen .role-card:nth-child(2) h3": "parentLogin", "#loginScreen .role-card:nth-child(3) h3": "adminLogin",
+            "#loginScreen .role-card:nth-child(1) p": "studentDescription", "#loginScreen .role-card:nth-child(2) p": "parentDescription", "#loginScreen .role-card:nth-child(3) p": "adminDescription",
+            "#loginScreen .role-card:nth-child(1) button": "continueStudent", "#loginScreen .role-card:nth-child(2) button": "continueParent", "#loginScreen .role-card:nth-child(3) button": "adminPortal",
             ".pathway-section:nth-child(1) .section-badge": "path1", ".pathway-section:nth-child(2) .section-badge": "path2", ".pathway-section:nth-child(1) h3": "examPrompt", ".pathway-section:nth-child(1) .section-header-box p": "examDescription",
             ".pathway-section:nth-child(2) h3": "guidancePrompt", ".pathway-section:nth-child(2) .section-header-box p": "guidanceDescription", ".input-card h4": "uploadProfile", ".output-card h4": "recommendations",
             ".send-btn span": "send"
@@ -574,6 +574,7 @@ document.addEventListener("DOMContentLoaded", () => {
     speechLanguageSelect.addEventListener("change", (e) => changeLanguage(e.target.value));
     if (loginLanguageSelect) {
         loginLanguageSelect.addEventListener("change", (e) => changeLanguage(e.target.value));
+        loginLanguageSelect.addEventListener("input", (e) => changeLanguage(e.target.value));
     }
 
     function initSpeechRecognition() {

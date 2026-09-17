@@ -110,11 +110,11 @@ class RAGSystem:
         self.faq_tfidf_matrix = self.faq_vectorizer.fit_transform(faq_questions)
         return new_faq
 
-    def query(self, user_query: str, persona: str = "Student", exam_context: Optional[str] = None, language: str = "en-IN", top_k: int = 3) -> Dict[str, Any]:
+    def query(self, user_query: str, persona: str = "Student", exam_context: Optional[str] = None, language: str = "en-IN", top_k: int = 3, history: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
         """
         Executes strictly grounded query retrieval pipeline:
         1. Checks FAQ Cache for short-circuit matching.
-        2. Vector search over indexed chunks (with optional exam filter).
+        2. Vector search over indexed chunks (with optional exam filter and conversation context).
         3. Strict grounding check: Returns transparent notice if information is absent in brochures.
         """
         query_text = user_query.strip()
@@ -126,8 +126,18 @@ class RAGSystem:
                 "is_faq_short_circuit": False
             }
 
-        # Include exam context in search query if provided
-        augmented_query = f"{exam_context} {query_text}" if exam_context else query_text
+        # Context enrichment from conversation history (multi-turn memory)
+        context_history_str = ""
+        if history and len(history) > 0:
+            # Grab recent 2-3 user messages for query context
+            past_queries = [h.get("content", "") for h in history if h.get("sender") == "user"][-2:]
+            if past_queries:
+                context_history_str = " ".join(past_queries)
+
+        # Include exam context and history context in search query if provided
+        components = [exam_context, context_history_str, query_text]
+        augmented_query = " ".join([c for c in components if c])
+
 
         # 1. FAQ Cache Check
         if self.faq_tfidf_matrix is not None and self.faqs:

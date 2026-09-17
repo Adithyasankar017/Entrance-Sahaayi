@@ -257,6 +257,7 @@ body.admin-mode #landingScreen {
     background: transparent;
     border: none;
     color: var(--text-primary);
+    color-scheme: dark;
     font-size: 0.825rem;
     outline: none;
     cursor: pointer;
@@ -270,6 +271,21 @@ body.admin-mode #landingScreen {
 .login-language-selector {
     width: fit-content;
     margin: 18px auto 24px;
+    min-height: 38px;
+    position: relative;
+    z-index: 10;
+    visibility: visible;
+    opacity: 1;
+}
+
+.login-language-selector span {
+    color: #fff;
+    font-weight: 600;
+}
+
+.login-language-selector select {
+    min-width: 145px;
+    color: #fff;
 }
 
 .logout-btn, .btn-admin-nav {
