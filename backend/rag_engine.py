@@ -126,6 +126,11 @@ class RAGSystem:
                 "is_faq_short_circuit": False
             }
 
+        # 0. Interactive Conversational Greeting / Small-Talk / Identity Handler
+        conv_response = self._check_conversational_response(query_text, persona, exam_context, language)
+        if conv_response:
+            return conv_response
+
         # Context enrichment from conversation history (multi-turn memory)
         context_history_str = ""
         if history and len(history) > 0:
@@ -137,6 +142,7 @@ class RAGSystem:
         # Include exam context and history context in search query if provided
         components = [exam_context, context_history_str, query_text]
         augmented_query = " ".join([c for c in components if c])
+
 
 
         # 1. FAQ Cache Check

@@ -25,6 +25,10 @@ class DatabaseManager:
         conn.execute("PRAGMA foreign_keys = ON;")
         return conn
 
+    def close(self):
+        """No-op for connection per call design or cleanup."""
+        pass
+
     def init_db(self):
         """Creates required SQLite tables if they do not exist."""
         with self.get_connection() as conn:

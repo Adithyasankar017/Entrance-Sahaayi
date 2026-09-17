@@ -3,6 +3,10 @@
 document.addEventListener("DOMContentLoaded", () => {
     // State
     let currentUserRole = null; // 'Student', 'Parent', 'Admin'
+    let currentUser = null; // Logged-in user object { id, email, full_name, role, profile, token }
+    let authToken = localStorage.getItem("entrance_sahaayi_token") || null;
+    let currentSessionId = null; // Active ChatGPT/Gemini style topic session ID
+    let userSessions = []; // Saved chat sessions list for logged-in user
     let currentExamContext = null;
     let currentLanguage = "en-IN";
     let uploadedVideos = [];
@@ -211,8 +215,177 @@ document.addEventListener("DOMContentLoaded", () => {
     initSpeechRecognition();
 
     // -------------------------------------------------------------
-    // 1. ROLE LOGIN & SCREEN SWITCHING LOGIC
+    // 1. AUTHENTICATION & CHAT HISTORY SIDEBAR LOGIC
     // -------------------------------------------------------------
+    // Auth Tabs Switching
+    const tabAuthLogin = document.getElementById("tabAuthLogin");
+    const tabAuthRegister = document.getElementById("tabAuthRegister");
+    const tabAuthGuest = document.getElementById("tabAuthGuest");
+    const authLoginForm = document.getElementById("authLoginForm");
+    const authRegisterForm = document.getElementById("authRegisterForm");
+    const authGuestForm = document.getElementById("authGuestForm");
+
+    const loginUserForm = document.getElementById("loginUserForm");
+    const registerUserForm = document.getElementById("registerUserForm");
+    const loginStatusMessage = document.getElementById("loginStatusMessage");
+    const registerStatusMessage = document.getElementById("registerStatusMessage");
+
+    // History Sidebar Elements
+    const chatHistorySidebar = document.getElementById("chatHistorySidebar");
+    const sidebarOverlay = document.getElementById("sidebarOverlay");
+    const toggleHistorySidebarBtn = document.getElementById("toggleHistorySidebarBtn");
+    const closeSidebarBtn = document.getElementById("closeSidebarBtn");
+    const newChatSessionBtn = document.getElementById("newChatSessionBtn");
+    const historyTopicsList = document.getElementById("historyTopicsList");
+    const sidebarUserName = document.getElementById("sidebarUserName");
+    const sidebarUserRole = document.getElementById("sidebarUserRole");
+    const sidebarAvatarCircle = document.getElementById("sidebarAvatarCircle");
+
+    if (tabAuthLogin && tabAuthRegister && tabAuthGuest) {
+        tabAuthLogin.addEventListener("click", () => switchAuthTab("login"));
+        tabAuthRegister.addEventListener("click", () => switchAuthTab("register"));
+        tabAuthGuest.addEventListener("click", () => switchAuthTab("guest"));
+    }
+
+    function switchAuthTab(tab) {
+        [tabAuthLogin, tabAuthRegister, tabAuthGuest].forEach(t => t.classList.remove("active"));
+        [authLoginForm, authRegisterForm, authGuestForm].forEach(f => f.classList.add("hidden"));
+
+        if (tab === "login") {
+            tabAuthLogin.classList.add("active");
+            authLoginForm.classList.remove("hidden");
+        } else if (tab === "register") {
+            tabAuthRegister.classList.add("active");
+            authRegisterForm.classList.remove("hidden");
+        } else if (tab === "guest") {
+            tabAuthGuest.classList.add("active");
+            authGuestForm.classList.remove("hidden");
+        }
+    }
+
+    // Register Form Handler
+    if (registerUserForm) {
+        registerUserForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const fullName = document.getElementById("regFullName").value.trim();
+            const email = document.getElementById("regEmail").value.trim();
+            const password = document.getElementById("regPassword").value;
+            const role = document.getElementById("regRole").value;
+            const stream = document.getElementById("regStream").value;
+
+            showAuthStatus(registerStatusMessage, "Creating account and initializing profile...", "info");
+
+            try {
+                const res = await fetch("/api/auth/register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                        full_name: fullName,
+                        role: role,
+                        profile: { stream: stream }
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showAuthStatus(registerStatusMessage, "Account created successfully! Logging you in...", "success");
+                    onUserAuthenticated(data.user);
+                } else {
+                    showAuthStatus(registerStatusMessage, data.detail || "Registration failed.", "error");
+                }
+            } catch (err) {
+                showAuthStatus(registerStatusMessage, "Server connection error. Please try again.", "error");
+            }
+        });
+    }
+
+    // Login Form Handler
+    if (loginUserForm) {
+        loginUserForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const email = document.getElementById("loginEmail").value.trim();
+            const password = document.getElementById("loginPassword").value;
+
+            showAuthStatus(loginStatusMessage, "Logging in to your profile...", "info");
+
+            try {
+                const res = await fetch("/api/auth/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: email, password: password })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showAuthStatus(loginStatusMessage, "Login successful!", "success");
+                    onUserAuthenticated(data.user);
+                } else {
+                    showAuthStatus(loginStatusMessage, data.detail || "Invalid email or password.", "error");
+                }
+            } catch (err) {
+                showAuthStatus(loginStatusMessage, "Server connection error. Please try again.", "error");
+            }
+        });
+    }
+
+    function showAuthStatus(element, message, type) {
+        if (!element) return;
+        element.textContent = message;
+        element.className = `auth-status-msg ${type}`;
+        element.classList.remove("hidden");
+    }
+
+    // Auto Check Token on Load
+    async function checkStoredAuth() {
+        if (!authToken) return;
+        try {
+            const res = await fetch("/api/auth/me", {
+                headers: { "X-User-Token": authToken }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.user) {
+                    onUserAuthenticated(data.user, false);
+                }
+            } else {
+                // Token expired/invalid
+                localStorage.removeItem("entrance_sahaayi_token");
+                authToken = null;
+            }
+        } catch (e) {
+            console.log("Offline or server initializing...");
+        }
+    }
+
+    function onUserAuthenticated(user, autoNavigate = true) {
+        currentUser = user;
+        authToken = user.token;
+        currentUserRole = user.role || "Student";
+        localStorage.setItem("entrance_sahaayi_token", authToken);
+
+        // Update UI Badges & Sidebar Profile Summary
+        activeRoleBadge.innerHTML = `<i class="fa-solid fa-user-check"></i> ${user.full_name} (${user.role})`;
+        welcomeHeading.textContent = `Welcome back, ${user.full_name.split(" ")[0]}! 👋`;
+
+        if (sidebarUserName) sidebarUserName.textContent = user.full_name;
+        if (sidebarUserRole) sidebarUserRole.textContent = `${user.role} Profile`;
+        if (sidebarAvatarCircle) {
+            const initials = user.full_name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
+            sidebarAvatarCircle.textContent = initials || "U";
+        }
+
+        // Fetch User Saved Topics & History
+        fetchUserSessions();
+
+        if (autoNavigate) {
+            switchScreen(landingScreen);
+        }
+        applyLanguage();
+    }
+
+    // Role Cards for Guest Mode & Admin Portal
     document.querySelectorAll(".role-card").forEach(card => {
         card.addEventListener("click", () => {
             const role = card.dataset.role;
@@ -221,7 +394,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 adminPasscodeInput.value = "";
                 adminPasscodeInput.focus();
             } else {
-                loginUser(role);
+                loginUserGuest(role);
             }
         });
     });
@@ -235,7 +408,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (pass === "admin123") {
             adminPasscode = pass;
             adminPasscodeModal.classList.add("hidden");
-            loginUser("Admin");
+            loginUserGuest("Admin");
         } else {
             adminPasscodeInput.value = "";
             adminPasscodeInput.focus();
@@ -248,11 +421,14 @@ document.addEventListener("DOMContentLoaded", () => {
         if (event.key === "Enter") authenticateAdmin();
     });
 
-    function loginUser(role) {
+    function loginUserGuest(role) {
         currentUserRole = role;
-        document.body.classList.toggle("admin-mode", role === "Admin");
-        activeRoleBadge.innerHTML = `<i class="fa-solid fa-user"></i> ${role} Mode`;
+        currentUser = null;
+        activeRoleBadge.innerHTML = `<i class="fa-solid fa-user"></i> ${role} Guest`;
         welcomeHeading.textContent = `Welcome, ${role}! 👋`;
+        if (sidebarUserName) sidebarUserName.textContent = "Guest User";
+        if (sidebarUserRole) sidebarUserRole.textContent = `${role} Mode (Not saved)`;
+        if (sidebarAvatarCircle) sidebarAvatarCircle.textContent = "G";
 
         if (role === "Admin") {
             adminPanelBtn.classList.remove("hidden");
@@ -266,9 +442,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     logoutBtn.addEventListener("click", () => {
+        currentUser = null;
         currentUserRole = null;
-        currentExamContext = null;
+        authToken = null;
+        currentSessionId = null;
+        userSessions = [];
+        localStorage.removeItem("entrance_sahaayi_token");
         document.body.classList.remove("admin-mode");
+        if (historyTopicsList) historyTopicsList.innerHTML = `<div class="empty-history-text">Log in to save and resume your conversation topics across sessions.</div>`;
         switchScreen(loginScreen);
     });
 
@@ -285,6 +466,195 @@ document.addEventListener("DOMContentLoaded", () => {
         targetScreen.classList.remove("hidden");
         window.scrollTo(0, 0);
     }
+
+    // -------------------------------------------------------------
+    // CHAT HISTORY & TOPICS SIDEBAR FUNCTIONS (ChatGPT / Gemini style)
+    // -------------------------------------------------------------
+    if (toggleHistorySidebarBtn) {
+        toggleHistorySidebarBtn.addEventListener("click", () => {
+            chatHistorySidebar.classList.add("open");
+            sidebarOverlay.classList.add("active");
+            if (currentUser) fetchUserSessions();
+        });
+    }
+
+    if (closeSidebarBtn) {
+        closeSidebarBtn.addEventListener("click", closeSidebar);
+    }
+
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener("click", closeSidebar);
+    }
+
+    function closeSidebar() {
+        if (chatHistorySidebar) chatHistorySidebar.classList.remove("open");
+        if (sidebarOverlay) sidebarOverlay.classList.remove("active");
+    }
+
+    if (newChatSessionBtn) {
+        newChatSessionBtn.addEventListener("click", () => {
+            startNewChatTopic();
+            closeSidebar();
+        });
+    }
+
+    function startNewChatTopic() {
+        currentSessionId = null;
+        currentExamContext = null;
+        examChatHistory.innerHTML = `
+            <div class="message bot-message">
+                <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+                <div class="message-content">
+                    <div class="sender-name">Entrance Sahaayi ${t("assistant")} (${currentUserRole || 'Student'} Mode)</div>
+                    <p>Started a new topic! Ask me anything about entrance exams, eligibility criteria, subject weightage, seat allocation, or career guidance.</p>
+                </div>
+            </div>
+        `;
+        renderHistorySessionsList();
+    }
+
+    async function fetchUserSessions() {
+        if (!authToken) {
+            if (historyTopicsList) {
+                historyTopicsList.innerHTML = `<div class="empty-history-text"><i class="fa-solid fa-lock"></i><br>Log in to view your saved topics and chat history like ChatGPT & Gemini!</div>`;
+            }
+            return;
+        }
+
+        try {
+            const res = await fetch("/api/chat/sessions", {
+                headers: { "X-User-Token": authToken }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                userSessions = data.sessions || [];
+                renderHistorySessionsList();
+            }
+        } catch (e) {
+            console.error("Error fetching sessions:", e);
+        }
+    }
+
+    function renderHistorySessionsList() {
+        if (!historyTopicsList) return;
+        if (!authToken) {
+            historyTopicsList.innerHTML = `<div class="empty-history-text"><i class="fa-solid fa-lock"></i><br>Log in to save and resume your conversation topics across sessions!</div>`;
+            return;
+        }
+        if (userSessions.length === 0) {
+            historyTopicsList.innerHTML = `<div class="empty-history-text"><i class="fa-solid fa-comments"></i><br>No saved chat topics yet.<br>Click "+ New Chat Topic" to start one!</div>`;
+            return;
+        }
+
+        historyTopicsList.innerHTML = "";
+        userSessions.forEach(sess => {
+            const item = document.createElement("div");
+            item.className = `topic-item ${sess.id === currentSessionId ? "active" : ""}`;
+            
+            const timeFormatted = new Date(sess.updated_at || sess.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+            item.innerHTML = `
+                <div class="topic-main-info" onclick="selectChatSession('${sess.id}')">
+                    <i class="fa-solid fa-message topic-icon"></i>
+                    <div class="topic-text-group">
+                        <span class="topic-title-text" title="${escapeQuotes(sess.title)}">${sess.title}</span>
+                        <span class="topic-time-sub">${sess.exam_context ? sess.exam_context + ' • ' : ''}${timeFormatted}</span>
+                    </div>
+                </div>
+                <div class="topic-actions">
+                    <button class="btn-topic-action" onclick="event.stopPropagation(); renameTopicSession('${sess.id}', '${escapeQuotes(sess.title)}')" title="Rename Topic"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-topic-action delete" onclick="event.stopPropagation(); deleteTopicSession('${sess.id}')" title="Delete Topic"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+            `;
+            historyTopicsList.appendChild(item);
+        });
+    }
+
+    window.selectChatSession = async function(sessionId) {
+        if (!authToken) return;
+        try {
+            const res = await fetch(`/api/chat/sessions/${sessionId}`, {
+                headers: { "X-User-Token": authToken }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                const session = data.session;
+                currentSessionId = session.id;
+                currentExamContext = session.exam_context;
+
+                // Render session messages into chat screen
+                examChatHistory.innerHTML = "";
+                if (session.messages && session.messages.length > 0) {
+                    session.messages.forEach(msg => {
+                        appendMessage(msg.sender, msg.content, session.persona || currentUserRole, msg.sources, msg.confidence, msg.is_faq);
+                    });
+                } else {
+                    appendMessage("bot", `Resuming topic: "${session.title}". Ask your follow-up questions!`, currentUserRole);
+                }
+
+                // If session is tied to specific exam, update UI header labels
+                if (currentExamContext && EXAM_SUMMARIES[currentExamContext]) {
+                    detailExamTitle.textContent = currentExamContext;
+                    detailExamStream.textContent = EXAM_SUMMARIES[currentExamContext].stream;
+                    chatExamContextName.textContent = currentExamContext;
+                    examSummaryBody.innerHTML = getExamSummary(currentExamContext);
+                } else {
+                    detailExamTitle.textContent = session.title;
+                    detailExamStream.textContent = "AI Guidance Topic";
+                    chatExamContextName.textContent = session.title;
+                }
+
+                renderHistorySessionsList();
+                closeSidebar();
+                switchScreen(examDetailScreen);
+            }
+        } catch (e) {
+            console.error("Error loading chat session:", e);
+        }
+    };
+
+    window.renameTopicSession = async function(sessionId, oldTitle) {
+        const newTitle = prompt("Enter new title for this topic:", oldTitle);
+        if (!newTitle || !newTitle.trim()) return;
+
+        try {
+            const res = await fetch(`/api/chat/sessions/${sessionId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json", "X-User-Token": authToken },
+                body: JSON.stringify({ title: newTitle.trim() })
+            });
+
+            if (res.ok) {
+                fetchUserSessions();
+            }
+        } catch (e) {
+            console.error("Failed to rename session:", e);
+        }
+    };
+
+    window.deleteTopicSession = async function(sessionId) {
+        if (!confirm("Are you sure you want to delete this conversation topic?")) return;
+
+        try {
+            const res = await fetch(`/api/chat/sessions/${sessionId}`, {
+                method: "DELETE",
+                headers: { "X-User-Token": authToken }
+            });
+
+            if (res.ok) {
+                if (currentSessionId === sessionId) {
+                    startNewChatTopic();
+                }
+                fetchUserSessions();
+            }
+        } catch (e) {
+            console.error("Failed to delete session:", e);
+        }
+    };
+
+    checkStoredAuth();
+
 
     // -------------------------------------------------------------
     // 2. PATHWAY 1: TARGET ENTRANCE SELECTION (DROPDOWN)
@@ -469,15 +839,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const typingElem = appendTypingIndicator();
 
+        const headers = { "Content-Type": "application/json" };
+        if (authToken) {
+            headers["X-User-Token"] = authToken;
+        }
+
         try {
             const res = await fetch("/api/chat", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: headers,
                 body: JSON.stringify({
                     query: query,
                     persona: currentUserRole || "Student",
                     exam_context: currentExamContext,
-                    language: currentLanguage
+                    language: currentLanguage,
+                    session_id: currentSessionId
                 })
             });
 
@@ -486,6 +862,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (res.ok) {
                 appendMessage("bot", data.answer, currentUserRole, data.sources, data.confidence, data.is_faq_short_circuit);
+                if (data.session_id) {
+                    currentSessionId = data.session_id;
+                    if (authToken) fetchUserSessions();
+                }
             } else {
                 appendMessage("bot", "Error fetching answer from knowledge base.", currentUserRole);
             }
