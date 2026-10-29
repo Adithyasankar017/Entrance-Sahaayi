@@ -110,10 +110,10 @@ def verify_admin(x_admin_key: Optional[str] = Header(None)):
         raise HTTPException(status_code=403, detail="Admin authorization passcode required for Knowledge Base modification.")
 
 def get_current_user(x_user_token: Optional[str] = Header(None), authorization: Optional[str] = Header(None)) -> Optional[Dict[str, Any]]:
-    token = x_user_token
-    if not token and authorization and authorization.startswith("Bearer "):
+    token = x_user_token if isinstance(x_user_token, str) else None
+    if not token and authorization and isinstance(authorization, str) and authorization.startswith("Bearer "):
         token = authorization.split("Bearer ")[1].strip()
-    if not token:
+    if not token or not isinstance(token, str):
         return None
     return db.get_user_by_token(token)
 

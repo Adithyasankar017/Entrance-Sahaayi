@@ -16,11 +16,141 @@ document.addEventListener("DOMContentLoaded", () => {
     let recognition = null;
 
     const UI_TRANSLATIONS = {
-        "en-IN": { portalSubtitle: "AI-Based Career Guidance & Entrance Exam Assistant after Class 12", studentLogin: "Student Login", parentLogin: "Parent Login", adminLogin: "Admin / Programmer", studentDescription: "Explore entrance exams, watch explainer video briefings, and chat with AI for career paths.", parentDescription: "Review eligibility criteria, college cost summaries, and guidance for your child.", adminDescription: "Upload official entrance PDFs, brochures, and manage vector knowledge base.", continueStudent: "Continue as Student", continueParent: "Continue as Parent", adminPortal: "Admin Portal", appSubtitle: "AI Career Guidance Assistant — Powered by Sree", welcome: role => `Welcome, ${role}!`, welcomeIntro: "Navigating entrance exams and career choices after Class 12 made easy. Choose how you would like to proceed today:", path1: "Path 1: Finalized Entrance Selection", path2: "Path 2: Undecided / Career Guidance", examPrompt: "I Know Which Entrance Exam I Want to Pursue", examDescription: "If you have already decided on an entrance exam, select it from the dropdown list below to view the explainer video briefing and ask any queries to the AI assistant.", guidancePrompt: "Help Me Choose the Right Entrance Exam & Career Path", guidanceDescription: "Not sure which entrance exam suits your academic background and interests? Upload your marksheet or fill in your subject marks below so our AI Assistant can analyze your profile and recommend suitable entrance exams.", uploadProfile: "1. Upload Marksheet or Enter Profile", recommendations: "2. AI Entrance Recommendations", assistant: "Sree", askAbout: "Ask Queries About", send: "Send", listen: "Listen", you: "You", typing: exam => `Searching ingested brochures for ${exam || "exam"}...`, greeting: exam => `Have further questions after reviewing the video briefing for ${exam}? Ask Sree anything about eligibility criteria, subject weightage, seat allocation, or rank calculation!`, languageName: "English" },
-        "hi-IN": { portalSubtitle: "कक्षा 12 के बाद AI करियर मार्गदर्शन और प्रवेश परीक्षा सहायक", studentLogin: "विद्यार्थी लॉगिन", parentLogin: "अभिभावक लॉगिन", adminLogin: "व्यवस्थापक / प्रोग्रामर", studentDescription: "प्रवेश परीक्षाएं देखें, वीडियो जानकारी प्राप्त करें और करियर के लिए AI से बात करें।", parentDescription: "पात्रता, कॉलेज शुल्क और अपने बच्चे के लिए मार्गदर्शन देखें।", adminDescription: "आधिकारिक प्रवेश PDF और ब्रोशर अपलोड करें तथा ज्ञान आधार प्रबंधित करें।", continueStudent: "विद्यार्थी के रूप में जारी रखें", continueParent: "अभिभावक के रूप में जारी रखें", adminPortal: "व्यवस्थापक पोर्टल", appSubtitle: "AI करियर मार्गदर्शन सहायक — Sree", welcome: role => `स्वागत है, ${role}!`, welcomeIntro: "कक्षा 12 के बाद प्रवेश परीक्षाओं और करियर विकल्पों को आसान बनाएं। आज आगे बढ़ने का तरीका चुनें:", path1: "मार्ग 1: प्रवेश परीक्षा तय है", path2: "मार्ग 2: करियर मार्गदर्शन", examPrompt: "मुझे पता है कि मुझे कौन सी प्रवेश परीक्षा देनी है", examDescription: "अपनी परीक्षा चुनें और वीडियो जानकारी देखें तथा AI सहायक से प्रश्न पूछें।", guidancePrompt: "सही प्रवेश परीक्षा और करियर चुनने में मदद करें", guidanceDescription: "अपनी अंकतालिका अपलोड करें या अंक भरें ताकि AI सहायक आपके लिए उपयुक्त परीक्षाओं की सिफारिश कर सके।", uploadProfile: "1. अंकतालिका अपलोड करें या प्रोफ़ाइल भरें", recommendations: "2. AI प्रवेश परीक्षा सिफारिशें", assistant: "Sree", askAbout: "इसके बारे में प्रश्न पूछें", send: "भेजें", listen: "सुनें", you: "आप", typing: exam => `${exam || "परीक्षा"} के आधिकारिक ब्रोशर खोजे जा रहे हैं...`, greeting: exam => `${exam} के बारे में और प्रश्न हैं? Sree से पात्रता, विषय भार, सीट आवंटन या रैंक गणना के बारे में पूछें!`, languageName: "हिंदी" },
-        "ml-IN": { portalSubtitle: "പ്ലസ് ടുവിന് ശേഷമുള്ള AI കരിയര്‍ മാര്‍ഗ്ഗനിര്‍ദ്ദേശവും പ്രവേശന പരീക്ഷാ സഹായിയും", studentLogin: "വിദ്യാര്‍ത്ഥി ലോഗിന്‍", parentLogin: "രക്ഷിതാക്കളുടെ ലോഗിന്‍", adminLogin: "അഡ്മിന്‍ / പ്രോഗ്രാമര്‍", studentDescription: "പ്രവേശന പരീക്ഷകള്‍ കണ്ടെത്തുകയും AI-യുമായി കരിയര്‍ ചര്‍ച്ച ചെയ്യുകയും ചെയ്യുക.", parentDescription: "യോഗ്യതയും കോളേജ് ഫീസ് വിവരങ്ങളും പരിശോധിക്കുക.", adminDescription: "ഔദ്യോഗിക പ്രവേശന PDF-കളും ബ്രോഷറുകളും അപ്‌ലോഡ് ചെയ്യുക.", continueStudent: "വിദ്യാര്‍ത്ഥിയായി തുടരുക", continueParent: "രക്ഷിതാവായി തുടരുക", adminPortal: "അഡ്മിന്‍ പോര്‍ട്ടല്‍", appSubtitle: "AI കരിയര്‍ മാര്‍ഗ്ഗനിര്‍ദ്ദേശ സഹായി — Sree", welcome: role => `സ്വാഗതം, ${role}!`, welcomeIntro: "പ്രവേശന പരീക്ഷകളും കരിയര്‍ തിരഞ്ഞെടുപ്പുകളും എളുപ്പമാക്കാം.", path1: "വഴി 1: പ്രവേശന പരീക്ഷ തിരഞ്ഞെടുത്തു", path2: "വഴി 2: കരിയര്‍ മാര്‍ഗ്ഗനിര്‍ദ്ദേശം", examPrompt: "എനിക്ക് തിരഞ്ഞെടുക്കേണ്ട പ്രവേശന പരീക്ഷ അറിയാം", examDescription: "ഒരു പരീക്ഷ തിരഞ്ഞെടുത്ത് വീഡിയോ വിവരങ്ങളും AI സഹായവും നേടുക.", guidancePrompt: "ശരിയായ പ്രവേശന പരീക്ഷയും കരിയറും തിരഞ്ഞെടുക്കാന്‍ സഹായിക്കുക", guidanceDescription: "നിങ്ങളുടെ മാര്‍ക്ക് ലിസ്റ്റ് അപ്‌ലോഡ് ചെയ്യുകയോ മാര്‍ക്കുകള്‍ നല്‍കുകയോ ചെയ്യുക.", uploadProfile: "1. മാര്‍ക്ക് ലിസ്റ്റ് അപ്‌ലോഡ് ചെയ്യുക അല്ലെങ്കില്‍ പ്രൊഫൈല്‍ നല്‍കുക", recommendations: "2. AI പ്രവേശന ശുപാര്‍ശകള്‍", assistant: "Sree", askAbout: "ഇതിനെക്കുറിച്ച് ചോദിക്കുക", send: "അയയ്ക്കുക", listen: "കേള്‍ക്കുക", you: "നിങ്ങള്‍", typing: exam => `${exam || "പരീക്ഷ"}യുടെ ഔദ്യോഗിക ബ്രോഷറുകള്‍ തിരയുന്നു...`, greeting: exam => `${exam}യെക്കുറിച്ച് കൂടുതല്‍ ചോദ്യങ്ങളുണ്ടോ? യോഗ്യത, സീറ്റ് അലോട്ട്മെന്റ്, റാങ്ക് കണക്കാക്കല്‍ എന്നിവ Sree-യോട് ചോദിക്കാം!`, languageName: "മലയാളം" },
-        "ta-IN": { portalSubtitle: "12ஆம் வகுப்புக்குப் பிறகு AI தொழில் வழிகாட்டி மற்றும் நுழைவுத் தேர்வு உதவி", studentLogin: "மாணவர் உள்நுழைவு", parentLogin: "பெற்றோர் உள்நுழைவு", adminLogin: "நிர்வாகி / நிரலாளர்", studentDescription: "நுழைவுத் தேர்வுகளை ஆராய்ந்து AI-யிடம் தொழில் வழிகாட்டுதலைப் பெறுங்கள்.", parentDescription: "தகுதி மற்றும் கல்லூரி கட்டணத் தகவல்களைப் பாருங்கள்.", adminDescription: "அதிகாரப்பூர்வ நுழைவுத் தேர்வு PDF-களைப் பதிவேற்றுங்கள்.", continueStudent: "மாணவராகத் தொடர்க", continueParent: "பெற்றோராகத் தொடர்க", adminPortal: "நிர்வாகி போர்டல்", appSubtitle: "AI தொழில் வழிகாட்டி — Sree", welcome: role => `வரவேற்கிறோம், ${role}!`, welcomeIntro: "நுழைவுத் தேர்வுகளையும் தொழில் தேர்வுகளையும் எளிதாக்குங்கள்.", path1: "வழி 1: நுழைவுத் தேர்வு முடிவு செய்யப்பட்டது", path2: "வழி 2: தொழில் வழிகாட்டுதல்", examPrompt: "எந்த நுழைவுத் தேர்வை எழுத வேண்டும் என்று எனக்குத் தெரியும்", examDescription: "தேர்வைத் தேர்ந்தெடுத்து வீடியோ விளக்கத்தையும் AI உதவியையும் பெறுங்கள்.", guidancePrompt: "சரியான நுழைவுத் தேர்வு மற்றும் தொழிலைத் தேர்ந்தெடுக்க உதவுங்கள்", guidanceDescription: "மதிப்பெண் பட்டியலைப் பதிவேற்றுங்கள் அல்லது மதிப்பெண்களை உள்ளிடுங்கள்.", uploadProfile: "1. மதிப்பெண் பட்டியலைப் பதிவேற்றவும் அல்லது சுயவிவரம் உள்ளிடவும்", recommendations: "2. AI நுழைவுத் தேர்வு பரிந்துரைகள்", assistant: "Sree", askAbout: "இதுபற்றி கேளுங்கள்", send: "அனுப்பு", listen: "கேளுங்கள்", you: "நீங்கள்", typing: exam => `${exam || "தேர்வு"} அதிகாரப்பூர்வ விளக்கங்கள் தேடப்படுகின்றன...`, greeting: exam => `${exam} பற்றி மேலும் கேள்விகள் உள்ளதா? Sree-யிடம் தகுதி, இட ஒதுக்கீடு அல்லது தரவரிசை பற்றி கேளுங்கள்!`, languageName: "தமிழ்" },
-        "te-IN": { portalSubtitle: "12వ తరగతి తర్వాత AI కెరీర్ మార్గదర్శకం మరియు ప్రవేశ పరీక్ష సహాయకుడు", studentLogin: "విద్యార్థి లాగిన్", parentLogin: "తల్లిదండ్రుల లాగిన్", adminLogin: "అడ్మిన్ / ప్రోగ్రామర్", studentDescription: "ప్రవేశ పరీక్షలను అన్వేషించి AIతో కెరీర్ మార్గదర్శకం పొందండి.", parentDescription: "అర్హత మరియు కళాశాల ఫీజు వివరాలను చూడండి.", adminDescription: "అధికారిక ప్రవేశ పరీక్ష PDFలను అప్‌లోడ్ చేయండి.", continueStudent: "విద్యార్థిగా కొనసాగండి", continueParent: "తల్లిదండ్రిగా కొనసాగండి", adminPortal: "అడ్మిన్ పోర్టల్", appSubtitle: "AI కెరీర్ మార్గదర్శక సహాయకుడు — Sree", welcome: role => `స్వాగతం, ${role}!`, welcomeIntro: "ప్రవేశ పరీక్షలు మరియు కెరీర్ ఎంపికలను సులభం చేసుకోండి.", path1: "మార్గం 1: ప్రవేశ పరీక్ష నిర్ణయించబడింది", path2: "మార్గం 2: కెరీర్ మార్గదర్శకం", examPrompt: "ఏ ప్రవేశ పరీక్ష రాయాలో నాకు తెలుసు", examDescription: "పరీక్షను ఎంచుకుని వీడియో వివరణ మరియు AI సహాయం పొందండి.", guidancePrompt: "సరైన ప్రవేశ పరీక్ష మరియు కెరీర్‌ను ఎంచుకోవడానికి సహాయం చేయండి", guidanceDescription: "మీ మార్కుల పట్టికను అప్‌లోడ్ చేయండి లేదా మార్కులను నమోదు చేయండి.", uploadProfile: "1. మార్కుల పట్టికను అప్‌లోడ్ చేయండి లేదా ప్రొఫైల్ నమోదు చేయండి", recommendations: "2. AI ప్రవేశ పరీక్ష సిఫార్సులు", assistant: "Sree", askAbout: "దీని గురించి ప్రశ్నలు అడగండి", send: "పంపండి", listen: "వినండి", you: "మీరు", typing: exam => `${exam || "పరీక్ష"} అధికారిక బ్రోచర్లను వెతుకుతున్నాము...`, greeting: exam => `${exam} గురించి మరిన్ని ప్రశ్నలు ఉన్నాయా? Sreeని అర్హత, సీట్ల కేటాయింపు లేదా ర్యాంక్ గురించి అడగండి!`, languageName: "తెలుగు" }
+        "en-IN": {
+            portalSubtitle: "AI-Based Career Guidance & Entrance Exam Assistant after Class 12",
+            studentLogin: "Student Login", parentLogin: "Parent Login", adminLogin: "Admin / Programmer",
+            studentDescription: "Explore entrance exams, watch explainer video briefings, and chat with AI for career paths.",
+            parentDescription: "Review eligibility criteria, college cost summaries, and guidance for your child.",
+            adminDescription: "Upload official entrance PDFs, brochures, and manage vector knowledge base.",
+            continueStudent: "Continue as Student", continueParent: "Continue as Parent", adminPortal: "Admin Portal",
+            appSubtitle: "AI Career Guidance Assistant — Powered by Sree",
+            welcome: role => `Welcome, ${role}!`,
+            welcomeIntro: "Navigating entrance exams and career choices after Class 12 made easy. Choose how you would like to proceed today:",
+            path1: "Path 1: Finalized Entrance Selection", path2: "Path 2: Undecided / Career Guidance",
+            examPrompt: "I Know Which Entrance Exam I Want to Pursue",
+            examDescription: "If you have already decided on an entrance exam, select it from the dropdown list below to view the explainer video briefing and ask any queries to the AI assistant.",
+            guidancePrompt: "Help Me Choose the Right Entrance Exam & Career Path",
+            guidanceDescription: "Not sure which entrance exam suits your academic background and interests? Upload your marksheet or fill in your subject marks below so our AI Assistant can analyze your profile and recommend suitable entrance exams.",
+            uploadProfile: "1. Upload Marksheet or Enter Profile", recommendations: "2. AI Entrance Recommendations",
+            assistant: "Sree", askAbout: "Ask Queries About", send: "Send", listen: "Listen", you: "You",
+            askSreeNav: "Ask Sree AI (Type / Voice)",
+            landingAskTitle: "Ask Sree AI Any Entrance Exam Question",
+            landingAskSubtitle: "Type your query directly below (no microphone needed!) or click the microphone to speak. Sree searches official brochures for JEE, NEET, KEAM, CUET, and career roadmaps.",
+            typePlaceholder: "Type your query here (e.g. eligibility criteria, cutoffs, syllabus, rank formula)...",
+            askSreeBtn: "Ask Sree",
+            noMicRequired: "Microphone NOT required",
+            typing: exam => `Searching ingested brochures for ${exam || "exam"}...`,
+            greeting: exam => `Have further questions after reviewing the video briefing for ${exam}? Ask Sree anything about eligibility criteria, subject weightage, seat allocation, or rank calculation!`,
+            languageName: "English"
+        },
+        "hi-IN": {
+            portalSubtitle: "कक्षा 12 के बाद AI करियर मार्गदर्शन और प्रवेश परीक्षा सहायक",
+            studentLogin: "विद्यार्थी लॉगिन", parentLogin: "अभिभावक लॉगिन", adminLogin: "व्यवस्थापक / प्रोग्रामर",
+            studentDescription: "प्रवेश परीक्षाएं देखें, वीडियो जानकारी प्राप्त करें और करियर के लिए AI से बात करें।",
+            parentDescription: "पात्रता, कॉलेज शुल्क और अपने बच्चे के लिए मार्गदर्शन देखें।",
+            adminDescription: "आधिकारिक प्रवेश PDF और ब्रोशर अपलोड करें तथा ज्ञान आधार प्रबंधित करें।",
+            continueStudent: "विद्यार्थी के रूप में जारी रखें", continueParent: "अभिभावक के रूप में जारी रखें", adminPortal: "व्यवस्थापक पोर्टल",
+            appSubtitle: "AI करियर मार्गदर्शन सहायक — Sree",
+            welcome: role => `स्वागत है, ${role}!`,
+            welcomeIntro: "कक्षा 12 के बाद प्रवेश परीक्षाओं और करियर विकल्पों को आसान बनाएं। आज आगे बढ़ने का तरीका चुनें:",
+            path1: "मार्ग 1: प्रवेश परीक्षा तय है", path2: "मार्ग 2: करियर मार्गदर्शन",
+            examPrompt: "मुझे पता है कि मुझे कौन सी प्रवेश परीक्षा देनी है",
+            examDescription: "अपनी परीक्षा चुनें और वीडियो जानकारी देखें तथा AI सहायक से प्रश्न पूछें।",
+            guidancePrompt: "सही प्रवेश परीक्षा और करियर चुनने में मदद करें",
+            guidanceDescription: "अपनी अंकतालिका अपलोड करें या अंक भरें ताकि AI सहायक आपके लिए उपयुक्त परीक्षाओं की सिफारिश कर सके।",
+            uploadProfile: "1. अंकतालिका अपलोड करें या प्रोफ़ाइल भरें", recommendations: "2. AI प्रवेश परीक्षा सिफारिशें",
+            assistant: "Sree", askAbout: "इसके बारे में प्रश्न पूछें", send: "भेजें", listen: "सुनें", you: "आप",
+            askSreeNav: "Sree AI से पूछें (टाइप / आवाज़)",
+            landingAskTitle: "Sree AI से प्रवेश परीक्षा से जुड़ा कोई भी प्रश्न पूछें",
+            landingAskSubtitle: "नीचे सीधे अपना प्रश्न टाइप करें (माइक की आवश्यकता नहीं!) या बोलने के लिए माइक पर क्लिक करें।",
+            typePlaceholder: "अपना प्रश्न यहाँ टाइप करें (उदा. पात्रता, कटऑफ, पाठ्यक्रम, रैंक फॉर्मूला)...",
+            askSreeBtn: "Sree से पूछें",
+            noMicRequired: "माइक की आवश्यकता नहीं है",
+            typing: exam => `${exam || "परीक्षा"} के आधिकारिक ब्रोशर खोजे जा रहे हैं...`,
+            greeting: exam => `${exam} के बारे में और प्रश्न हैं? Sree से पात्रता, विषय भार, सीट आवंटन या रैंक गणना के बारे में पूछें!`,
+            languageName: "हिंदी"
+        },
+        "ml-IN": {
+            portalSubtitle: "പ്ലസ് ടുവിന് ശേഷമുള്ള AI കരിയര്‍ മാര്‍ഗ്ഗനിര്‍ദ്ദേശവും പ്രവേശന പരീക്ഷാ സഹായിയും",
+            studentLogin: "വിദ്യാര്‍ത്ഥി ലോഗിന്‍", parentLogin: "രക്ഷിതാക്കളുടെ ലോഗിന്‍", adminLogin: "അഡ്മിന്‍ / പ്രോഗ്രാമര്‍",
+            studentDescription: "പ്രവേശന പരീക്ഷകള്‍ കണ്ടെത്തുകയും AI-യുമായി കരിയര്‍ ചര്‍ച്ച ചെയ്യുകയും ചെയ്യുക.",
+            parentDescription: "യോഗ്യതയും കോളേജ് ഫീസ് വിവരങ്ങളും പരിശോധിക്കുക.",
+            adminDescription: "ഔദ്യോഗിക പ്രവേശന PDF-കളും ബ്രോഷറുകളും അപ്‌ലോഡ് ചെയ്യുക.",
+            continueStudent: "വിദ്യാര്‍ത്ഥിയായി തുടരുക", continueParent: "രക്ഷിതാവായി തുടരുക", adminPortal: "അഡ്മിന്‍ പോര്‍ട്ടല്‍",
+            appSubtitle: "AI കരിയര്‍ മാര്‍ഗ്ഗനിര്‍ദ്ദേശ സഹായി — Sree",
+            welcome: role => `സ്വാഗതം, ${role}!`,
+            welcomeIntro: "പ്രവേശന പരീക്ഷകളും കരിയര്‍ തിരഞ്ഞെടുപ്പുകളും എളുപ്പമാക്കാം.",
+            path1: "വഴി 1: പ്രവേശന പരീക്ഷ തിരഞ്ഞെടുത്തു", path2: "വഴി 2: കരിയര്‍ മാര്‍ഗ്ഗനിര്‍ദ്ദേശം",
+            examPrompt: "എനിക്ക് തിരഞ്ഞെടുക്കേണ്ട പ്രവേശന പരീക്ഷ അറിയാം",
+            examDescription: "ഒരു പരീക്ഷ തിരഞ്ഞെടുത്ത് വീഡിയോ വിവരങ്ങളും AI സഹായവും നേടുക.",
+            guidancePrompt: "ശരിയായ പ്രവേശന പരീക്ഷയും കരിയറും തിരഞ്ഞെടുക്കാന്‍ സഹായിക്കുക",
+            guidanceDescription: "നിങ്ങളുടെ മാര്‍ക്ക് ലിസ്റ്റ് അപ്‌ലോഡ് ചെയ്യുകയോ മാര്‍ക്കുകള്‍ നല്‍കുകയോ ചെയ്യുക.",
+            uploadProfile: "1. മാര്‍ക്ക് ലിസ്റ്റ് അപ്‌ലോഡ് ചെയ്യുക അല്ലെങ്കില്‍ പ്രൊഫൈല്‍ നല്‍കുക", recommendations: "2. AI പ്രവേശന ശുപാര്‍ശകള്‍",
+            assistant: "Sree", askAbout: "ഇതിനെക്കുറിച്ച് ചോദിക്കുക", send: "അയയ്ക്കുക", listen: "കേള്‍ക്കുക", you: "നിങ്ങള്‍",
+            askSreeNav: "Sree AI-യോട് ചോദിക്കുക (ടൈപ്പ് / വോയ്‌സ്)",
+            landingAskTitle: "പ്രവേശന പരീക്ഷകളെക്കുറിച്ച് Sree AI-യോട് ചോദിക്കുക",
+            landingAskSubtitle: "മൈക്രോഫോൺ ആവശ്യമില്ലാതെ താഴെ ചോദ്യം നേരിട്ട് ടൈപ്പ് ചെയ്യുക, അല്ലെങ്കിൽ സംസാരിക്കാൻ മൈക്കിൽ ക്ലിക്ക് ചെയ്യുക.",
+            typePlaceholder: "ചോദ്യം ഇവിടെ ടൈപ്പ് ചെയ്യുക (ഉദാ: യോഗ്യത, റാങ്ക് ഫോർമുല, കട്ട് ഓഫ്)...",
+            askSreeBtn: "ചോദിക്കുക",
+            noMicRequired: "മൈക്രോഫോൺ ആവശ്യമില്ല",
+            typing: exam => `${exam || "പരീക്ഷ"}യുടെ ഔദ്യോഗിക ബ്രോഷറുകള്‍ തിരയുന്നു...`,
+            greeting: exam => `${exam}യെക്കുറിച്ച് കൂടുതല്‍ ചോദ്യങ്ങളുണ്ടോ? യോഗ്യത, സീറ്റ് അലോട്ട്മെന്റ്, റാങ്ക് കണക്കാക്കല്‍ എന്നിവ Sree-യോട് ചോദിക്കാം!`,
+            languageName: "മലയാളം"
+        },
+        "ta-IN": {
+            portalSubtitle: "12ஆம் வகுப்புக்குப் பிறகு AI தொழில் வழிகாட்டி மற்றும் நுழைவுத் தேர்வு உதவி",
+            studentLogin: "மாணவர் உள்நுழைவு", parentLogin: "பெற்றோர் உள்நுழைவு", adminLogin: "நிர்வாகி / நிரலாளர்",
+            studentDescription: "நுழைவுத் தேர்வுகளை ஆராய்ந்து AI-யிடம் தொழில் வழிகாட்டுதலைப் பெறுங்கள்.",
+            parentDescription: "தகுதி மற்றும் கல்லூரி கட்டணத் தகவல்களைப் பாருங்கள்.",
+            adminDescription: "அதிகாரப்பூர்வ நுழைவுத் தேர்வு PDF-களைப் பதிவேற்றுங்கள்.",
+            continueStudent: "மாணவராகத் தொடர்க", continueParent: "பெற்றோராகத் தொடர்க", adminPortal: "நிர்வாகி போர்டல்",
+            appSubtitle: "AI தொழில் வழிகாட்டி — Sree",
+            welcome: role => `வரவேற்கிறோம், ${role}!`,
+            welcomeIntro: "நுழைவுத் தேர்வுகளையும் தொழில் தேர்வுகளையும் எளிதாக்குங்கள்.",
+            path1: "வழி 1: நுழைவுத் தேர்வு முடிவு செய்யப்பட்டது", path2: "வழி 2: தொழில் வழிகாட்டுதல்",
+            examPrompt: "எந்த நுழைவுத் தேர்வை எழுத வேண்டும் என்று எனக்குத் தெரியும்",
+            examDescription: "தேர்வைத் தேர்ந்தெடுத்து வீடியோ விளக்கத்தையும் AI உதவியையும் பெறுங்கள்.",
+            guidancePrompt: "சரியான நுழைவுத் தேர்வு மற்றும் தொழிலைத் தேர்ந்தெடுக்க உதவுங்கள்",
+            guidanceDescription: "மதிப்பெண் பட்டியலைப் பதிவேற்றுங்கள் அல்லது மதிப்பெண்களை உள்ளிடுங்கள்.",
+            uploadProfile: "1. மதிப்பெண் பட்டியலைப் பதிவேற்றவும் அல்லது சுயவிவரம் உள்ளிடவும்", recommendations: "2. AI நுழைவுத் தேர்வு பரிந்துரைகள்",
+            assistant: "Sree", askAbout: "இதுபற்றி கேளுங்கள்", send: "அனுப்பு", listen: "கேளுங்கள்", you: "நீங்கள்",
+            askSreeNav: "Sree AI-யிடம் கேளுங்கள் (டைப் / வாய்ஸ்)",
+            landingAskTitle: "நுழைவுத் தேர்வுகள் பற்றி Sree AI-யிடம் கேளுங்கள்",
+            landingAskSubtitle: "மைக்ரோஃபோன் தேவையில்லாமல் கீழே உங்கள் கேள்வியை நேரடியாக தட்டச்சு செய்யுங்கள் அல்லது பேச மைக்கை கிளிக் செய்யுங்கள்.",
+            typePlaceholder: "உங்கள் கேள்வியை இங்கே தட்டச்சு செய்யவும்...",
+            askSreeBtn: "கேளுங்கள்",
+            noMicRequired: "மைக்ரோஃபோன் தேவையில்லை",
+            typing: exam => `${exam || "தேர்வு"} அதிகாரப்பூர்வ விளக்கங்கள் தேடப்படுகின்றன...`,
+            greeting: exam => `${exam} பற்றி மேலும் கேள்விகள் உள்ளதா? Sree-யிடம் தகுதி, இட ஒதுக்கீடு அல்லது தரவரிசை பற்றி கேளுங்கள்!`,
+            languageName: "தமிழ்"
+        },
+        "te-IN": {
+            portalSubtitle: "12వ తరగతి తర్వాత AI కెరీర్ మార్గదర్శకం మరియు ప్రవేశ పరీక్ష సహాయకుడు",
+            studentLogin: "విద్యార్థి లాగిన్", parentLogin: "తల్లిదండ్రుల లాగిన్", adminLogin: "అడ్మిన్ / ప్రోగ్రామర్",
+            studentDescription: "ప్రవేశ పరీక్షలను అన్వేషించి AIతో కెరీర్ మార్గదర్శకం పొందండి.",
+            parentDescription: "అర్హత మరియు కళాశాల ఫీజు వివరాలను చూడండి.",
+            adminDescription: "అధికారిక ప్రవేశ పరీక్ష PDFలను అప్‌లోడ్ చేయండి.",
+            continueStudent: "విద్యార్థిగా కొనసాగండి", continueParent: "తల్లిదండ్రిగా కొనసాగండి", adminPortal: "అడ్మిన్ పోర్టల్",
+            appSubtitle: "AI కెరీర్ మార్గదర్శక సహాయకుడు — Sree",
+            welcome: role => `స్వాగతం, ${role}!`,
+            welcomeIntro: "ప్రవేశ పరీక్షలు మరియు కెరీర్ ఎంపికలను సులభం చేసుకోండి.",
+            path1: "మార్గం 1: ప్రవేశ పరీక్ష నిర్ణయించబడింది", path2: "మార్గం 2: కెరీర్ మార్గదర్శకం",
+            examPrompt: "ఏ ప్రవేశ పరీక్ష రాయాలో నాకు తెలుసు",
+            examDescription: "పరీక్షను ఎంచుకుని వీడియో వివరణ మరియు AI సహాయం పొందండి.",
+            guidancePrompt: "సరైన ప్రవేశ పరీక్ష మరియు కెరీర్‌ను ఎంచుకోవడానికి సహాయం చేయండి",
+            guidanceDescription: "మీ మార్కుల పట్టికను అప్‌లోడ్ చేయండి లేదా మార్కులను నమోదు చేయండి.",
+            uploadProfile: "1. మార్కుల పట్టికను అప్‌లోడ్ చేయండి లేదా ప్రొఫైల్ నమోదు చేయండి", recommendations: "2. AI ప్రవేశ పరీక్ష సిఫార్సులు",
+            assistant: "Sree", askAbout: "దీని గురించి ప్రశ్నలు అడగండి", send: "పంపండి", listen: "వినండి", you: "మీరు",
+            askSreeNav: "Sree AIని అడగండి (టైప్ / వాయిస్)",
+            landingAskTitle: "ప్రవేశ పరీక్షల గురించి Sree AIని అడగండి",
+            landingAskSubtitle: "మైక్రోఫోన్ అవసరం లేకుండా నేరుగా కింద మీ ప్రశ్నను టైప్ చేయండి లేదా మాట్లాడటానికి మైక్ క్లిక్ చేయండి.",
+            typePlaceholder: "మీ ప్రశ్నను ఇక్కడ టైప్ చేయండి...",
+            askSreeBtn: "అడగండి",
+            noMicRequired: "మైక్రోఫోన్ అవసరం లేదు",
+            typing: exam => `${exam || "పరీక్ష"} అధికారిక బ్రోచర్లను వెతుకుతున్నాము...`,
+            greeting: exam => `${exam} గురించి మరిన్ని ప్రశ్నలు ఉన్నాయా? Sreeని అర్హత, సీట్ల కేటాయింపు లేదా ర్యాంక్ గురించి అడగండి!`,
+            languageName: "తెలుగు"
+        }
     };
 
     function t(key, ...args) {
@@ -34,14 +164,23 @@ document.addEventListener("DOMContentLoaded", () => {
             "#loginScreen .role-card:nth-child(1) h3": "studentLogin", "#loginScreen .role-card:nth-child(2) h3": "parentLogin", "#loginScreen .role-card:nth-child(3) h3": "adminLogin",
             "#loginScreen .role-card:nth-child(1) p": "studentDescription", "#loginScreen .role-card:nth-child(2) p": "parentDescription", "#loginScreen .role-card:nth-child(3) p": "adminDescription",
             "#loginScreen .role-card:nth-child(1) button": "continueStudent", "#loginScreen .role-card:nth-child(2) button": "continueParent", "#loginScreen .role-card:nth-child(3) button": "adminPortal",
-            ".pathway-section:nth-child(1) .section-badge": "path1", ".pathway-section:nth-child(2) .section-badge": "path2", ".pathway-section:nth-child(1) h3": "examPrompt", ".pathway-section:nth-child(1) .section-header-box p": "examDescription",
-            ".pathway-section:nth-child(2) h3": "guidancePrompt", ".pathway-section:nth-child(2) .section-header-box p": "guidanceDescription", ".input-card h4": "uploadProfile", ".output-card h4": "recommendations",
-            ".send-btn span": "send"
+            ".pathway-section:nth-child(2) .section-badge": "path1", ".pathway-section:nth-child(3) .section-badge": "path2", ".pathway-section:nth-child(2) h3": "examPrompt", ".pathway-section:nth-child(2) .section-header-box p": "examDescription",
+            ".pathway-section:nth-child(3) h3": "guidancePrompt", ".pathway-section:nth-child(3) .section-header-box p": "guidanceDescription", ".input-card h4": "uploadProfile", ".output-card h4": "recommendations",
+            ".send-btn span": "send",
+            "#navAskSreeLabel": "askSreeNav",
+            "#landingAskSreeTitle": "landingAskTitle",
+            "#landingAskSreeSubtitle": "landingAskSubtitle",
+            "#landingSendBtn span": "askSreeBtn",
+            "#captionNoMicLabel": "noMicRequired"
         };
         Object.entries(selectors).forEach(([selector, key]) => {
             const element = document.querySelector(selector);
             if (element) element.textContent = t(key);
         });
+        const landingInput = document.getElementById("landingQueryInput");
+        if (landingInput) landingInput.placeholder = t("typePlaceholder");
+        const sreeInput = document.getElementById("sreeTypedInput");
+        if (sreeInput) sreeInput.placeholder = t("typePlaceholder");
         if (welcomeHeading && currentUserRole) welcomeHeading.textContent = t("welcome", currentUserRole);
         if (currentLangLabel) currentLangLabel.textContent = t("languageName");
         document.documentElement.lang = currentLanguage;
@@ -978,11 +1117,26 @@ document.addEventListener("DOMContentLoaded", () => {
     let speechRestartTimeout = null;
     let audioContextInstance = null;
 
+    const navAskSreeBtn = document.getElementById("navAskSreeBtn");
+    const navAskSreeLabel = document.getElementById("navAskSreeLabel");
     const wakeWordToggleBtn = document.getElementById("wakeWordToggleBtn");
     const wakeWordBtnLabel = document.getElementById("wakeWordBtnLabel");
     const siriVoiceBanner = document.getElementById("siriVoiceBanner");
     const siriVoiceText = document.getElementById("siriVoiceText");
     const stopSiriVoiceBtn = document.getElementById("stopSiriVoiceBtn");
+
+    const landingQueryForm = document.getElementById("landingQueryForm");
+    const landingQueryInput = document.getElementById("landingQueryInput");
+    const landingMicBtn = document.getElementById("landingMicBtn");
+    const landingSendBtn = document.getElementById("landingSendBtn");
+    const landingQueryResponse = document.getElementById("landingQueryResponse");
+    const landingUserQueryText = document.getElementById("landingUserQueryText");
+    const landingResponseBody = document.getElementById("landingResponseBody");
+    const landingResponseSources = document.getElementById("landingResponseSources");
+    const landingListenBtn = document.getElementById("landingListenBtn");
+    const landingCopyBtn = document.getElementById("landingCopyBtn");
+    const landingOpenChatBtn = document.getElementById("landingOpenChatBtn");
+    const landingDismissBtn = document.getElementById("landingDismissBtn");
 
     const sreeFloatingWidget = document.getElementById("sreeFloatingWidget");
     const sreeWidgetStatus = document.getElementById("sreeWidgetStatus");
@@ -999,6 +1153,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const siriOrbLarge = document.getElementById("siriOrbLarge");
     const micPermissionToast = document.getElementById("micPermissionToast");
     const enableMicBtn = document.getElementById("enableMicBtn");
+    const typeInsteadBtn = document.getElementById("typeInsteadBtn");
+
+    const tabSreeType = document.getElementById("tabSreeType");
+    const tabSreeVoice = document.getElementById("tabSreeVoice");
+    const sreeVoiceModeSection = document.getElementById("sreeVoiceModeSection");
+    const sreeTypeModeBanner = document.getElementById("sreeTypeModeBanner");
+    const sreeSwitchToTypeBtn = document.getElementById("sreeSwitchToTypeBtn");
+
+    let currentLandingAnswerText = "";
+    let currentModalMode = "type"; // "type" or "voice"
+    let landingSpeechRec = null;
+    let isLandingMicListening = false;
 
     function playWakeChime() {
         try {
@@ -1256,13 +1422,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         rec.onerror = (e) => {
             console.warn("SpeechRecognition error:", e.error);
-            if (e.error === 'not-allowed') {
-                stopWakeWordEngine(false); // Don't close overlay so user can type!
-                if (sreeOverlayStatus) {
-                    sreeOverlayStatus.innerHTML = `<span style="color:#f59e0b;"><i class="fa-solid fa-microphone-slash"></i> Microphone access blocked. You can type your question below! ⌨️</span>`;
-                }
-                if (micPermissionToast) micPermissionToast.classList.remove("hidden");
+            stopWakeWordEngine(false); // Don't close overlay so user can type!
+            setSreeModalMode("type");
+            if (sreeTypeModeBanner) {
+                sreeTypeModeBanner.innerHTML = `<i class="fa-solid fa-circle-info" style="color:#f59e0b;"></i> <span>Microphone not available or blocked. Switched to Keyboard Typing mode — type your question freely below! ⌨️</span>`;
             }
+            if (sreeOverlayStatus) {
+                sreeOverlayStatus.innerHTML = `<span style="color:#f59e0b;"><i class="fa-solid fa-keyboard"></i> Switched to Typing Mode. Type your question below! ⌨️</span>`;
+            }
+            if (micPermissionToast) micPermissionToast.classList.add("hidden");
         };
 
         rec.onend = () => {
@@ -1440,12 +1608,37 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function openSreeOverlay() {
-        if (sreeVoiceOverlay) {
-            sreeVoiceOverlay.classList.remove("hidden");
+    function setSreeModalMode(mode) {
+        currentModalMode = mode;
+        if (mode === "type") {
+            if (tabSreeType) tabSreeType.classList.add("active");
+            if (tabSreeVoice) tabSreeVoice.classList.remove("active");
+            if (sreeTypeModeBanner) sreeTypeModeBanner.classList.remove("hidden");
+            if (sreeVoiceModeSection) sreeVoiceModeSection.classList.add("hidden");
+            stopWakeWordEngine(false);
+            if (sreeWidgetStatus) sreeWidgetStatus.textContent = "Type or Speak 💬🎙️";
             setTimeout(() => {
                 if (sreeTypedInput) sreeTypedInput.focus();
-            }, 120);
+            }, 100);
+        } else {
+            if (tabSreeVoice) tabSreeVoice.classList.add("active");
+            if (tabSreeType) tabSreeType.classList.remove("active");
+            if (sreeVoiceModeSection) sreeVoiceModeSection.classList.remove("hidden");
+            if (sreeTypeModeBanner) sreeTypeModeBanner.classList.add("hidden");
+            if (!isWakeWordMode) {
+                if (localStorage.getItem("sree_mic_permission") === "granted") {
+                    startWakeWordEngine();
+                } else {
+                    requestMicrophoneAccess(() => startWakeWordEngine());
+                }
+            }
+        }
+    }
+
+    function openSreeOverlay(initialMode = "type") {
+        if (sreeVoiceOverlay) {
+            sreeVoiceOverlay.classList.remove("hidden");
+            setSreeModalMode(initialMode);
         }
     }
 
@@ -1460,7 +1653,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (wakeWordBtnLabel) wakeWordBtnLabel.textContent = `"Hey Sree" Active 🎙️`;
             } else {
                 wakeWordToggleBtn.classList.remove("active");
-                if (wakeWordBtnLabel) wakeWordBtnLabel.textContent = `"Hey Sree" Voice Chat`;
+                if (wakeWordBtnLabel) wakeWordBtnLabel.textContent = `"Hey Sree" Voice`;
             }
         }
         if (sreeFloatingWidget) {
@@ -1469,7 +1662,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (sreeWidgetStatus) sreeWidgetStatus.textContent = "Active ('Hey Sree') 🎙️";
             } else {
                 sreeFloatingWidget.classList.remove("active");
-                if (sreeWidgetStatus) sreeWidgetStatus.textContent = `Ask Sree (Voice / Type)`;
+                if (sreeWidgetStatus) sreeWidgetStatus.textContent = `Type or Speak 💬🎙️`;
             }
         }
         if (siriVoiceBanner) {
@@ -1484,7 +1677,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function updateSreeStatus(html) {
         if (sreeOverlayStatus) sreeOverlayStatus.innerHTML = html;
         if (siriVoiceText) siriVoiceText.innerHTML = html;
-        if (sreeWidgetStatus) sreeWidgetStatus.textContent = isWakeWordMode ? "Active ('Hey Sree') 🎙️" : "Ask Sree (Voice / Type)";
+        if (sreeWidgetStatus) sreeWidgetStatus.textContent = isWakeWordMode ? "Active ('Hey Sree') 🎙️" : "Type or Speak 💬🎙️";
     }
 
     function updateSreeTranscript(html) {
@@ -1495,11 +1688,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (isWakeWordMode) {
             stopWakeWordEngine(true);
         } else {
-            if (localStorage.getItem("sree_mic_permission") !== "granted") {
-                requestMicrophoneAccess(() => startWakeWordEngine());
-            } else {
-                startWakeWordEngine();
-            }
+            openSreeOverlay("voice");
         }
     }
 
@@ -1541,10 +1730,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (callback) callback(true);
             }).catch(err => {
                 console.warn("Microphone access prompt rejected or unavailable:", err);
-                if (sreeOverlayStatus) {
-                    sreeOverlayStatus.innerHTML = `<span style="color:#f59e0b;"><i class="fa-solid fa-microphone-slash"></i> Microphone muted or blocked. You can type your question below! ⌨️</span>`;
+                setSreeModalMode("type");
+                if (sreeTypeModeBanner) {
+                    sreeTypeModeBanner.innerHTML = `<i class="fa-solid fa-circle-info" style="color:#f59e0b;"></i> <span>Microphone not available or blocked. Switched to Keyboard Typing mode — type your question freely below! ⌨️</span>`;
                 }
-                openSreeOverlay();
+                openSreeOverlay("type");
                 if (callback) callback(false);
             });
         } else {
@@ -1573,19 +1763,210 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 12000);
     }
 
+    // -------------------------------------------------------------
+    // LANDING PAGE DIRECT AI QUERY SEARCH & CHAT ENGINE
+    // -------------------------------------------------------------
+    async function submitLandingQuery(queryText) {
+        if (!queryText || !queryText.trim()) return;
+        const cleanQuery = queryText.trim();
+
+        if (landingQueryInput) landingQueryInput.value = cleanQuery;
+        if (landingSendBtn) {
+            landingSendBtn.disabled = true;
+            landingSendBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Searching...</span>`;
+        }
+
+        if (landingQueryResponse) landingQueryResponse.classList.remove("hidden");
+        if (landingUserQueryText) landingUserQueryText.textContent = cleanQuery;
+        if (landingResponseBody) {
+            landingResponseBody.innerHTML = `<div class="sree-bubble-thinking"><i class="fa-solid fa-spinner fa-spin"></i> Sree is analyzing official brochures & preparing your answer...</div>`;
+        }
+        if (landingResponseSources) landingResponseSources.innerHTML = "";
+
+        try {
+            const headers = { "Content-Type": "application/json" };
+            if (authToken) headers["X-User-Token"] = authToken;
+
+            const res = await fetch("/api/chat", {
+                method: "POST",
+                headers: headers,
+                body: JSON.stringify({
+                    query: cleanQuery,
+                    persona: currentUserRole || "Student",
+                    exam_context: null,
+                    language: currentLanguage,
+                    session_id: currentSessionId
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                currentLandingAnswerText = data.answer;
+                if (landingResponseBody) landingResponseBody.innerHTML = formatMarkdown(data.answer);
+
+                if (landingResponseSources) {
+                    if (data.sources && Array.isArray(data.sources) && data.sources.length > 0) {
+                        landingResponseSources.innerHTML = `
+                            <span class="chip-label" style="margin-right:6px;"><i class="fa-solid fa-book-bookmark"></i> Official Sources:</span>
+                            ${data.sources.map(s => `<span class="sree-bubble-badge">${escapeQuotes(typeof s === 'string' ? s : s.title || s.source || 'Official Brochure')}</span>`).join(' ')}
+                        `;
+                    } else {
+                        landingResponseSources.innerHTML = `<span style="font-size:0.75rem; color:#94a3b8; font-style:italic;"><i class="fa-solid fa-shield-halved"></i> Grounded strictly in official entrance brochures.</span>`;
+                    }
+                }
+
+                if (data.session_id) {
+                    currentSessionId = data.session_id;
+                    if (authToken) fetchUserSessions();
+                }
+
+                // Mirror to Sree overlay transcript so conversation continues seamlessly if full chat is opened
+                appendOverlayUserMessage(cleanQuery);
+                appendOverlayBotMessage(data.answer, data.sources);
+
+                if (landingQueryResponse) {
+                    landingQueryResponse.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                }
+            } else {
+                const errDetail = data.detail || "Unable to retrieve information from brochures.";
+                if (landingResponseBody) landingResponseBody.innerHTML = `<p style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> ${escapeQuotes(errDetail)}</p>`;
+            }
+        } catch (err) {
+            console.error("Landing query error:", err);
+            if (landingResponseBody) landingResponseBody.innerHTML = `<p style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> Error connecting to Entrance Sahaayi AI. Please check your connection.</p>`;
+        } finally {
+            if (landingSendBtn) {
+                landingSendBtn.disabled = false;
+                landingSendBtn.innerHTML = `<span>Ask Sree</span> <i class="fa-solid fa-paper-plane"></i>`;
+            }
+        }
+    }
+
+    function initLandingSpeech() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            if (landingMicBtn) {
+                landingMicBtn.title = "Microphone not supported in this browser (Typing works anytime!)";
+                landingMicBtn.addEventListener("click", () => {
+                    alert("Voice recognition is not supported in this browser. Please type your query in the box!");
+                    if (landingQueryInput) landingQueryInput.focus();
+                });
+            }
+            return;
+        }
+
+        landingSpeechRec = new SpeechRecognition();
+        landingSpeechRec.continuous = false;
+        landingSpeechRec.interimResults = false;
+        landingSpeechRec.lang = currentLanguage || "en-IN";
+
+        landingSpeechRec.onstart = () => {
+            isLandingMicListening = true;
+            if (landingMicBtn) landingMicBtn.classList.add("listening");
+        };
+
+        landingSpeechRec.onresult = (e) => {
+            const transcript = e.results[0][0].transcript;
+            if (landingQueryInput) landingQueryInput.value = transcript;
+            submitLandingQuery(transcript);
+        };
+
+        landingSpeechRec.onend = () => {
+            isLandingMicListening = false;
+            if (landingMicBtn) landingMicBtn.classList.remove("listening");
+        };
+
+        landingSpeechRec.onerror = (e) => {
+            console.warn("Landing speech error:", e.error);
+            isLandingMicListening = false;
+            if (landingMicBtn) landingMicBtn.classList.remove("listening");
+            if (landingQueryInput) landingQueryInput.focus();
+        };
+
+        if (landingMicBtn) {
+            landingMicBtn.addEventListener("click", () => {
+                if (isLandingMicListening) {
+                    landingSpeechRec.stop();
+                } else {
+                    landingSpeechRec.lang = currentLanguage || "en-IN";
+                    try {
+                        landingSpeechRec.start();
+                    } catch (err) {
+                        console.warn("Landing speech start error:", err);
+                    }
+                }
+            });
+        }
+    }
+
+    initLandingSpeech();
+
     // Attach listeners
+    if (navAskSreeBtn) navAskSreeBtn.addEventListener("click", () => openSreeOverlay("type"));
     if (wakeWordToggleBtn) wakeWordToggleBtn.addEventListener("click", toggleWakeWordMode);
     if (stopSiriVoiceBtn) stopSiriVoiceBtn.addEventListener("click", () => stopWakeWordEngine(true));
     if (enableMicBtn) enableMicBtn.addEventListener("click", () => requestMicrophoneAccess());
 
+    if (typeInsteadBtn) {
+        typeInsteadBtn.addEventListener("click", () => {
+            if (micPermissionToast) micPermissionToast.classList.add("hidden");
+            openSreeOverlay("type");
+        });
+    }
+
+    if (tabSreeType) tabSreeType.addEventListener("click", () => setSreeModalMode("type"));
+    if (tabSreeVoice) tabSreeVoice.addEventListener("click", () => setSreeModalMode("voice"));
+    if (sreeSwitchToTypeBtn) sreeSwitchToTypeBtn.addEventListener("click", () => setSreeModalMode("type"));
+
+    if (landingQueryForm) {
+        landingQueryForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            if (!landingQueryInput) return;
+            const query = landingQueryInput.value.trim();
+            if (query) submitLandingQuery(query);
+        });
+    }
+
+    document.querySelectorAll(".landing-chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+            const query = chip.getAttribute("data-query");
+            if (query) submitLandingQuery(query);
+        });
+    });
+
+    if (landingListenBtn) {
+        landingListenBtn.addEventListener("click", () => {
+            if (currentLandingAnswerText) {
+                speakAssistantVoice(currentLandingAnswerText);
+            }
+        });
+    }
+
+    if (landingCopyBtn) {
+        landingCopyBtn.addEventListener("click", () => {
+            if (currentLandingAnswerText) {
+                navigator.clipboard.writeText(currentLandingAnswerText).then(() => {
+                    const originalHtml = landingCopyBtn.innerHTML;
+                    landingCopyBtn.innerHTML = `<i class="fa-solid fa-check"></i> <span>Copied!</span>`;
+                    setTimeout(() => { landingCopyBtn.innerHTML = originalHtml; }, 2000);
+                }).catch(() => {});
+            }
+        });
+    }
+
+    if (landingOpenChatBtn) {
+        landingOpenChatBtn.addEventListener("click", () => openSreeOverlay("type"));
+    }
+
+    if (landingDismissBtn) {
+        landingDismissBtn.addEventListener("click", () => {
+            if (landingQueryResponse) landingQueryResponse.classList.add("hidden");
+        });
+    }
+
     if (sreeFloatingWidget) {
         sreeFloatingWidget.addEventListener("click", () => {
-            openSreeOverlay();
-            if (!isWakeWordMode) {
-                if (localStorage.getItem("sree_mic_permission") === "granted") {
-                    startWakeWordEngine();
-                }
-            }
+            openSreeOverlay("type");
         });
     }
 
