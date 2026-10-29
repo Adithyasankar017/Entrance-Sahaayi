@@ -1837,7 +1837,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } finally {
             if (landingSendBtn) {
                 landingSendBtn.disabled = false;
-                landingSendBtn.innerHTML = `<span>Ask Sree</span> <i class="fa-solid fa-paper-plane"></i>`;
+                landingSendBtn.innerHTML = `<span>${t("askSreeBtn")}</span> <i class="fa-solid fa-paper-plane"></i>`;
             }
         }
     }

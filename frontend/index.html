@@ -11,7 +11,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Custom Styles -->
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/styles.css?v=sree-query-v5">
 </head>
 <body>
     <div class="app-container">
@@ -219,35 +219,25 @@
                 
                 <!-- SECTION 0: INSTANT AI QUERY ASSISTANT (DIRECT TYPE & VOICE GUIDANCE) -->
                 <section class="pathway-section card-gradient-ai" id="landingQuerySection">
-                    <div class="section-badge badge-ai"><i class="fa-solid fa-keyboard"></i> Instant AI Query Assistant — Type or Speak</div>
+                    <div class="section-badge badge-ai"><i class="fa-solid fa-keyboard"></i> Instant AI Query Assistant — Type or Speak (No Mic Required)</div>
                     <div class="section-header-box">
-                        <div class="section-icon ai-icon"><i class="fa-solid fa-robot"></i></div>
+                        <div class="section-icon ai-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
                         <div>
                             <h3 id="landingAskSreeTitle">Ask Sree AI Any Entrance Exam Question</h3>
-                            <p id="landingAskSreeSubtitle">Type your query directly below (no microphone needed!) or click the microphone to speak. Sree searches official brochures for JEE, NEET, KEAM, CUET, and career roadmaps.</p>
+                            <p id="landingAskSreeSubtitle">Need help with eligibility, cutoffs, syllabus, or rank formulas? Type your query below. Sree searches official brochures for JEE, NEET, KEAM, CUET, and career roadmaps.</p>
                         </div>
                     </div>
 
-                    <!-- Quick Query Chips -->
-                    <div class="landing-quick-chips">
-                        <span class="chip-label"><i class="fa-solid fa-bolt"></i> Popular Queries:</span>
-                        <button type="button" class="landing-chip" data-query="What is the KEAM rank calculation formula?"><i class="fa-solid fa-calculator"></i> KEAM Rank Formula</button>
-                        <button type="button" class="landing-chip" data-query="What are the eligibility criteria for JEE Main?"><i class="fa-solid fa-graduation-cap"></i> JEE Main Eligibility</button>
-                        <button type="button" class="landing-chip" data-query="What is the NEET-UG exam pattern and total marks?"><i class="fa-solid fa-stethoscope"></i> NEET Pattern & Marks</button>
-                        <button type="button" class="landing-chip" data-query="Which universities admit through CUET-UG?"><i class="fa-solid fa-building-columns"></i> CUET-UG Universities</button>
-                        <button type="button" class="landing-chip" data-query="Can a PCB student get admission to engineering courses?"><i class="fa-solid fa-arrows-split-up-and-left"></i> PCB to Engineering?</button>
-                    </div>
-
-                    <!-- Main Query Form for Typing -->
-                    <form id="landingQueryForm" class="landing-query-form">
-                        <div class="landing-query-input-box">
+                    <!-- Main Hero Query Form for Typing -->
+                    <form id="landingQueryForm" class="landing-query-form hero-query-form">
+                        <div class="landing-query-input-box hero-search-box">
                             <i class="fa-solid fa-keyboard input-type-icon"></i>
-                            <input type="text" id="landingQueryInput" placeholder="Type your query here (e.g. eligibility criteria, cutoffs, syllabus, rank formula)..." autocomplete="off" required>
+                            <input type="text" id="landingQueryInput" placeholder="Type your entrance query here (e.g. What is the KEAM rank formula?)..." autocomplete="off" required>
                             <button type="button" id="landingMicBtn" class="landing-mic-toggle-btn" title="Speak question with microphone (Optional)">
                                 <i class="fa-solid fa-microphone"></i>
                             </button>
                             <button type="submit" id="landingSendBtn" class="landing-query-submit-btn">
-                                <span>Ask Sree</span> <i class="fa-solid fa-paper-plane"></i>
+                                <span>Ask Sree AI</span> <i class="fa-solid fa-paper-plane"></i>
                             </button>
                         </div>
                         <div class="landing-input-caption">
@@ -256,6 +246,16 @@
                             <span><i class="fa-solid fa-book-bookmark"></i> Answers verified strictly from official brochures.</span>
                         </div>
                     </form>
+
+                    <!-- Popular Suggestion Chips directly below search box -->
+                    <div class="landing-quick-chips">
+                        <span class="chip-label"><i class="fa-solid fa-bolt"></i> Popular Queries:</span>
+                        <button type="button" class="landing-chip" data-query="What is the KEAM rank calculation formula?"><i class="fa-solid fa-calculator"></i> KEAM Rank Formula</button>
+                        <button type="button" class="landing-chip" data-query="What are the eligibility criteria for JEE Main?"><i class="fa-solid fa-graduation-cap"></i> JEE Main Eligibility</button>
+                        <button type="button" class="landing-chip" data-query="What is the NEET-UG exam pattern and total marks?"><i class="fa-solid fa-stethoscope"></i> NEET Pattern & Marks</button>
+                        <button type="button" class="landing-chip" data-query="Which universities admit through CUET-UG?"><i class="fa-solid fa-building-columns"></i> CUET-UG Universities</button>
+                        <button type="button" class="landing-chip" data-query="Can a PCB student get admission to engineering courses?"><i class="fa-solid fa-arrows-split-up-and-left"></i> PCB to Engineering?</button>
+                    </div>
 
                     <!-- Response Display Area for Landing Page Query -->
                     <div id="landingQueryResponse" class="landing-query-response hidden">
@@ -674,6 +674,6 @@
     </div>
 
     <!-- Script -->
-    <script src="/static/app.js?v=sree-voice-v3"></script>
+    <script src="/static/app.js?v=sree-query-v5"></script>
 </body>
 </html>
