@@ -176,6 +176,12 @@
                 <div class="header-controls">
                     <span class="user-role-badge" id="activeRoleBadge"><i class="fa-solid fa-user"></i> Student Mode</span>
                     
+                    <!-- Hands-Free "Hey Sree" Voice Toggle Button -->
+                    <button id="wakeWordToggleBtn" class="btn-wakeword-toggle" title="Toggle Hands-Free 'Hey Sree' Voice Assistant (Siri / Google Assistant Mode)">
+                        <i class="fa-solid fa-microphone-lines"></i>
+                        <span id="wakeWordBtnLabel">"Hey Sree" Voice Chat</span>
+                    </button>
+
                     <!-- Speech Language Selector -->
                     <div class="lang-selector">
                         <i class="fa-solid fa-language"></i>
@@ -368,7 +374,7 @@
                     <div class="chat-title-group">
                         <i class="fa-solid fa-robot"></i>
                         <div>
-                            <h3>AI Assistant — Ask Queries About <span id="chatExamContextName">JEE Main</span></h3>
+                            <h3>AI Assistant "Sree" — Ask Queries About <span id="chatExamContextName">JEE Main</span></h3>
                             <p>Answers are generated <strong>strictly from official uploaded PDFs, brochures & documents</strong>.</p>
                         </div>
                     </div>
@@ -378,14 +384,21 @@
                     <div class="message bot-message">
                         <div class="avatar"><i class="fa-solid fa-robot"></i></div>
                         <div class="message-content">
-                            <div class="sender-name">Entrance Sahaayi Assistant</div>
-                            <p>Have further questions after watching the briefing for <strong id="chatExamWelcomeName">JEE Main</strong>? Ask me anything about eligibility criteria, subject weightage, seat allocation, or rank calculation!</p>
+                            <div class="sender-name">Sree (Entrance Sahaayi Bot)</div>
+                            <p>Have further questions after watching the briefing for <strong id="chatExamWelcomeName">JEE Main</strong>? Ask Sree anything about eligibility criteria, subject weightage, seat allocation, or rank calculation!</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Input Controls -->
                 <div class="chat-input-container">
+                    <!-- Siri / Google Assistant Style Hands-Free Siri Banner -->
+                    <div class="siri-voice-banner hidden" id="siriVoiceBanner">
+                        <div class="siri-orb-pulse"></div>
+                        <span id="siriVoiceText">Listening for <strong>"Hey Sree"</strong>...</span>
+                        <button id="stopSiriVoiceBtn" class="siri-stop-btn">Mute Voice</button>
+                    </div>
+
                     <div class="voice-recording-banner hidden" id="voiceBanner">
                         <span class="pulse-dot"></span> Listening in <span id="currentLangLabel">English</span>...
                         <button id="cancelVoiceBtn" class="cancel-voice-btn">Stop</button>
@@ -393,7 +406,7 @@
 
                     <form id="examChatForm" class="input-form">
                         <button type="button" id="micBtn" class="mic-btn" title="Speak question"><i class="fa-solid fa-microphone"></i></button>
-                        <input type="text" id="userInput" placeholder="Type or speak your question about this entrance exam..." autocomplete="off" required>
+                        <input type="text" id="userInput" placeholder="Type or say 'Hey Sree' to ask your question..." autocomplete="off" required>
                         <button type="submit" class="send-btn"><span>Send</span> <i class="fa-solid fa-paper-plane"></i></button>
                     </form>
                 </div>
@@ -472,6 +485,74 @@
 
     </div>
 
+    <!-- Microphone Permission Toast Banner -->
+    <div id="micPermissionToast" class="mic-permission-toast hidden">
+        <i class="fa-solid fa-microphone-lines mic-toast-icon"></i>
+        <div class="mic-toast-body">
+            <h4>Enable Sree Voice Assistant ("Hey Sree")</h4>
+            <p>Allow microphone access to use hands-free Siri / Google style AI voice assistant.</p>
+        </div>
+        <button id="enableMicBtn" class="mic-toast-btn"><i class="fa-solid fa-microphone"></i> Allow Mic & Activate Sree</button>
+    </div>
+
+    <!-- Floating Sree Siri Voice Assistant Launcher Pill -->
+    <div id="sreeFloatingWidget" class="sree-floating-widget" title="Hands-Free 'Hey Sree' AI Voice Assistant (Siri Mode)">
+        <div class="sree-orb-mini">
+            <i class="fa-solid fa-sparkles" style="font-size:0.8rem;"></i>
+        </div>
+        <div class="sree-widget-text">
+            <span class="sree-widget-title">Sree AI Assistant</span>
+            <span id="sreeWidgetStatus" class="sree-widget-status">Say "Hey Sree" 🎙️</span>
+        </div>
+    </div>
+
+    <!-- Sree Full Siri Voice & Chat Overlay / Modal -->
+    <div id="sreeVoiceOverlay" class="sree-voice-overlay hidden">
+        <div class="sree-overlay-content">
+            <div class="siri-orb-large" id="siriOrbLarge" role="button" tabindex="0" title="Click to speak directly to Sree" style="cursor: pointer;">
+                <div class="siri-waves-anim"></div>
+                <i class="fa-solid fa-microphone" style="font-size:2.2rem; color:#ffffff; z-index:2;"></i>
+            </div>
+            <h2 class="sree-overlay-title">Sree AI Assistant</h2>
+            <div id="sreeOverlayStatus" class="sree-overlay-status">Listening for <strong>"Hey Sree"</strong> (or type below)... 🎙️</div>
+            
+            <!-- Conversation Transcript Area -->
+            <div id="sreeOverlayTranscript" class="sree-overlay-transcript">
+                <div class="sree-placeholder-hint">
+                    <p style="color:var(--text-muted); font-style:italic;"><i class="fa-solid fa-circle-info"></i> Ask Sree anything about entrance exams (JEE, KEAM, NEET, CUET), eligibility, seat allocation, or rank formulas. Say <strong>"Hey Sree"</strong> or type below:</p>
+                </div>
+            </div>
+
+            <!-- Sree Quick Suggestion Chips -->
+            <div class="sree-quick-chips">
+                <button class="sree-chip" type="button" data-query="What is the KEAM rank calculation formula?"><i class="fa-solid fa-calculator"></i> KEAM Rank Formula</button>
+                <button class="sree-chip" type="button" data-query="What are the eligibility criteria for JEE Main?"><i class="fa-solid fa-graduation-cap"></i> JEE Main Eligibility</button>
+                <button class="sree-chip" type="button" data-query="What is the exam structure for CUET-UG?"><i class="fa-solid fa-file-lines"></i> CUET-UG Pattern</button>
+                <button class="sree-chip" type="button" data-query="Who are you and how can you help me?"><i class="fa-solid fa-robot"></i> Who is Sree?</button>
+            </div>
+
+            <!-- Typed Query Option (No-Mic Fallback) -->
+            <form id="sreeTypedForm" class="sree-typed-form">
+                <div class="sree-typed-input-container">
+                    <i class="fa-solid fa-keyboard sree-typed-icon"></i>
+                    <input type="text" id="sreeTypedInput" placeholder="Type your question for Sree (or speak into your mic)..." autocomplete="off">
+                    <button type="button" id="sreeOrbMicBtn" class="sree-typed-mic-btn" title="Tap to Speak with Microphone">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+                    <button type="submit" id="sreeTypedSendBtn" class="sree-typed-send-btn">
+                        <span>Ask Sree</span> <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+
+            <div class="sree-overlay-controls">
+                <button id="sreeOverlayMuteBtn" class="sree-overlay-btn" type="button"><i class="fa-solid fa-microphone-slash"></i> <span id="sreeMuteBtnLabel">Mute Mic</span></button>
+                <button id="sreeClearChatBtn" class="sree-overlay-btn" type="button"><i class="fa-solid fa-rotate-left"></i> Clear Chat</button>
+                <button id="sreeOverlayCloseBtn" class="sree-overlay-btn close-btn" type="button"><i class="fa-solid fa-xmark"></i> Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Admin Passcode Dialog -->
     <div id="adminPasscodeModal" class="modal-backdrop hidden">
         <div class="modal-content">
@@ -486,6 +567,6 @@
     </div>
 
     <!-- Script -->
-    <script src="/static/app.js?v=admin-routing"></script>
+    <script src="/static/app.js?v=sree-voice-v3"></script>
 </body>
 </html>

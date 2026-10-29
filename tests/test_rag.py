@@ -53,5 +53,21 @@ class TestEntranceSahaayiV2(unittest.TestCase):
             self.assertIn("recommendations", result)
             self.assertIn("detected_percentage", result)
 
+    def test_conversational_greeting_with_exam_context(self):
+        res = self.rag.query("hello", persona="Student", exam_context="NEET-UG")
+        self.assertEqual(len(res["sources"]), 0, "Greetings should not retrieve brochure citations")
+        self.assertIn("NEET-UG", res["answer"])
+        self.assertIn("How can I help you", res["answer"])
+
+    def test_conversational_identity_query(self):
+        res = self.rag.query("who are you", persona="Student")
+        self.assertEqual(len(res["sources"]), 0)
+        self.assertIn("Sree", res["answer"])
+
+    def test_hey_sree_wake_word_query(self):
+        res = self.rag.query("Hey Sree", persona="Student")
+        self.assertEqual(len(res["sources"]), 0)
+        self.assertIn("Sree", res["answer"])
+
 if __name__ == "__main__":
     unittest.main()

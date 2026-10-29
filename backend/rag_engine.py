@@ -333,27 +333,107 @@ class RAGSystem:
     def _synthesize_response(self, context: str, persona: str, is_faq: bool, exam: Optional[str] = None, language: str = "en-IN") -> str:
         clean_context = context.strip()
         exam_hdr = f" [{exam}]" if exam else ""
-
-        labels = {
-            "hi-IN": ("अभिभावक मार्गदर्शन", "अभिभावकों के लिए मुख्य कार्य", "आधिकारिक पोर्टल पर पंजीकरण और काउंसलिंग की अंतिम तिथियां जांचें।", "संस्थान की फीस संरचना जांचें।", "विद्यार्थी की रुचि का समर्थन करें और तनावमुक्त पढ़ाई में मदद करें।", "विद्यार्थी के लिए मुख्य बातें", "आधिकारिक ब्रोशर संदर्भ: सामग्री केवल आधिकारिक प्रवेश मार्गदर्शिका से ली गई है।"),
-            "ml-IN": ("രക്ഷിതാക്കള്‍ക്കുള്ള മാര്‍ഗ്ഗനിര്‍ദ്ദേശം", "രക്ഷിതാക്കള്‍ക്കുള്ള പ്രധാന കാര്യങ്ങള്‍", "ഔദ്യോഗിക പോര്‍ട്ടലിലെ രജിസ്ട്രേഷന്‍, കൗണ്‍സലിംഗ് അവസാന തീയതികള്‍ പരിശോധിക്കുക.", "സ്ഥാപനങ്ങളുടെ ഫീസ് ഘടന പരിശോധിക്കുക.", "വിദ്യാര്‍ത്ഥിയുടെ താല്‍പര്യത്തെ പിന്തുണച്ച് സമ്മര്‍ദ്ദരഹിതമായ പഠനാന്തരീക്ഷം ഒരുക്കുക.", "വിദ്യാര്‍ത്ഥിക്കുള്ള പ്രധാന കാര്യങ്ങള്‍", "ഉള്ളടക്കം ഔദ്യോഗിക പ്രവേശന മാര്‍ഗ്ഗനിര്‍ദ്ദേശങ്ങളില്‍ നിന്ന് മാത്രം എടുത്തതാണ്."),
-            "ta-IN": ("பெற்றோர் வழிகாட்டுதல்", "பெற்றோருக்கான முக்கிய செயல்கள்", "அதிகாரப்பூர்வ இணையதளங்களில் பதிவு மற்றும் கலந்தாய்வு கடைசி தேதிகளை சரிபார்க்கவும்.", "கல்வி நிறுவனங்களின் கட்டண அமைப்பை சரிபார்க்கவும்.", "மாணவரின் விருப்பத்தை ஆதரித்து மன அழுத்தமில்லாத படிப்பு சூழலை உருவாக்கவும்.", "மாணவருக்கான முக்கிய குறிப்புகள்", "தகவல்கள் அதிகாரப்பூர்வ சேர்க்கை வழிகாட்டிகளில் இருந்து மட்டுமே எடுக்கப்பட்டவை."),
-            "te-IN": ("తల్లిదండ్రుల మార్గదర్శకం", "తల్లిదండ్రుల కోసం ముఖ్య చర్యలు", "అధికారిక పోర్టల్స్‌లో నమోదు మరియు కౌన్సెలింగ్ చివరి తేదీలను తనిఖీ చేయండి.", "సంస్థల ఫీజు నిర్మాణాన్ని తనిఖీ చేయండి.", "విద్యార్థి ఆసక్తికి మద్దతు ఇచ్చి ఒత్తిడి లేని చదువు వాతావరణాన్ని కల్పించండి.", "విద్యార్థి ముఖ్యాంశాలు", "సమాచారం అధికారిక ప్రవేశ మార్గదర్శకాల నుండి మాత్రమే తీసుకోబడింది.")
-        }.get(language, ("Parent Guidance Briefing", "Key Action Points for Parents", "Verify registration & counseling deadlines on official portals.", "Check institutional fee structures (Govt vs Management seats).", "Support your child's stream interest and maintain stress-free study routine.", "Student Key Takeaways", "Official Brochure Reference: Content extracted strictly from official entrance guide documents."))
-
         if persona.lower() == "parent":
-            return (
-                f"👨‍👩‍👧 **{labels[0]}{exam_hdr}:**\n\n"
-                f"{clean_context}\n\n"
-                f"💡 **{labels[1]}:**\n"
-                f"• {labels[2]}\n• {labels[3]}\n• {labels[4]}"
-            )
+            parent_note = {
+                "hi-IN": "अभिभावक ध्यान दें: कृपया आधिकारिक पोर्टल पर पंजीकरण तिथियां और संस्थान की फीस संरचना भी जांचें।",
+                "ml-IN": "രക്ഷിതാക്കൾ ശ്രദ്ധിക്കുക: ഔദ്യോഗിക പോർട്ടലിലെ രജിസ്ട്രേഷൻ തീയതികളും ഫീസ് ഘടനയും പരിശോധിക്കുക.",
+            }.get(language, "Parent Note: Please verify registration deadlines and fee structures on official portals.")
+            return f"👨‍👩‍👧 **Parent Guidance Briefing{exam_hdr}:**\n\n{clean_context}\n\n💡 *{parent_note}*"
         else:
-            return (
-                f"🎓 **{labels[5]}{exam_hdr}:**\n\n"
-                f"{clean_context}\n\n"
-                f"📌 *{labels[6]}*"
-            )
+            return clean_context
+
+    def _check_conversational_response(self, query: str, persona: str = "Student", exam_context: Optional[str] = None, language: str = "en-IN") -> Optional[Dict[str, Any]]:
+        clean_q = query.strip().lower()
+        exam_keywords = ["neet", "jee", "keam", "cuet", "clat", "gate", "cat", "bitsat", "nift", "nda"]
+        has_exam_keyword = any(k in clean_q for k in exam_keywords)
+
+        # 1. GREETINGS ("hi", "hello", "hey", "hey sree", "good morning", etc.)
+        greeting_words = ["hi", "hello", "hey", "namaste", "vanakkam", "namaskaram", "hey sree", "hi sree", "sree", "good morning", "good evening", "greetings"]
+        is_greeting = any(clean_q == g or clean_q.startswith(g + " ") or clean_q.startswith(g + ",") or clean_q.startswith(g + "!") for g in greeting_words) and len(clean_q.split()) <= 4
+
+        if is_greeting:
+            exam_hdr = f" for {exam_context}" if exam_context else ""
+            if language == "hi-IN":
+                ans = f"नमस्ते! 👋 मैं **Sree** हूँ। आप मुझसे{exam_hdr} प्रवेश परीक्षा से संबंधित कोई भी सवाल पूछ सकते हैं।"
+            elif language == "ml-IN":
+                ans = f"ഹലോ! 👋 ഞാൻ **Sree**.{exam_hdr} പ്രവേശന പരീക്ഷയുമായി ബന്ധപ്പെട്ട നിങ്ങളുടെ ചോദ്യം ചോദിക്കാം."
+            elif language == "ta-IN":
+                ans = f"வணக்கம்! 👋 நான் **Sree**.{exam_hdr} நுழைவுத் தேர்வு கேள்வியைக் கேளுங்கள்."
+            elif language == "te-IN":
+                ans = f"నమస్కారం! 👋 నేను **Sree**.{exam_hdr} മീ പ്രవేశ పరీక్ష ప్రశ్నను అడగండి."
+            else: # en-IN
+                ans = f"Hello! 👋 I am **Sree**. How can I help you with your{exam_hdr} entrance exam question today?"
+
+            return {
+                "answer": ans,
+                "sources": [],
+                "confidence": 100.0,
+                "is_faq_short_circuit": False
+            }
+
+        # 2. BOT IDENTITY & CAPABILITIES ("who are you", "who is sree", "what is your name", "help")
+        identity_phrases = [
+            "who are you", "what are you", "who is sree", "who is shree", "what is sree", "what is shree",
+            "what is your name", "who are u", "tell me about yourself", "help", "what can you do", "who made you"
+        ]
+
+        is_identity = any(phrase in clean_q for phrase in identity_phrases)
+        if is_identity and not has_exam_keyword:
+            if language == "hi-IN":
+                ans = "मैं **Sree** हूँ — आपका AI प्रवेश परीक्षा सहायक। कृपया प्रवेश परीक्षा, पात्रता या करियर से जुड़ा अपना सवाल पूछें।"
+            elif language == "ml-IN":
+                ans = "ഞാൻ **Sree** — നിങ്ങളുടെ AI പ്രവേശന പരീക്ഷാ സഹായി. പരീക്ഷ, യോഗ്യത അല്ലെങ്കിൽ കരിയർ സംബന്ധിച്ച ചോദ്യങ്ങൾ ചോദിക്കാം."
+            elif language == "ta-IN":
+                ans = "நான் **Sree** — உங்கள் AI நுழைவுத் தேர்வு உதவியாளர். சேர்க்கை தேர்வுகள் அல்லது தகுதிகள் பற்றிய கேள்வியைக் கேளுங்கள்."
+            elif language == "te-IN":
+                ans = "నేను **Sree** — మీ AI ప్రవేశ పరీక్ష సహాయకుడిని. ప్రవేశ పరీక్షలు లేదా అర్హతల గురించి ప్రశ్న అడగండి."
+            else:
+                ans = "I am **Sree**, your AI entrance assistant. Please ask any question about entrance exams, eligibility, or career options."
+
+            return {
+                "answer": ans,
+                "sources": [],
+                "confidence": 100.0,
+                "is_faq_short_circuit": False
+            }
+
+        # 3. THANKS / GRATITUDE ("thank you", "thanks", "awesome")
+        thanks_words = {"thanks", "thankyou", "thx", "awesome", "great", "cool", "nice", "perfect"}
+        is_thanks = (clean_q in thanks_words or clean_q.startswith("thank you") or clean_q.startswith("thanks")) and not has_exam_keyword
+
+        if is_thanks:
+            ans = "You're very welcome! 😊 Feel free to ask if you have any more questions about entrance exams, cutoffs, or eligibility criteria. Good luck with your preparation!"
+            if language == "hi-IN":
+                ans = "आपका स्वागत है! 😊 यदि आपके पास प्रवेश परीक्षा या पात्रता के संबंध में कोई अन्य प्रश्न हैं, तो निसंकोच पूछें। आपकी तैयारी के लिए शुभकामनाएं!"
+            elif language == "ml-IN":
+                ans = "നിങ്ങള്‍ക്ക് സ്വാഗതം! 😊 പ്രവേശന പരീക്ഷകളെക്കുറിച്ച് കൂടുതൽ ചോദ്യങ്ങളുണ്ടെങ്കിൽ ചോദിക്കാം. ആശംസകൾ!"
+
+            return {
+                "answer": ans,
+                "sources": [],
+                "confidence": 100.0,
+                "is_faq_short_circuit": False
+            }
+
+        # 4. FAREWELL ("bye", "goodbye", "see you")
+        farewell_words = {"bye", "goodbye", "exit", "quit", "cya"}
+        is_farewell = (clean_q in farewell_words or clean_q.startswith("bye") or clean_q.startswith("goodbye")) and not has_exam_keyword
+
+        if is_farewell:
+            ans = "Goodbye! 👋 Wish you all the best for your entrance exam preparation and future career! Feel free to return anytime."
+            if language == "hi-IN":
+                ans = "अलविदा! 👋 आपकी प्रवेश परीक्षा की तैयारी और भविष्य के करियर के लिए शुभकामनाएं!"
+            elif language == "ml-IN":
+                ans = "വിട! 👋 പരീക്ഷാ തയ്യാറെടുപ്പുകൾക്ക് എല്ലാവിധ ആശംസകളും!"
+
+            return {
+                "answer": ans,
+                "sources": [],
+                "confidence": 100.0,
+                "is_faq_short_circuit": False
+            }
+
+        return None
 
     def _translate(self, text: str, language: str) -> str:
         translations = {

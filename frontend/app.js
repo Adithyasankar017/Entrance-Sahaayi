@@ -16,11 +16,11 @@ document.addEventListener("DOMContentLoaded", () => {
     let recognition = null;
 
     const UI_TRANSLATIONS = {
-        "en-IN": { portalSubtitle: "AI-Based Career Guidance & Entrance Exam Assistant after Class 12", studentLogin: "Student Login", parentLogin: "Parent Login", adminLogin: "Admin / Programmer", studentDescription: "Explore entrance exams, watch explainer video briefings, and chat with AI for career paths.", parentDescription: "Review eligibility criteria, college cost summaries, and guidance for your child.", adminDescription: "Upload official entrance PDFs, brochures, and manage vector knowledge base.", continueStudent: "Continue as Student", continueParent: "Continue as Parent", adminPortal: "Admin Portal", appSubtitle: "AI Career Guidance Assistant", welcome: role => `Welcome, ${role}!`, welcomeIntro: "Navigating entrance exams and career choices after Class 12 made easy. Choose how you would like to proceed today:", path1: "Path 1: Finalized Entrance Selection", path2: "Path 2: Undecided / Career Guidance", examPrompt: "I Know Which Entrance Exam I Want to Pursue", examDescription: "If you have already decided on an entrance exam, select it from the dropdown list below to view the explainer video briefing and ask any queries to the AI assistant.", guidancePrompt: "Help Me Choose the Right Entrance Exam & Career Path", guidanceDescription: "Not sure which entrance exam suits your academic background and interests? Upload your marksheet or fill in your subject marks below so our AI Assistant can analyze your profile and recommend suitable entrance exams.", uploadProfile: "1. Upload Marksheet or Enter Profile", recommendations: "2. AI Entrance Recommendations", assistant: "AI Assistant", askAbout: "Ask Queries About", send: "Send", listen: "Listen", you: "You", typing: exam => `Searching ingested brochures for ${exam || "exam"}...`, greeting: exam => `Have further questions after reviewing the video briefing for ${exam}? Ask me anything about eligibility criteria, subject weightage, seat allocation, or rank calculation!`, languageName: "English" },
-        "hi-IN": { portalSubtitle: "कक्षा 12 के बाद AI करियर मार्गदर्शन और प्रवेश परीक्षा सहायक", studentLogin: "विद्यार्थी लॉगिन", parentLogin: "अभिभावक लॉगिन", adminLogin: "व्यवस्थापक / प्रोग्रामर", studentDescription: "प्रवेश परीक्षाएं देखें, वीडियो जानकारी प्राप्त करें और करियर के लिए AI से बात करें।", parentDescription: "पात्रता, कॉलेज शुल्क और अपने बच्चे के लिए मार्गदर्शन देखें।", adminDescription: "आधिकारिक प्रवेश PDF और ब्रोशर अपलोड करें तथा ज्ञान आधार प्रबंधित करें।", continueStudent: "विद्यार्थी के रूप में जारी रखें", continueParent: "अभिभावक के रूप में जारी रखें", adminPortal: "व्यवस्थापक पोर्टल", appSubtitle: "AI करियर मार्गदर्शन सहायक", welcome: role => `स्वागत है, ${role}!`, welcomeIntro: "कक्षा 12 के बाद प्रवेश परीक्षाओं और करियर विकल्पों को आसान बनाएं। आज आगे बढ़ने का तरीका चुनें:", path1: "मार्ग 1: प्रवेश परीक्षा तय है", path2: "मार्ग 2: करियर मार्गदर्शन", examPrompt: "मुझे पता है कि मुझे कौन सी प्रवेश परीक्षा देनी है", examDescription: "अपनी परीक्षा चुनें और वीडियो जानकारी देखें तथा AI सहायक से प्रश्न पूछें।", guidancePrompt: "सही प्रवेश परीक्षा और करियर चुनने में मदद करें", guidanceDescription: "अपनी अंकतालिका अपलोड करें या अंक भरें ताकि AI सहायक आपके लिए उपयुक्त परीक्षाओं की सिफारिश कर सके।", uploadProfile: "1. अंकतालिका अपलोड करें या प्रोफ़ाइल भरें", recommendations: "2. AI प्रवेश परीक्षा सिफारिशें", assistant: "AI सहायक", askAbout: "इसके बारे में प्रश्न पूछें", send: "भेजें", listen: "सुनें", you: "आप", typing: exam => `${exam || "परीक्षा"} के आधिकारिक ब्रोशर खोजे जा रहे हैं...`, greeting: exam => `${exam} के बारे में और प्रश्न हैं? पात्रता, विषय भार, सीट आवंटन या रैंक गणना के बारे में पूछें!`, languageName: "हिंदी" },
-        "ml-IN": { portalSubtitle: "പ്ലസ് ടുവിന് ശേഷമുള്ള AI കരിയര്‍ മാര്‍ഗ്ഗനിര്‍ദ്ദേശവും പ്രവേശന പരീക്ഷാ സഹായിയും", studentLogin: "വിദ്യാര്‍ത്ഥി ലോഗിന്‍", parentLogin: "രക്ഷിതാക്കളുടെ ലോഗിന്‍", adminLogin: "അഡ്മിന്‍ / പ്രോഗ്രാമര്‍", studentDescription: "പ്രവേശന പരീക്ഷകള്‍ കണ്ടെത്തുകയും AI-യുമായി കരിയര്‍ ചര്‍ച്ച ചെയ്യുകയും ചെയ്യുക.", parentDescription: "യോഗ്യതയും കോളേജ് ഫീസ് വിവരങ്ങളും പരിശോധിക്കുക.", adminDescription: "ഔദ്യോഗിക പ്രവേശന PDF-കളും ബ്രോഷറുകളും അപ്‌ലോഡ് ചെയ്യുക.", continueStudent: "വിദ്യാര്‍ത്ഥിയായി തുടരുക", continueParent: "രക്ഷിതാവായി തുടരുക", adminPortal: "അഡ്മിന്‍ പോര്‍ട്ടല്‍", appSubtitle: "AI കരിയര്‍ മാര്‍ഗ്ഗനിര്‍ദ്ദേശ സഹായി", welcome: role => `സ്വാഗതം, ${role}!`, welcomeIntro: "പ്രവേശന പരീക്ഷകളും കരിയര്‍ തിരഞ്ഞെടുപ്പുകളും എളുപ്പമാക്കാം.", path1: "വഴി 1: പ്രവേശന പരീക്ഷ തിരഞ്ഞെടുത്തു", path2: "വഴി 2: കരിയര്‍ മാര്‍ഗ്ഗനിര്‍ദ്ദേശം", examPrompt: "എനിക്ക് തിരഞ്ഞെടുക്കേണ്ട പ്രവേശന പരീക്ഷ അറിയാം", examDescription: "ഒരു പരീക്ഷ തിരഞ്ഞെടുത്ത് വീഡിയോ വിവരങ്ങളും AI സഹായവും നേടുക.", guidancePrompt: "ശരിയായ പ്രവേശന പരീക്ഷയും കരിയറും തിരഞ്ഞെടുക്കാന്‍ സഹായിക്കുക", guidanceDescription: "നിങ്ങളുടെ മാര്‍ക്ക് ലിസ്റ്റ് അപ്‌ലോഡ് ചെയ്യുകയോ മാര്‍ക്കുകള്‍ നല്‍കുകയോ ചെയ്യുക.", uploadProfile: "1. മാര്‍ക്ക് ലിസ്റ്റ് അപ്‌ലോഡ് ചെയ്യുക അല്ലെങ്കില്‍ പ്രൊഫൈല്‍ നല്‍കുക", recommendations: "2. AI പ്രവേശന ശുപാര്‍ശകള്‍", assistant: "AI സഹായി", askAbout: "ഇതിനെക്കുറിച്ച് ചോദിക്കുക", send: "അയയ്ക്കുക", listen: "കേള്‍ക്കുക", you: "നിങ്ങള്‍", typing: exam => `${exam || "പരീക്ഷ"}യുടെ ഔദ്യോഗിക ബ്രോഷറുകള്‍ തിരയുന്നു...`, greeting: exam => `${exam}യെക്കുറിച്ച് കൂടുതല്‍ ചോദ്യങ്ങളുണ്ടോ? യോഗ്യത, സീറ്റ് അലോട്ട്മെന്റ്, റാങ്ക് കണക്കാക്കല്‍ എന്നിവ ചോദിക്കാം!`, languageName: "മലയാളം" },
-        "ta-IN": { portalSubtitle: "12ஆம் வகுப்புக்குப் பிறகு AI தொழில் வழிகாட்டி மற்றும் நுழைவுத் தேர்வு உதவி", studentLogin: "மாணவர் உள்நுழைவு", parentLogin: "பெற்றோர் உள்நுழைவு", adminLogin: "நிர்வாகி / நிரலாளர்", studentDescription: "நுழைவுத் தேர்வுகளை ஆராய்ந்து AI-யிடம் தொழில் வழிகாட்டுதலைப் பெறுங்கள்.", parentDescription: "தகுதி மற்றும் கல்லூரி கட்டணத் தகவல்களைப் பாருங்கள்.", adminDescription: "அதிகாரப்பூர்வ நுழைவுத் தேர்வு PDF-களைப் பதிவேற்றுங்கள்.", continueStudent: "மாணவராகத் தொடர்க", continueParent: "பெற்றோராகத் தொடர்க", adminPortal: "நிர்வாகி போர்டல்", appSubtitle: "AI தொழில் வழிகாட்டி", welcome: role => `வரவேற்கிறோம், ${role}!`, welcomeIntro: "நுழைவுத் தேர்வுகளையும் தொழில் தேர்வுகளையும் எளிதாக்குங்கள்.", path1: "வழி 1: நுழைவுத் தேர்வு முடிவு செய்யப்பட்டது", path2: "வழி 2: தொழில் வழிகாட்டுதல்", examPrompt: "எந்த நுழைவுத் தேர்வை எழுத வேண்டும் என்று எனக்குத் தெரியும்", examDescription: "தேர்வைத் தேர்ந்தெடுத்து வீடியோ விளக்கத்தையும் AI உதவியையும் பெறுங்கள்.", guidancePrompt: "சரியான நுழைவுத் தேர்வு மற்றும் தொழிலைத் தேர்ந்தெடுக்க உதவுங்கள்", guidanceDescription: "மதிப்பெண் பட்டியலைப் பதிவேற்றுங்கள் அல்லது மதிப்பெண்களை உள்ளிடுங்கள்.", uploadProfile: "1. மதிப்பெண் பட்டியலைப் பதிவேற்றவும் அல்லது சுயவிவரம் உள்ளிடவும்", recommendations: "2. AI நுழைவுத் தேர்வு பரிந்துரைகள்", assistant: "AI உதவியாளர்", askAbout: "இதுபற்றி கேளுங்கள்", send: "அனுப்பு", listen: "கேளுங்கள்", you: "நீங்கள்", typing: exam => `${exam || "தேர்வு"} அதிகாரப்பூர்வ விளக்கங்கள் தேடப்படுகின்றன...`, greeting: exam => `${exam} பற்றி மேலும் கேள்விகள் உள்ளதா? தகுதி, இட ஒதுக்கீடு அல்லது தரவரிசை பற்றி கேளுங்கள்!`, languageName: "தமிழ்" },
-        "te-IN": { portalSubtitle: "12వ తరగతి తర్వాత AI కెరీర్ మార్గదర్శకం మరియు ప్రవేశ పరీక్ష సహాయకుడు", studentLogin: "విద్యార్థి లాగిన్", parentLogin: "తల్లిదండ్రుల లాగిన్", adminLogin: "అడ్మిన్ / ప్రోగ్రామర్", studentDescription: "ప్రవేశ పరీక్షలను అన్వేషించి AIతో కెరీర్ మార్గదర్శకం పొందండి.", parentDescription: "అర్హత మరియు కళాశాల ఫీజు వివరాలను చూడండి.", adminDescription: "అధికారిక ప్రవేశ పరీక్ష PDFలను అప్‌లోడ్ చేయండి.", continueStudent: "విద్యార్థిగా కొనసాగండి", continueParent: "తల్లిదండ్రిగా కొనసాగండి", adminPortal: "అడ్మిన్ పోర్టల్", appSubtitle: "AI కెరీర్ మార్గదర్శక సహాయకుడు", welcome: role => `స్వాగతం, ${role}!`, welcomeIntro: "ప్రవేశ పరీక్షలు మరియు కెరీర్ ఎంపికలను సులభం చేసుకోండి.", path1: "మార్గం 1: ప్రవేశ పరీక్ష నిర్ణయించబడింది", path2: "మార్గం 2: కెరీర్ మార్గదర్శకం", examPrompt: "ఏ ప్రవేశ పరీక్ష రాయాలో నాకు తెలుసు", examDescription: "పరీక్షను ఎంచుకుని వీడియో వివరణ మరియు AI సహాయం పొందండి.", guidancePrompt: "సరైన ప్రవేశ పరీక్ష మరియు కెరీర్‌ను ఎంచుకోవడానికి సహాయం చేయండి", guidanceDescription: "మీ మార్కుల పట్టికను అప్‌లోడ్ చేయండి లేదా మార్కులను నమోదు చేయండి.", uploadProfile: "1. మార్కుల పట్టికను అప్‌లోడ్ చేయండి లేదా ప్రొఫైల్ నమోదు చేయండి", recommendations: "2. AI ప్రవేశ పరీక్ష సిఫార్సులు", assistant: "AI సహాయకుడు", askAbout: "దీని గురించి ప్రశ్నలు అడగండి", send: "పంపండి", listen: "వినండి", you: "మీరు", typing: exam => `${exam || "పరీక్ష"} అధికారిక బ్రోచర్లను వెతుకుతున్నాము...`, greeting: exam => `${exam} గురించి మరిన్ని ప్రశ్నలు ఉన్నాయా? అర్హత, సీట్ల కేటాయింపు లేదా ర్యాంక్ గురించి అడగండి!`, languageName: "తెలుగు" }
+        "en-IN": { portalSubtitle: "AI-Based Career Guidance & Entrance Exam Assistant after Class 12", studentLogin: "Student Login", parentLogin: "Parent Login", adminLogin: "Admin / Programmer", studentDescription: "Explore entrance exams, watch explainer video briefings, and chat with AI for career paths.", parentDescription: "Review eligibility criteria, college cost summaries, and guidance for your child.", adminDescription: "Upload official entrance PDFs, brochures, and manage vector knowledge base.", continueStudent: "Continue as Student", continueParent: "Continue as Parent", adminPortal: "Admin Portal", appSubtitle: "AI Career Guidance Assistant — Powered by Sree", welcome: role => `Welcome, ${role}!`, welcomeIntro: "Navigating entrance exams and career choices after Class 12 made easy. Choose how you would like to proceed today:", path1: "Path 1: Finalized Entrance Selection", path2: "Path 2: Undecided / Career Guidance", examPrompt: "I Know Which Entrance Exam I Want to Pursue", examDescription: "If you have already decided on an entrance exam, select it from the dropdown list below to view the explainer video briefing and ask any queries to the AI assistant.", guidancePrompt: "Help Me Choose the Right Entrance Exam & Career Path", guidanceDescription: "Not sure which entrance exam suits your academic background and interests? Upload your marksheet or fill in your subject marks below so our AI Assistant can analyze your profile and recommend suitable entrance exams.", uploadProfile: "1. Upload Marksheet or Enter Profile", recommendations: "2. AI Entrance Recommendations", assistant: "Sree", askAbout: "Ask Queries About", send: "Send", listen: "Listen", you: "You", typing: exam => `Searching ingested brochures for ${exam || "exam"}...`, greeting: exam => `Have further questions after reviewing the video briefing for ${exam}? Ask Sree anything about eligibility criteria, subject weightage, seat allocation, or rank calculation!`, languageName: "English" },
+        "hi-IN": { portalSubtitle: "कक्षा 12 के बाद AI करियर मार्गदर्शन और प्रवेश परीक्षा सहायक", studentLogin: "विद्यार्थी लॉगिन", parentLogin: "अभिभावक लॉगिन", adminLogin: "व्यवस्थापक / प्रोग्रामर", studentDescription: "प्रवेश परीक्षाएं देखें, वीडियो जानकारी प्राप्त करें और करियर के लिए AI से बात करें।", parentDescription: "पात्रता, कॉलेज शुल्क और अपने बच्चे के लिए मार्गदर्शन देखें।", adminDescription: "आधिकारिक प्रवेश PDF और ब्रोशर अपलोड करें तथा ज्ञान आधार प्रबंधित करें।", continueStudent: "विद्यार्थी के रूप में जारी रखें", continueParent: "अभिभावक के रूप में जारी रखें", adminPortal: "व्यवस्थापक पोर्टल", appSubtitle: "AI करियर मार्गदर्शन सहायक — Sree", welcome: role => `स्वागत है, ${role}!`, welcomeIntro: "कक्षा 12 के बाद प्रवेश परीक्षाओं और करियर विकल्पों को आसान बनाएं। आज आगे बढ़ने का तरीका चुनें:", path1: "मार्ग 1: प्रवेश परीक्षा तय है", path2: "मार्ग 2: करियर मार्गदर्शन", examPrompt: "मुझे पता है कि मुझे कौन सी प्रवेश परीक्षा देनी है", examDescription: "अपनी परीक्षा चुनें और वीडियो जानकारी देखें तथा AI सहायक से प्रश्न पूछें।", guidancePrompt: "सही प्रवेश परीक्षा और करियर चुनने में मदद करें", guidanceDescription: "अपनी अंकतालिका अपलोड करें या अंक भरें ताकि AI सहायक आपके लिए उपयुक्त परीक्षाओं की सिफारिश कर सके।", uploadProfile: "1. अंकतालिका अपलोड करें या प्रोफ़ाइल भरें", recommendations: "2. AI प्रवेश परीक्षा सिफारिशें", assistant: "Sree", askAbout: "इसके बारे में प्रश्न पूछें", send: "भेजें", listen: "सुनें", you: "आप", typing: exam => `${exam || "परीक्षा"} के आधिकारिक ब्रोशर खोजे जा रहे हैं...`, greeting: exam => `${exam} के बारे में और प्रश्न हैं? Sree से पात्रता, विषय भार, सीट आवंटन या रैंक गणना के बारे में पूछें!`, languageName: "हिंदी" },
+        "ml-IN": { portalSubtitle: "പ്ലസ് ടുവിന് ശേഷമുള്ള AI കരിയര്‍ മാര്‍ഗ്ഗനിര്‍ദ്ദേശവും പ്രവേശന പരീക്ഷാ സഹായിയും", studentLogin: "വിദ്യാര്‍ത്ഥി ലോഗിന്‍", parentLogin: "രക്ഷിതാക്കളുടെ ലോഗിന്‍", adminLogin: "അഡ്മിന്‍ / പ്രോഗ്രാമര്‍", studentDescription: "പ്രവേശന പരീക്ഷകള്‍ കണ്ടെത്തുകയും AI-യുമായി കരിയര്‍ ചര്‍ച്ച ചെയ്യുകയും ചെയ്യുക.", parentDescription: "യോഗ്യതയും കോളേജ് ഫീസ് വിവരങ്ങളും പരിശോധിക്കുക.", adminDescription: "ഔദ്യോഗിക പ്രവേശന PDF-കളും ബ്രോഷറുകളും അപ്‌ലോഡ് ചെയ്യുക.", continueStudent: "വിദ്യാര്‍ത്ഥിയായി തുടരുക", continueParent: "രക്ഷിതാവായി തുടരുക", adminPortal: "അഡ്മിന്‍ പോര്‍ട്ടല്‍", appSubtitle: "AI കരിയര്‍ മാര്‍ഗ്ഗനിര്‍ദ്ദേശ സഹായി — Sree", welcome: role => `സ്വാഗതം, ${role}!`, welcomeIntro: "പ്രവേശന പരീക്ഷകളും കരിയര്‍ തിരഞ്ഞെടുപ്പുകളും എളുപ്പമാക്കാം.", path1: "വഴി 1: പ്രവേശന പരീക്ഷ തിരഞ്ഞെടുത്തു", path2: "വഴി 2: കരിയര്‍ മാര്‍ഗ്ഗനിര്‍ദ്ദേശം", examPrompt: "എനിക്ക് തിരഞ്ഞെടുക്കേണ്ട പ്രവേശന പരീക്ഷ അറിയാം", examDescription: "ഒരു പരീക്ഷ തിരഞ്ഞെടുത്ത് വീഡിയോ വിവരങ്ങളും AI സഹായവും നേടുക.", guidancePrompt: "ശരിയായ പ്രവേശന പരീക്ഷയും കരിയറും തിരഞ്ഞെടുക്കാന്‍ സഹായിക്കുക", guidanceDescription: "നിങ്ങളുടെ മാര്‍ക്ക് ലിസ്റ്റ് അപ്‌ലോഡ് ചെയ്യുകയോ മാര്‍ക്കുകള്‍ നല്‍കുകയോ ചെയ്യുക.", uploadProfile: "1. മാര്‍ക്ക് ലിസ്റ്റ് അപ്‌ലോഡ് ചെയ്യുക അല്ലെങ്കില്‍ പ്രൊഫൈല്‍ നല്‍കുക", recommendations: "2. AI പ്രവേശന ശുപാര്‍ശകള്‍", assistant: "Sree", askAbout: "ഇതിനെക്കുറിച്ച് ചോദിക്കുക", send: "അയയ്ക്കുക", listen: "കേള്‍ക്കുക", you: "നിങ്ങള്‍", typing: exam => `${exam || "പരീക്ഷ"}യുടെ ഔദ്യോഗിക ബ്രോഷറുകള്‍ തിരയുന്നു...`, greeting: exam => `${exam}യെക്കുറിച്ച് കൂടുതല്‍ ചോദ്യങ്ങളുണ്ടോ? യോഗ്യത, സീറ്റ് അലോട്ട്മെന്റ്, റാങ്ക് കണക്കാക്കല്‍ എന്നിവ Sree-യോട് ചോദിക്കാം!`, languageName: "മലയാളം" },
+        "ta-IN": { portalSubtitle: "12ஆம் வகுப்புக்குப் பிறகு AI தொழில் வழிகாட்டி மற்றும் நுழைவுத் தேர்வு உதவி", studentLogin: "மாணவர் உள்நுழைவு", parentLogin: "பெற்றோர் உள்நுழைவு", adminLogin: "நிர்வாகி / நிரலாளர்", studentDescription: "நுழைவுத் தேர்வுகளை ஆராய்ந்து AI-யிடம் தொழில் வழிகாட்டுதலைப் பெறுங்கள்.", parentDescription: "தகுதி மற்றும் கல்லூரி கட்டணத் தகவல்களைப் பாருங்கள்.", adminDescription: "அதிகாரப்பூர்வ நுழைவுத் தேர்வு PDF-களைப் பதிவேற்றுங்கள்.", continueStudent: "மாணவராகத் தொடர்க", continueParent: "பெற்றோராகத் தொடர்க", adminPortal: "நிர்வாகி போர்டல்", appSubtitle: "AI தொழில் வழிகாட்டி — Sree", welcome: role => `வரவேற்கிறோம், ${role}!`, welcomeIntro: "நுழைவுத் தேர்வுகளையும் தொழில் தேர்வுகளையும் எளிதாக்குங்கள்.", path1: "வழி 1: நுழைவுத் தேர்வு முடிவு செய்யப்பட்டது", path2: "வழி 2: தொழில் வழிகாட்டுதல்", examPrompt: "எந்த நுழைவுத் தேர்வை எழுத வேண்டும் என்று எனக்குத் தெரியும்", examDescription: "தேர்வைத் தேர்ந்தெடுத்து வீடியோ விளக்கத்தையும் AI உதவியையும் பெறுங்கள்.", guidancePrompt: "சரியான நுழைவுத் தேர்வு மற்றும் தொழிலைத் தேர்ந்தெடுக்க உதவுங்கள்", guidanceDescription: "மதிப்பெண் பட்டியலைப் பதிவேற்றுங்கள் அல்லது மதிப்பெண்களை உள்ளிடுங்கள்.", uploadProfile: "1. மதிப்பெண் பட்டியலைப் பதிவேற்றவும் அல்லது சுயவிவரம் உள்ளிடவும்", recommendations: "2. AI நுழைவுத் தேர்வு பரிந்துரைகள்", assistant: "Sree", askAbout: "இதுபற்றி கேளுங்கள்", send: "அனுப்பு", listen: "கேளுங்கள்", you: "நீங்கள்", typing: exam => `${exam || "தேர்வு"} அதிகாரப்பூர்வ விளக்கங்கள் தேடப்படுகின்றன...`, greeting: exam => `${exam} பற்றி மேலும் கேள்விகள் உள்ளதா? Sree-யிடம் தகுதி, இட ஒதுக்கீடு அல்லது தரவரிசை பற்றி கேளுங்கள்!`, languageName: "தமிழ்" },
+        "te-IN": { portalSubtitle: "12వ తరగతి తర్వాత AI కెరీర్ మార్గదర్శకం మరియు ప్రవేశ పరీక్ష సహాయకుడు", studentLogin: "విద్యార్థి లాగిన్", parentLogin: "తల్లిదండ్రుల లాగిన్", adminLogin: "అడ్మిన్ / ప్రోగ్రామర్", studentDescription: "ప్రవేశ పరీక్షలను అన్వేషించి AIతో కెరీర్ మార్గదర్శకం పొందండి.", parentDescription: "అర్హత మరియు కళాశాల ఫీజు వివరాలను చూడండి.", adminDescription: "అధికారిక ప్రవేశ పరీక్ష PDFలను అప్‌లోడ్ చేయండి.", continueStudent: "విద్యార్థిగా కొనసాగండి", continueParent: "తల్లిదండ్రిగా కొనసాగండి", adminPortal: "అడ్మిన్ పోర్టల్", appSubtitle: "AI కెరీర్ మార్గదర్శక సహాయకుడు — Sree", welcome: role => `స్వాగతం, ${role}!`, welcomeIntro: "ప్రవేశ పరీక్షలు మరియు కెరీర్ ఎంపికలను సులభం చేసుకోండి.", path1: "మార్గం 1: ప్రవేశ పరీక్ష నిర్ణయించబడింది", path2: "మార్గం 2: కెరీర్ మార్గదర్శకం", examPrompt: "ఏ ప్రవేశ పరీక్ష రాయాలో నాకు తెలుసు", examDescription: "పరీక్షను ఎంచుకుని వీడియో వివరణ మరియు AI సహాయం పొందండి.", guidancePrompt: "సరైన ప్రవేశ పరీక్ష మరియు కెరీర్‌ను ఎంచుకోవడానికి సహాయం చేయండి", guidanceDescription: "మీ మార్కుల పట్టికను అప్‌లోడ్ చేయండి లేదా మార్కులను నమోదు చేయండి.", uploadProfile: "1. మార్కుల పట్టికను అప్‌లోడ్ చేయండి లేదా ప్రొఫైల్ నమోదు చేయండి", recommendations: "2. AI ప్రవేశ పరీక్ష సిఫార్సులు", assistant: "Sree", askAbout: "దీని గురించి ప్రశ్నలు అడగండి", send: "పంపండి", listen: "వినండి", you: "మీరు", typing: exam => `${exam || "పరీక్ష"} అధికారిక బ్రోచర్లను వెతుకుతున్నాము...`, greeting: exam => `${exam} గురించి మరిన్ని ప్రశ్నలు ఉన్నాయా? Sreeని అర్హత, సీట్ల కేటాయింపు లేదా ర్యాంక్ గురించి అడగండి!`, languageName: "తెలుగు" }
     };
 
     function t(key, ...args) {
@@ -458,13 +458,32 @@ document.addEventListener("DOMContentLoaded", () => {
         switchScreen(adminScreen);
     });
 
-    document.getElementById("backToLandingFromExam").addEventListener("click", () => switchScreen(landingScreen));
-    document.getElementById("backToLandingFromAdmin").addEventListener("click", () => switchScreen(loginScreen));
-
     function switchScreen(targetScreen) {
         [loginScreen, landingScreen, examDetailScreen, adminScreen].forEach(s => s.classList.add("hidden"));
         targetScreen.classList.remove("hidden");
         window.scrollTo(0, 0);
+
+        // Automatically stop active conversation & readout when user returns to original landing page
+        if (targetScreen === landingScreen || targetScreen === loginScreen) {
+            stopActiveSreeConversation();
+        }
+    }
+
+    function stopActiveSreeConversation() {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+        isSreeListeningForQuery = false;
+        if (typeof sreeQueryTimeout !== 'undefined' && sreeQueryTimeout) {
+            clearTimeout(sreeQueryTimeout);
+            sreeQueryTimeout = null;
+        }
+        if (typeof closeSreeOverlay === 'function') {
+            closeSreeOverlay();
+        }
+        if (typeof updateSreeStatus === 'function') {
+            updateSreeStatus(`Listening for <strong>"Hey Sree"</strong>...`);
+        }
     }
 
     // -------------------------------------------------------------
@@ -866,6 +885,17 @@ document.addEventListener("DOMContentLoaded", () => {
                     currentSessionId = data.session_id;
                     if (authToken) fetchUserSessions();
                 }
+
+                // Hands-Free Auto Read-Out for "Hey Sree" Mode
+                if (isWakeWordMode) {
+                    const lastMsg = examChatHistory.lastElementChild;
+                    if (lastMsg) {
+                        const playBtn = lastMsg.querySelector(".audio-play-btn");
+                        if (playBtn) {
+                            setTimeout(() => speakText(data.answer, playBtn), 200);
+                        }
+                    }
+                }
             } else {
                 appendMessage("bot", "Error fetching answer from knowledge base.", currentUserRole);
             }
@@ -881,7 +911,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const isBot = sender === "bot";
         const icon = isBot ? "fa-robot" : "fa-user";
-        const senderLabel = isBot ? `Entrance Sahaayi (${role || 'Student'} Mode)` : t("you");
+        const senderLabel = isBot ? `Sree (${role || 'Student'} Mode)` : t("you");
 
         let sourcesHtml = "";
         if (isBot && sources && sources.length > 0) {
@@ -935,7 +965,702 @@ document.addEventListener("DOMContentLoaded", () => {
         return typingDiv;
     }
 
-    // Speech Recognition
+    // -------------------------------------------------------------
+    // Hands-Free "Hey Sree" Voice Activation Engine (Siri / Google Assistant Mode)
+    // -------------------------------------------------------------
+    let isWakeWordMode = false;
+    let wakeWordRecognition = null;
+    let isRecognitionRunning = false;
+    let isSpeaking = false;
+    let activeUtterance = null;
+    let isSreeListeningForQuery = false;
+    let sreeQueryTimeout = null;
+    let speechRestartTimeout = null;
+    let audioContextInstance = null;
+
+    const wakeWordToggleBtn = document.getElementById("wakeWordToggleBtn");
+    const wakeWordBtnLabel = document.getElementById("wakeWordBtnLabel");
+    const siriVoiceBanner = document.getElementById("siriVoiceBanner");
+    const siriVoiceText = document.getElementById("siriVoiceText");
+    const stopSiriVoiceBtn = document.getElementById("stopSiriVoiceBtn");
+
+    const sreeFloatingWidget = document.getElementById("sreeFloatingWidget");
+    const sreeWidgetStatus = document.getElementById("sreeWidgetStatus");
+    const sreeVoiceOverlay = document.getElementById("sreeVoiceOverlay");
+    const sreeOverlayStatus = document.getElementById("sreeOverlayStatus");
+    const sreeOverlayTranscript = document.getElementById("sreeOverlayTranscript");
+    const sreeOverlayCloseBtn = document.getElementById("sreeOverlayCloseBtn");
+    const sreeOverlayMuteBtn = document.getElementById("sreeOverlayMuteBtn");
+    const sreeMuteBtnLabel = document.getElementById("sreeMuteBtnLabel");
+    const sreeClearChatBtn = document.getElementById("sreeClearChatBtn");
+    const sreeTypedForm = document.getElementById("sreeTypedForm");
+    const sreeTypedInput = document.getElementById("sreeTypedInput");
+    const sreeOrbMicBtn = document.getElementById("sreeOrbMicBtn");
+    const siriOrbLarge = document.getElementById("siriOrbLarge");
+    const micPermissionToast = document.getElementById("micPermissionToast");
+    const enableMicBtn = document.getElementById("enableMicBtn");
+
+    function playWakeChime() {
+        try {
+            if (!audioContextInstance) {
+                audioContextInstance = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContextInstance.state === 'suspended') {
+                audioContextInstance.resume();
+            }
+            const osc = audioContextInstance.createOscillator();
+            const gain = audioContextInstance.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(587.33, audioContextInstance.currentTime); // D5
+            osc.frequency.exponentialRampToValueAtTime(880, audioContextInstance.currentTime + 0.15); // A5
+            gain.gain.setValueAtTime(0.2, audioContextInstance.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContextInstance.currentTime + 0.35);
+            osc.connect(gain);
+            gain.connect(audioContextInstance.destination);
+            osc.start();
+            osc.stop(audioContextInstance.currentTime + 0.35);
+        } catch(e) {
+            console.warn("Audio chime play error:", e);
+        }
+    }
+
+    function getSreeVoiceGreeting() {
+        switch (currentLanguage) {
+            case "hi-IN":
+                return "नमस्ते! मैं Sree हूँ। बताइए मैं आपकी क्या मदद कर सकती हूँ?";
+            case "ml-IN":
+                return "ഹലോ! ഞാൻ Sree. പറയൂ, ഞാൻ എങ്ങനെ സഹായിക്കണം?";
+            case "ta-IN":
+                return "வணக்கம்! நான் Sree. சொல்லுங்கள், நான் எவ்வாறு உதவட்டும்?";
+            case "te-IN":
+                return "నమస్కారం! నేను Sree. చెప్పండి, నేను మీకు ఎలా సహాయపడగలను?";
+            default:
+                return "Hi there! I am Sree. How can I help you today?";
+        }
+    }
+
+    function normalizeVoiceText(text) {
+        if (!text) return "";
+        return text.toLowerCase()
+            .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"'’]/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+    }
+
+    function appendOverlayUserMessage(text) {
+        if (!sreeOverlayTranscript) return;
+        const hint = sreeOverlayTranscript.querySelector(".sree-placeholder-hint");
+        if (hint) hint.remove();
+
+        const bubble = document.createElement("div");
+        bubble.className = "sree-bubble sree-bubble-user";
+        bubble.innerHTML = `
+            <div class="sree-bubble-sender"><i class="fa-solid fa-user"></i> You</div>
+            <div class="sree-bubble-text">${escapeQuotes(text)}</div>
+        `;
+        sreeOverlayTranscript.appendChild(bubble);
+        sreeOverlayTranscript.scrollTop = sreeOverlayTranscript.scrollHeight;
+    }
+
+    function showOverlayThinking() {
+        removeOverlayThinking();
+        if (!sreeOverlayTranscript) return;
+        const thinking = document.createElement("div");
+        thinking.id = "sreeOverlayThinking";
+        thinking.className = "sree-bubble sree-bubble-bot sree-bubble-thinking";
+        thinking.innerHTML = `
+            <div class="sree-bubble-sender"><i class="fa-solid fa-wand-magic-sparkles"></i> Sree AI</div>
+            <div class="sree-bubble-text"><i class="fa-solid fa-spinner fa-spin"></i> Sree is analyzing official brochures & preparing your answer...</div>
+        `;
+        sreeOverlayTranscript.appendChild(thinking);
+        sreeOverlayTranscript.scrollTop = sreeOverlayTranscript.scrollHeight;
+    }
+
+    function removeOverlayThinking() {
+        const thinking = document.getElementById("sreeOverlayThinking");
+        if (thinking) thinking.remove();
+    }
+
+    function appendOverlayBotMessage(answer, sources) {
+        removeOverlayThinking();
+        if (!sreeOverlayTranscript) return;
+
+        const bubble = document.createElement("div");
+        bubble.className = "sree-bubble sree-bubble-bot";
+        let sourcesHtml = "";
+        if (sources && Array.isArray(sources) && sources.length > 0) {
+            sourcesHtml = `
+                <div class="sree-bubble-sources">
+                    <i class="fa-solid fa-book-bookmark"></i> Sources:
+                    ${sources.map(s => `<span class="sree-bubble-badge">${escapeQuotes(typeof s === 'string' ? s : s.title || s.source || 'Official Brochure')}</span>`).join(' ')}
+                </div>
+            `;
+        }
+
+        bubble.innerHTML = `
+            <div class="sree-bubble-sender"><i class="fa-solid fa-wand-magic-sparkles"></i> Sree AI</div>
+            <div class="sree-bubble-text">${formatMarkdown(answer)}</div>
+            ${sourcesHtml}
+        `;
+        sreeOverlayTranscript.appendChild(bubble);
+        sreeOverlayTranscript.scrollTop = sreeOverlayTranscript.scrollHeight;
+    }
+
+    function clearOverlayTranscript() {
+        if (!sreeOverlayTranscript) return;
+        sreeOverlayTranscript.innerHTML = `
+            <div class="sree-placeholder-hint">
+                <p style="color:var(--text-muted); font-style:italic;"><i class="fa-solid fa-circle-info"></i> Ask Sree anything about entrance exams (JEE, KEAM, NEET, CUET), eligibility, seat allocation, or rank formulas. Say <strong>"Hey Sree"</strong> or type below:</p>
+            </div>
+        `;
+        if (sreeOverlayStatus) {
+            sreeOverlayStatus.innerHTML = isWakeWordMode 
+                ? `Listening for <strong>"Hey Sree"</strong> (or type below)... 🎙️`
+                : `Sree AI Ready. Say <strong>"Hey Sree"</strong> or type below! 💬`;
+        }
+    }
+
+    function initWakeWordEngine() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            console.warn("SpeechRecognition not supported in this browser.");
+            if (sreeOverlayStatus) {
+                sreeOverlayStatus.innerHTML = `<span style="color:#f59e0b;"><i class="fa-solid fa-keyboard"></i> Voice mic not supported in this browser. Please type your question below! ⌨️</span>`;
+            }
+            if (wakeWordBtnLabel) wakeWordBtnLabel.textContent = `Type with Sree 💬`;
+            return null;
+        }
+
+        if (wakeWordRecognition) {
+            return wakeWordRecognition;
+        }
+
+        const rec = new SpeechRecognition();
+        rec.continuous = true;
+        rec.interimResults = true;
+        rec.lang = currentLanguage || "en-IN";
+
+        rec.onstart = () => {
+            isRecognitionRunning = true;
+            console.log("Sree continuous recognition active. Lang:", rec.lang);
+            updateVoiceUIState(true);
+        };
+
+        rec.onresult = (event) => {
+            if (!isWakeWordMode || isSpeaking) return;
+
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const res = event.results[i];
+                const rawTranscript = res[0].transcript;
+                const clean = normalizeVoiceText(rawTranscript);
+                const isFinal = res.isFinal;
+
+                // 1. Wait / Pause commands
+                const waitKeywords = ["wait", "hold on", "wait a second", "wait a minute", "just wait", "wait sree", "stop speaking", "pause"];
+                const isWaitCommand = waitKeywords.some(kw => clean.includes(kw));
+                if (isWaitCommand) {
+                    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+                    isSpeaking = false;
+                    isSreeListeningForQuery = true;
+                    if (sreeQueryTimeout) clearTimeout(sreeQueryTimeout);
+
+                    const waitMessage = {
+                        "hi-IN": "ठीक है, मैं रुक रही हूँ। जब आप तैयार हों तब बोलिए।",
+                        "ml-IN": "ശരി, കാത്തിരിക്കാം. പറയൂ.",
+                        "ta-IN": "சரி, காத்திருக்கிறேன். சொல்லுங்கள்.",
+                        "te-IN": "సరే, వేచి ఉంటాను. చెప్పండి.",
+                        "en-IN": "Okay, waiting for you. Take your time!"
+                    }[currentLanguage] || "Okay, waiting for you. Take your time!";
+
+                    openSreeOverlay();
+                    updateSreeStatus(`<strong>Sree:</strong> "${waitMessage}" ⏳`);
+                    appendOverlayBotMessage(waitMessage, []);
+
+                    speakAssistantVoice(waitMessage, () => {
+                        isSreeListeningForQuery = true;
+                        updateSreeStatus(`Waiting for you to speak... 🎙️`);
+                    });
+                    break;
+                }
+
+                // 2. Active query listening mode (after greeting was spoken or orb tapped)
+                if (isSreeListeningForQuery) {
+                    if (clean.length > 2 && isFinal) {
+                        clearTimeout(sreeQueryTimeout);
+                        isSreeListeningForQuery = false;
+                        const userQuery = clean.replace(/^(hey|hi|hello|ok)?\s*(sree|shree|sri|siri|three)?\s*/i, '').trim();
+                        if (userQuery.length > 1) {
+                            processSreeVoiceQuery(userQuery);
+                        } else {
+                            processSreeVoiceQuery(clean);
+                        }
+                        break;
+                    }
+                    continue;
+                }
+
+                // 3. Wake word detection
+                const wakeKeywords = [
+                    "hey sree", "hi sree", "hello sree", "ok sree",
+                    "hey shree", "hi shree", "hello shree", "ok shree",
+                    "hey sri", "hi sri", "hello sri", "ok sri",
+                    "hey siri", "hi siri", "hello siri",
+                    "hey three", "hey 3", "a3",
+                    "sree", "shree", "sri", "siri"
+                ];
+
+                let matchedKeyword = null;
+                let matchIndex = -1;
+                for (const kw of wakeKeywords) {
+                    const idx = clean.indexOf(kw);
+                    if (idx !== -1) {
+                        matchedKeyword = kw;
+                        matchIndex = idx;
+                        break;
+                    }
+                }
+
+                if (matchedKeyword) {
+                    // Extract query if spoken directly after the wake word
+                    let queryAfter = clean.substring(matchIndex + matchedKeyword.length).trim();
+                    queryAfter = queryAfter.replace(/^[,\s.:?]+/, '').trim();
+
+                    if (queryAfter.length > 2 && isFinal) {
+                        // Spoke wake word + query together in one breath
+                        playWakeChime();
+                        processSreeVoiceQuery(queryAfter);
+                        break;
+                    } else if (queryAfter.length <= 2 && (isFinal || clean === matchedKeyword)) {
+                        // Called "Hey Sree" alone -> chime, greet, and listen for query
+                        playWakeChime();
+                        openSreeOverlay();
+                        updateSreeStatus(`<strong>Sree:</strong> "${getSreeVoiceGreeting()}" 🎙️`);
+                        appendOverlayBotMessage(getSreeVoiceGreeting(), []);
+
+                        speakAssistantVoice(getSreeVoiceGreeting(), () => {
+                            isSreeListeningForQuery = true;
+                            updateSreeStatus(`Sree is listening to your question... Speak now! 🎙️`);
+                            clearTimeout(sreeQueryTimeout);
+                            sreeQueryTimeout = setTimeout(() => {
+                                if (isSreeListeningForQuery) {
+                                    isSreeListeningForQuery = false;
+                                    updateSreeStatus(`Listening for <strong>"Hey Sree"</strong> (or type below)... 🎙️`);
+                                }
+                            }, 12000);
+                        });
+                        break;
+                    }
+                }
+            }
+        };
+
+        rec.onerror = (e) => {
+            console.warn("SpeechRecognition error:", e.error);
+            if (e.error === 'not-allowed') {
+                stopWakeWordEngine(false); // Don't close overlay so user can type!
+                if (sreeOverlayStatus) {
+                    sreeOverlayStatus.innerHTML = `<span style="color:#f59e0b;"><i class="fa-solid fa-microphone-slash"></i> Microphone access blocked. You can type your question below! ⌨️</span>`;
+                }
+                if (micPermissionToast) micPermissionToast.classList.remove("hidden");
+            }
+        };
+
+        rec.onend = () => {
+            isRecognitionRunning = false;
+            console.log("SpeechRecognition cycle ended.");
+            if (isWakeWordMode && !isSpeaking) {
+                clearTimeout(speechRestartTimeout);
+                speechRestartTimeout = setTimeout(() => {
+                    if (isWakeWordMode && !isSpeaking && !isRecognitionRunning) {
+                        safeStartRecognition();
+                    }
+                }, 300);
+            }
+        };
+
+        wakeWordRecognition = rec;
+        return wakeWordRecognition;
+    }
+
+    function safeStartRecognition() {
+        if (!isWakeWordMode || isSpeaking || isRecognitionRunning) return;
+        if (!wakeWordRecognition) initWakeWordEngine();
+        if (!wakeWordRecognition) return;
+
+        try {
+            wakeWordRecognition.lang = currentLanguage || "en-IN";
+            wakeWordRecognition.start();
+        } catch (e) {
+            console.warn("safeStartRecognition start error:", e.message);
+            clearTimeout(speechRestartTimeout);
+            speechRestartTimeout = setTimeout(() => {
+                if (isWakeWordMode && !isSpeaking && !isRecognitionRunning && wakeWordRecognition) {
+                    try { wakeWordRecognition.start(); } catch (err) {}
+                }
+            }, 600);
+        }
+    }
+
+    function safeStopRecognition() {
+        if (wakeWordRecognition && isRecognitionRunning) {
+            try {
+                wakeWordRecognition.stop();
+            } catch (e) {}
+        }
+    }
+
+    function speakAssistantVoice(text, onComplete) {
+        if (!('speechSynthesis' in window)) {
+            if (onComplete) onComplete();
+            return;
+        }
+
+        try {
+            isSpeaking = true;
+            safeStopRecognition();
+            window.speechSynthesis.cancel();
+
+            const cleanText = text.replace(/[*#_`>]/g, '').replace(/https?:\/\/\S+/g, '').trim();
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = currentLanguage || "en-IN";
+            activeUtterance = utterance;
+
+            let finished = false;
+            const handleFinish = () => {
+                if (finished) return;
+                finished = true;
+                isSpeaking = false;
+                activeUtterance = null;
+                if (onComplete) onComplete();
+                if (isWakeWordMode) {
+                    setTimeout(() => safeStartRecognition(), 300);
+                }
+            };
+
+            utterance.onend = handleFinish;
+            utterance.onerror = (err) => {
+                console.warn("SpeechSynthesis utterance error:", err);
+                handleFinish();
+            };
+
+            // Watchdog in case Chrome stalls speechSynthesis.onend
+            const durationEstimate = Math.max(3000, Math.min(30000, cleanText.length * 90));
+            setTimeout(() => {
+                if (isSpeaking && activeUtterance === utterance) {
+                    window.speechSynthesis.cancel();
+                    handleFinish();
+                }
+            }, durationEstimate + 2500);
+
+            window.speechSynthesis.speak(utterance);
+        } catch (e) {
+            console.warn("speakAssistantVoice exception:", e);
+            isSpeaking = false;
+            activeUtterance = null;
+            if (onComplete) onComplete();
+            if (isWakeWordMode) setTimeout(() => safeStartRecognition(), 300);
+        }
+    }
+
+    function processSreeVoiceQuery(query) {
+        if (!query || !query.trim()) return;
+        const cleanQuery = query.trim();
+
+        openSreeOverlay();
+        updateSreeStatus(`Processing query: <em>"${escapeQuotes(cleanQuery)}"</em>...`);
+        appendOverlayUserMessage(cleanQuery);
+        showOverlayThinking();
+
+        if (userInput) userInput.value = cleanQuery;
+        safeStopRecognition();
+
+        submitGlobalSreeVoiceChat(cleanQuery);
+    }
+
+    async function submitGlobalSreeVoiceChat(queryText) {
+        const headers = { "Content-Type": "application/json" };
+        if (authToken) headers["X-User-Token"] = authToken;
+
+        // If currently in exam detail screen with chat history visible, append user query
+        if (examChatHistory && currentExamContext) {
+            appendMessage("user", queryText, currentUserRole);
+        }
+
+        try {
+            const res = await fetch("/api/chat", {
+                method: "POST",
+                headers: headers,
+                body: JSON.stringify({
+                    query: queryText,
+                    persona: currentUserRole || "Student",
+                    exam_context: currentExamContext || null,
+                    language: currentLanguage,
+                    session_id: currentSessionId
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                updateSreeStatus(`<strong>Sree AI Response</strong>`);
+                appendOverlayBotMessage(data.answer, data.sources);
+
+                if (data.session_id) {
+                    currentSessionId = data.session_id;
+                    if (authToken) fetchUserSessions();
+                }
+
+                // Also append to exam chat history if visible
+                if (examChatHistory && currentExamContext) {
+                    appendMessage("bot", data.answer, currentUserRole, data.sources, data.confidence, data.is_faq_short_circuit);
+                }
+
+                // Read aloud response
+                speakAssistantVoice(data.answer, () => {
+                    if (isWakeWordMode) {
+                        updateSreeStatus(`Listening for <strong>"Hey Sree"</strong> (or type below)... 🎙️`);
+                    } else {
+                        updateSreeStatus(`Sree AI Ready. Ask another question by voice or typing! 💬`);
+                    }
+                });
+            } else {
+                const errDetail = data.detail || "Unable to get an answer from entrance database.";
+                updateSreeStatus(`<span style="color:#ef4444;">Could not process request</span>`);
+                appendOverlayBotMessage(`⚠️ ${errDetail}`, []);
+                speakAssistantVoice("Sorry, I could not retrieve information for that query. Please try asking again.", () => {
+                    if (isWakeWordMode) updateSreeStatus(`Listening for <strong>"Hey Sree"</strong> (or type below)... 🎙️`);
+                });
+            }
+        } catch (err) {
+            console.error("Voice chat API error:", err);
+            updateSreeStatus(`<span style="color:#ef4444;">Connection error</span>`);
+            appendOverlayBotMessage(`⚠️ Error connecting to Entrance Sahaayi AI. Please check your connection.`, []);
+            speakAssistantVoice("I am having trouble connecting to the server. Please try again.", () => {
+                if (isWakeWordMode) updateSreeStatus(`Listening for <strong>"Hey Sree"</strong> (or type below)... 🎙️`);
+            });
+        }
+    }
+
+    function openSreeOverlay() {
+        if (sreeVoiceOverlay) {
+            sreeVoiceOverlay.classList.remove("hidden");
+            setTimeout(() => {
+                if (sreeTypedInput) sreeTypedInput.focus();
+            }, 120);
+        }
+    }
+
+    function closeSreeOverlay() {
+        if (sreeVoiceOverlay) sreeVoiceOverlay.classList.add("hidden");
+    }
+
+    function updateVoiceUIState(isActive) {
+        if (wakeWordToggleBtn) {
+            if (isActive) {
+                wakeWordToggleBtn.classList.add("active");
+                if (wakeWordBtnLabel) wakeWordBtnLabel.textContent = `"Hey Sree" Active 🎙️`;
+            } else {
+                wakeWordToggleBtn.classList.remove("active");
+                if (wakeWordBtnLabel) wakeWordBtnLabel.textContent = `"Hey Sree" Voice Chat`;
+            }
+        }
+        if (sreeFloatingWidget) {
+            if (isActive) {
+                sreeFloatingWidget.classList.add("active");
+                if (sreeWidgetStatus) sreeWidgetStatus.textContent = "Active ('Hey Sree') 🎙️";
+            } else {
+                sreeFloatingWidget.classList.remove("active");
+                if (sreeWidgetStatus) sreeWidgetStatus.textContent = `Ask Sree (Voice / Type)`;
+            }
+        }
+        if (siriVoiceBanner) {
+            if (isActive) siriVoiceBanner.classList.remove("hidden");
+            else siriVoiceBanner.classList.add("hidden");
+        }
+        if (sreeMuteBtnLabel) {
+            sreeMuteBtnLabel.textContent = isActive ? "Mute Mic" : "Unmute Mic";
+        }
+    }
+
+    function updateSreeStatus(html) {
+        if (sreeOverlayStatus) sreeOverlayStatus.innerHTML = html;
+        if (siriVoiceText) siriVoiceText.innerHTML = html;
+        if (sreeWidgetStatus) sreeWidgetStatus.textContent = isWakeWordMode ? "Active ('Hey Sree') 🎙️" : "Ask Sree (Voice / Type)";
+    }
+
+    function updateSreeTranscript(html) {
+        if (sreeOverlayTranscript) sreeOverlayTranscript.innerHTML = html;
+    }
+
+    function toggleWakeWordMode() {
+        if (isWakeWordMode) {
+            stopWakeWordEngine(true);
+        } else {
+            if (localStorage.getItem("sree_mic_permission") !== "granted") {
+                requestMicrophoneAccess(() => startWakeWordEngine());
+            } else {
+                startWakeWordEngine();
+            }
+        }
+    }
+
+    function startWakeWordEngine() {
+        isWakeWordMode = true;
+        localStorage.setItem("sree_mic_permission", "granted");
+        if (micPermissionToast) micPermissionToast.classList.add("hidden");
+
+        updateVoiceUIState(true);
+        if (siriVoiceText) siriVoiceText.innerHTML = `Listening for <strong>"Hey Sree"</strong>... Say <em>"Hey Sree"</em> to speak!`;
+
+        if (!wakeWordRecognition) initWakeWordEngine();
+        safeStartRecognition();
+    }
+
+    function stopWakeWordEngine(fullTurnOff = true) {
+        if (fullTurnOff) {
+            isWakeWordMode = false;
+            updateVoiceUIState(false);
+            closeSreeOverlay();
+        } else {
+            isWakeWordMode = false;
+            updateVoiceUIState(false);
+        }
+        safeStopRecognition();
+        if (isSpeaking) {
+            window.speechSynthesis.cancel();
+            isSpeaking = false;
+        }
+    }
+
+    function requestMicrophoneAccess(callback) {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                localStorage.setItem("sree_mic_permission", "granted");
+                if (micPermissionToast) micPermissionToast.classList.add("hidden");
+                stream.getTracks().forEach(t => t.stop());
+                startWakeWordEngine();
+                if (callback) callback(true);
+            }).catch(err => {
+                console.warn("Microphone access prompt rejected or unavailable:", err);
+                if (sreeOverlayStatus) {
+                    sreeOverlayStatus.innerHTML = `<span style="color:#f59e0b;"><i class="fa-solid fa-microphone-slash"></i> Microphone muted or blocked. You can type your question below! ⌨️</span>`;
+                }
+                openSreeOverlay();
+                if (callback) callback(false);
+            });
+        } else {
+            startWakeWordEngine();
+            if (callback) callback(true);
+        }
+    }
+
+    function triggerSreeListenImmediate() {
+        if (isSpeaking) {
+            window.speechSynthesis.cancel();
+            isSpeaking = false;
+        }
+        if (!isWakeWordMode) startWakeWordEngine();
+        playWakeChime();
+        isSreeListeningForQuery = true;
+        updateSreeStatus(`Listening to you... Speak your question now! 🎙️`);
+        safeStartRecognition();
+
+        clearTimeout(sreeQueryTimeout);
+        sreeQueryTimeout = setTimeout(() => {
+            if (isSreeListeningForQuery) {
+                isSreeListeningForQuery = false;
+                updateSreeStatus(`Listening for <strong>"Hey Sree"</strong> (or type below)... 🎙️`);
+            }
+        }, 12000);
+    }
+
+    // Attach listeners
+    if (wakeWordToggleBtn) wakeWordToggleBtn.addEventListener("click", toggleWakeWordMode);
+    if (stopSiriVoiceBtn) stopSiriVoiceBtn.addEventListener("click", () => stopWakeWordEngine(true));
+    if (enableMicBtn) enableMicBtn.addEventListener("click", () => requestMicrophoneAccess());
+
+    if (sreeFloatingWidget) {
+        sreeFloatingWidget.addEventListener("click", () => {
+            openSreeOverlay();
+            if (!isWakeWordMode) {
+                if (localStorage.getItem("sree_mic_permission") === "granted") {
+                    startWakeWordEngine();
+                }
+            }
+        });
+    }
+
+    if (siriOrbLarge) {
+        siriOrbLarge.addEventListener("click", triggerSreeListenImmediate);
+    }
+
+    if (sreeOrbMicBtn) {
+        sreeOrbMicBtn.addEventListener("click", triggerSreeListenImmediate);
+    }
+
+    // Form submit for typing queries directly
+    if (sreeTypedForm) {
+        sreeTypedForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            if (!sreeTypedInput) return;
+            const query = sreeTypedInput.value.trim();
+            if (!query) return;
+            sreeTypedInput.value = "";
+            processSreeVoiceQuery(query);
+        });
+    }
+
+    // Quick chips click handlers
+    document.querySelectorAll(".sree-chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+            const query = chip.getAttribute("data-query");
+            if (query) {
+                processSreeVoiceQuery(query);
+            }
+        });
+    });
+
+    if (sreeClearChatBtn) {
+        sreeClearChatBtn.addEventListener("click", clearOverlayTranscript);
+    }
+
+    if (sreeOverlayCloseBtn) sreeOverlayCloseBtn.addEventListener("click", closeSreeOverlay);
+
+    if (sreeOverlayMuteBtn) {
+        sreeOverlayMuteBtn.addEventListener("click", () => {
+            if (isWakeWordMode) {
+                stopWakeWordEngine(false); // keep overlay open so user can type!
+                updateSreeStatus(`<span style="color:#94a3b8;"><i class="fa-solid fa-microphone-slash"></i> Microphone muted. You can still type queries below! 💬</span>`);
+                if (sreeMuteBtnLabel) sreeMuteBtnLabel.textContent = "Unmute Mic";
+            } else {
+                startWakeWordEngine();
+                updateSreeStatus(`Listening for <strong>"Hey Sree"</strong> (or type below)... 🎙️`);
+                if (sreeMuteBtnLabel) sreeMuteBtnLabel.textContent = "Mute Mic";
+            }
+        });
+    }
+
+    // Auto-bootstrap on first user interaction if permission was previously granted
+    function checkAutoMicPermission() {
+        if (localStorage.getItem("sree_mic_permission") === "granted") {
+            const onFirstInteraction = () => {
+                window.removeEventListener("click", onFirstInteraction);
+                window.removeEventListener("keydown", onFirstInteraction);
+                window.removeEventListener("touchstart", onFirstInteraction);
+                if (!isWakeWordMode) {
+                    startWakeWordEngine();
+                }
+            };
+            window.addEventListener("click", onFirstInteraction, { once: true });
+            window.addEventListener("keydown", onFirstInteraction, { once: true });
+            window.addEventListener("touchstart", onFirstInteraction, { once: true });
+        } else {
+            if (micPermissionToast) micPermissionToast.classList.remove("hidden");
+        }
+    }
+
+    checkAutoMicPermission();
+
+    // Speech Recognition for manual button
     function changeLanguage(language) {
         currentLanguage = language;
         speechLanguageSelect.value = language;
@@ -943,6 +1668,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const selectedText = speechLanguageSelect.options[speechLanguageSelect.selectedIndex].text;
         if (currentLangLabel) currentLangLabel.textContent = selectedText.split(" ")[0];
         if (recognition) recognition.lang = currentLanguage;
+        if (wakeWordRecognition) wakeWordRecognition.lang = currentLanguage;
         applyLanguage();
         if (currentExamContext) examSummaryBody.innerHTML = getExamSummary(currentExamContext);
         if (currentExamContext) {
@@ -999,17 +1725,35 @@ document.addEventListener("DOMContentLoaded", () => {
     window.speakText = function(text, button) {
         if ('speechSynthesis' in window) {
             if (activeSpeech) resetSpeechControls(activeSpeech);
+            isSpeaking = true;
+            safeStopRecognition();
             window.speechSynthesis.cancel();
             const cleanText = text.replace(/[*#_`]/g, '');
             const utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.lang = currentLanguage;
+            utterance.lang = currentLanguage || "en-IN";
+            activeUtterance = utterance;
             const pauseButton = button.parentElement.querySelector(".audio-pause-btn");
             const resumeButton = button.parentElement.querySelector(".audio-resume-btn");
             const speech = { button, pauseButton, resumeButton, utterance, isPaused: false };
             activeSpeech = speech;
             setSpeechControls(speech, true);
-            utterance.onend = () => resetSpeechControls(speech);
-            utterance.onerror = () => resetSpeechControls(speech);
+            utterance.onend = () => {
+                resetSpeechControls(speech);
+                isSpeaking = false;
+                activeUtterance = null;
+                if (isWakeWordMode) {
+                    // Continuous Siri voice loop: resume listening after Sree finishes speaking!
+                    setTimeout(() => safeStartRecognition(), 400);
+                }
+            };
+            utterance.onerror = () => {
+                resetSpeechControls(speech);
+                isSpeaking = false;
+                activeUtterance = null;
+                if (isWakeWordMode) {
+                    setTimeout(() => safeStartRecognition(), 400);
+                }
+            };
             window.speechSynthesis.speak(utterance);
         }
     };
@@ -1057,6 +1801,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (speech.resumeButton) speech.resumeButton.disabled = true;
         if (activeSpeech === speech) activeSpeech = null;
     }
+
+    // Initialize Manual Speech Recognition
+    initSpeechRecognition();
 
     // -------------------------------------------------------------
     // 5. ADMIN CONTROL PANEL LOGIC (PROGRAMMER ROLE ONLY)
