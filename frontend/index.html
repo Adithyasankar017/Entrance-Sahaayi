@@ -11,9 +11,54 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Custom Styles -->
-    <link rel="stylesheet" href="/static/styles.css?v=sree-query-v5">
+    <link rel="stylesheet" href="/static/styles.css?v=sree-nav-v2">
 </head>
 <body>
+    <!-- GRAPHICAL WELCOME OPENING / SPLASH SCREEN -->
+    <div id="appSplashScreen" class="app-splash-screen" role="dialog" aria-modal="true" aria-label="Welcome to Entrance Sahaayi">
+        <div class="splash-particles">
+            <span class="particle p1"></span>
+            <span class="particle p2"></span>
+            <span class="particle p3"></span>
+        </div>
+        
+        <div class="splash-center-content">
+            <!-- Pulsing Aura Halo around the Greeting Character -->
+            <div class="splash-aura-wrapper">
+                <div class="splash-aura-ring ring-outer"></div>
+                <div class="splash-aura-ring ring-mid"></div>
+                <div class="splash-aura-glow"></div>
+                
+                <div class="splash-image-container">
+                    <img src="/static/namaste_sree_white_hd.png" alt="Sree AI Namaste Welcome" class="splash-namaste-img">
+                </div>
+            </div>
+
+            <!-- Welcome Typography & Titles -->
+            <div class="splash-text-container">
+                <div class="splash-badge">
+                    <span class="splash-badge-icon">✨</span>
+                    <span class="splash-badge-text">നമസ്കാരം &bull; Namaste &bull; Welcome</span>
+                </div>
+                <h1 class="splash-app-title">Entrance Sahaayi</h1>
+                <p class="splash-app-tagline">AI-Powered Career Guidance & Entrance Exam Assistant</p>
+                <div class="splash-sree-intro">
+                    <span class="splash-sree-pill"><i class="fa-solid fa-wand-magic-sparkles"></i> Introducing <strong>Sree</strong> AI</span>
+                </div>
+            </div>
+
+            <!-- Animated Progress Line & Enter Action -->
+            <div class="splash-footer-action">
+                <div class="splash-progress-track">
+                    <div class="splash-progress-fill"></div>
+                </div>
+                <button type="button" id="splashEnterBtn" class="splash-enter-btn" title="Click or press any key to enter immediately">
+                    <span>Enter Application</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
     <div class="app-container">
 
         <!-- SCREEN 1: WELCOME & PROFILE AUTHENTICATION PORTAL -->
@@ -674,6 +719,6 @@
     </div>
 
     <!-- Script -->
-    <script src="/static/app.js?v=sree-query-v5"></script>
+    <script src="/static/app.js?v=sree-nav-v2"></script>
 </body>
 </html>

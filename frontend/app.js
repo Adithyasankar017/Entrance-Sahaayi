@@ -340,6 +340,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const cancelVoiceBtn = document.getElementById("cancelVoiceBtn");
     const videoUploadForm = document.getElementById("videoUploadForm");
     const videoUploadStatus = document.getElementById("videoUploadStatus");
+    const backToLandingFromExam = document.getElementById("backToLandingFromExam");
+    const backToLandingFromAdmin = document.getElementById("backToLandingFromAdmin");
 
     applyLanguage();
     loadUploadedVideos();
@@ -352,6 +354,56 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Speech Recognition
     initSpeechRecognition();
+
+    // -------------------------------------------------------------
+    // 0. GRAPHICAL WELCOME OPENING / SPLASH SCREEN CONTROLLER
+    // -------------------------------------------------------------
+    const appSplashScreen = document.getElementById("appSplashScreen");
+    const splashEnterBtn = document.getElementById("splashEnterBtn");
+    let splashDismissed = false;
+
+    function dismissSplashScreen() {
+        if (splashDismissed || !appSplashScreen) return;
+        splashDismissed = true;
+        appSplashScreen.classList.add("splash-fade-out");
+        setTimeout(() => {
+            if (appSplashScreen) {
+                appSplashScreen.style.display = "none";
+            }
+        }, 820);
+    }
+
+    if (appSplashScreen) {
+        // Automatically dismiss after introductory display (2.4s)
+        const splashTimer = setTimeout(() => {
+            dismissSplashScreen();
+        }, 2400);
+
+        // Instant dismissal on Enter button click
+        if (splashEnterBtn) {
+            splashEnterBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                clearTimeout(splashTimer);
+                dismissSplashScreen();
+            });
+        }
+
+        // Allow clicking anywhere on the splash backdrop to enter immediately
+        appSplashScreen.addEventListener("click", () => {
+            clearTimeout(splashTimer);
+            dismissSplashScreen();
+        });
+
+        // Allow pressing Enter, Space, or Escape to skip
+        const onSplashKey = (e) => {
+            if (!splashDismissed && (e.key === "Enter" || e.key === " " || e.key === "Escape")) {
+                clearTimeout(splashTimer);
+                dismissSplashScreen();
+                window.removeEventListener("keydown", onSplashKey);
+            }
+        };
+        window.addEventListener("keydown", onSplashKey);
+    }
 
     // -------------------------------------------------------------
     // 1. AUTHENTICATION & CHAT HISTORY SIDEBAR LOGIC
@@ -598,8 +650,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     function switchScreen(targetScreen) {
-        [loginScreen, landingScreen, examDetailScreen, adminScreen].forEach(s => s.classList.add("hidden"));
-        targetScreen.classList.remove("hidden");
+        if (targetScreen !== examDetailScreen && examVideoPlayer) {
+            try {
+                examVideoPlayer.pause();
+            } catch (e) {}
+        }
+        [loginScreen, landingScreen, examDetailScreen, adminScreen].forEach(s => {
+            if (s) {
+                s.classList.add("hidden");
+                s.classList.remove("active");
+            }
+        });
+        if (targetScreen) {
+            targetScreen.classList.remove("hidden");
+            targetScreen.classList.add("active");
+        }
         window.scrollTo(0, 0);
 
         // Automatically stop active conversation & readout when user returns to original landing page
@@ -872,6 +937,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
         switchScreen(examDetailScreen);
     }
+
+    // Navigation: Back to Welcome / Landing Page from Exam Detail Screen
+    if (backToLandingFromExam) {
+        backToLandingFromExam.addEventListener("click", () => {
+            if (examVideoPlayer) {
+                try {
+                    examVideoPlayer.pause();
+                    examVideoPlayer.removeAttribute("src");
+                    examVideoPlayer.load();
+                } catch (e) {}
+            }
+            stopActiveSreeConversation();
+            switchScreen(landingScreen);
+        });
+    }
+
+    // Navigation: Exit Admin Mode back to Welcome / Landing Page
+    if (backToLandingFromAdmin) {
+        backToLandingFromAdmin.addEventListener("click", () => {
+            document.body.classList.remove("admin-mode");
+            stopActiveSreeConversation();
+            switchScreen(landingScreen);
+        });
+    }
+
 
     // -------------------------------------------------------------
     // 3. PATHWAY 2: MARKSHEET UPLOAD & CAREER GUIDANCE (BOTTOM OF LANDING)
