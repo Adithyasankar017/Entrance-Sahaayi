@@ -1,0 +1,62 @@
+[
+  {
+    "id": "news_1",
+    "title": "KEAM 2025 Online Registration & Verification Window Announced",
+    "exam": "KEAM",
+    "category": "Registration",
+    "date": "Nov 12, 2026",
+    "deadline_date": "2026-12-15",
+    "summary": "CEE Kerala has announced the registration schedule for KEAM Engineering & Pharmacy courses. Candidates must keep their Class 10 & 12 details and Nativity certificates ready.",
+    "urgent": true,
+    "link": "https://cee.kerala.gov.in/",
+    "parent_tip": "Check income and community certificates early. EWS and SEBC candidates receive significant tuition fee concessions in government engineering colleges."
+  },
+  {
+    "id": "news_2",
+    "title": "JEE Main Session 1 Application Form & Information Bulletin Released",
+    "exam": "JEE Main",
+    "category": "Registration",
+    "date": "Nov 10, 2026",
+    "deadline_date": "2026-12-04",
+    "summary": "National Testing Agency (NTA) has opened the portal for JEE Main Session 1. The exam will be conducted in Computer Based Test (CBT) mode across 300+ cities.",
+    "urgent": true,
+    "link": "https://jeemain.nta.ac.in/",
+    "parent_tip": "Ensure the student's name on Aadhaar matches their Class 10 certificate exactly to avoid biometric authentication issues on exam day."
+  },
+  {
+    "id": "news_3",
+    "title": "NEET-UG 2025 Official Syllabus & Eligibility Criteria Confirmed by NMC",
+    "exam": "NEET-UG",
+    "category": "Exam Date",
+    "date": "Nov 05, 2026",
+    "deadline_date": "2027-05-03",
+    "summary": "NMC confirms NEET-UG will be held on the first Sunday of May. Minimum 50% aggregate in Class 12 Physics, Chemistry, and Biology (40% for SC/ST/OBC) is required.",
+    "urgent": false,
+    "link": "https://exams.nta.ac.in/NEET/",
+    "parent_tip": "NEET is a pen-and-paper OMR exam with negative marking (-1 mark). Support your child's revision without undue pressure."
+  },
+  {
+    "id": "news_4",
+    "title": "CUET-UG 2025 Subject Mapping & Domain Test Guidelines",
+    "exam": "CUET-UG",
+    "category": "Admit Card",
+    "date": "Oct 28, 2026",
+    "deadline_date": "2027-03-30",
+    "summary": "NTA announces that students can choose up to 6 domain subjects based on Class 12 syllabus for admission into 45+ Central Universities including DU, BHU, and JNU.",
+    "urgent": false,
+    "link": "https://exams.nta.ac.in/CUET-UG/",
+    "parent_tip": "Central Universities have very affordable fees (under \u20b915,000/year for many courses) with excellent placement track records."
+  },
+  {
+    "id": "news_5",
+    "title": "KEAM 50:50 Rank Formula Normalization Guidelines Published",
+    "exam": "KEAM",
+    "category": "Counseling",
+    "date": "Oct 20, 2026",
+    "deadline_date": "2027-06-10",
+    "summary": "Government of Kerala confirms equal 50:50 weightage for KEAM Entrance score and Class 12th Board marks (PCM) with statistical normalization across CBSE, ICSE, and State boards.",
+    "urgent": false,
+    "link": "https://cee.kerala.gov.in/",
+    "parent_tip": "Board marks matter just as much as entrance marks. Encourage your child to score high in Plus Two Board practicals and theory."
+  }
+]

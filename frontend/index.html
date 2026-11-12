@@ -11,7 +11,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Custom Styles -->
-    <link rel="stylesheet" href="/static/styles.css?v=sree-admin-nav-v3">
+    <link rel="stylesheet" href="/static/styles.css?v=sree-news-v4">
 </head>
 <body>
     <!-- GRAPHICAL WELCOME OPENING / SPLASH SCREEN -->
@@ -261,6 +261,52 @@
 
             <!-- Main Content Container with 3 Sections -->
             <div class="landing-sections-container">
+                <!-- SECTION: LIVE EXAM NEWS & CALENDAR HUB -->
+                <section class="live-news-calendar-section" id="liveNewsCalendarSection">
+                    <div class="news-section-header">
+                        <div class="news-header-title">
+                            <div class="live-status-pill">
+                                <span class="live-pulse-dot"></span>
+                                <span class="live-status-text">LIVE ALERTS</span>
+                            </div>
+                            <div>
+                                <h3 class="news-main-heading"><i class="fa-solid fa-bullhorn"></i> Official Exam News & Important Dates Calendar</h3>
+                                <p class="news-main-subheading">Verified real-time announcements, registration windows, and countdowns for KEAM, JEE Main, NEET-UG, and CUET-UG.</p>
+                            </div>
+                        </div>
+
+                        <!-- View Switcher Tabs: News Feed vs. Exam Calendar Timeline -->
+                        <div class="news-view-switch-btns">
+                            <button type="button" id="tabNewsFeed" class="news-tab-btn active"><i class="fa-solid fa-newspaper"></i> Latest News Feed</button>
+                            <button type="button" id="tabExamCalendar" class="news-tab-btn"><i class="fa-solid fa-calendar-days"></i> Exam Calendar & Deadlines</button>
+                        </div>
+                    </div>
+
+                    <!-- Filter Controls (Exam Filter & Search) -->
+                    <div class="news-filter-bar">
+                        <div class="news-filter-chips" id="newsExamFilterChips">
+                            <button type="button" class="news-chip active" data-exam="All"><i class="fa-solid fa-layer-group"></i> All Exams</button>
+                            <button type="button" class="news-chip" data-exam="KEAM"><i class="fa-solid fa-building-columns"></i> KEAM</button>
+                            <button type="button" class="news-chip" data-exam="JEE Main"><i class="fa-solid fa-graduation-cap"></i> JEE Main</button>
+                            <button type="button" class="news-chip" data-exam="NEET-UG"><i class="fa-solid fa-stethoscope"></i> NEET-UG</button>
+                            <button type="button" class="news-chip" data-exam="CUET-UG"><i class="fa-solid fa-landmark"></i> CUET-UG</button>
+                        </div>
+                        <div class="news-urgent-counter" id="newsUrgentCounter">
+                            <i class="fa-solid fa-bell"></i> <span id="urgentCountLabel">Loading Live Alerts...</span>
+                        </div>
+                    </div>
+
+                    <!-- VIEW 1: LATEST NEWS CARDS FEED -->
+                    <div id="newsFeedContainer" class="news-feed-grid">
+                        <div class="news-loading-box"><i class="fa-solid fa-spinner fa-spin"></i> Loading live examination announcements...</div>
+                    </div>
+
+                    <!-- VIEW 2: INTERACTIVE CALENDAR & DEADLINE TIMELINE -->
+                    <div id="examCalendarContainer" class="exam-calendar-timeline hidden">
+                        <!-- Populated dynamically -->
+                    </div>
+                </section>
+
                 
                 <!-- SECTION 0: INSTANT AI QUERY ASSISTANT (DIRECT TYPE & VOICE GUIDANCE) -->
                 <section class="pathway-section card-gradient-ai" id="landingQuerySection">
@@ -533,6 +579,16 @@
                 <button class="back-btn" id="backToLandingFromAdmin"><i class="fa-solid fa-right-from-bracket"></i> Exit to Login Portal</button>
                 <h2><i class="fa-solid fa-user-shield"></i> Programmer & Admin Knowledge Control Panel</h2>
             </div>
+            <!-- Admin Live News Preview Banner -->
+            <div class="admin-news-preview-banner">
+                <div class="admin-news-preview-header">
+                    <span class="live-status-pill"><span class="live-pulse-dot"></span> LIVE TICKER</span>
+                    <span><strong>Active Exam Announcements</strong> (Real-time updates seen by Students and Parents upon login):</span>
+                </div>
+                <div id="adminLiveNewsTicker" class="admin-news-ticker-row">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
 
             <div class="kb-layout">
                 <!-- PDF Upload Card -->
@@ -593,6 +649,100 @@
 
                     <h4 class="mt-4"><i class="fa-solid fa-file-lines"></i> Ingested Brochure Files</h4>
                     <ul class="doc-list" id="docList"></ul>
+                    <!-- Live Exam News & Notification Broadcaster Card -->
+                <div class="kb-card news-broadcast-card">
+                    <h3><i class="fa-solid fa-bullhorn"></i> Broadcast Exam News & Calendar Deadline</h3>
+                    <p class="card-desc">Publish official entrance notifications, registration deadlines, and urgent alerts visible to all students and parents.</p>
+                    <form id="adminNewsForm" class="faq-form">
+                        <input type="text" id="newsTitle" placeholder="Notification Title (e.g. KEAM 2025 Registration Open)" required>
+                        <div class="form-row">
+                            <select id="newsExam" required>
+                                <option value="KEAM">KEAM (Kerala)</option>
+                                <option value="JEE Main">JEE Main (Engineering)</option>
+                                <option value="NEET-UG">NEET-UG (Medical)</option>
+                                <option value="CUET-UG">CUET-UG (Central Univs)</option>
+                                <option value="All">All Exams</option>
+                            </select>
+                            <select id="newsCategory" required>
+                                <option value="Registration">Registration Window</option>
+                                <option value="Admit Card">Admit Card / Hall Ticket</option>
+                                <option value="Exam Date">Exam Date & Shifts</option>
+                                <option value="Results">Results & Scorecard</option>
+                                <option value="Counseling">Counseling & Seat Allotment</option>
+                                <option value="General">General Notification</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <input type="text" id="newsDate" placeholder="Published Date (e.g. Nov 12, 2026)">
+                            <input type="date" id="newsDeadlineDate" placeholder="Deadline Date for Countdown" title="Target Deadline Date">
+                        </div>
+                        <textarea id="newsSummary" placeholder="Summary of announcement & key dates for students..." rows="3" required></textarea>
+                        <input type="url" id="newsLink" placeholder="Official Government Portal Link (e.g. https://cee.kerala.gov.in/)">
+                        <textarea id="newsParentTip" placeholder="Parent Advisory Tip (e.g. Keep income/caste certificates ready for fee concessions...)" rows="2"></textarea>
+                        <div class="form-row-checkbox">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="newsUrgent">
+                                <span><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> Mark as Urgent / Breaking Announcement (Glowing Red Badge)</span>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> Broadcast Live Announcement</button>
+                    </form>
+                    <div id="adminNewsStatus" class="status-msg"></div>
+
+                    <hr class="divider">
+
+                    <h4><i class="fa-solid fa-list-check"></i> Manage Active Live Announcements</h4>
+                    <div id="adminNewsList" class="admin-active-news-list">
+                        <!-- Populated dynamically with delete buttons -->
+                    </div>
+                </div>
+            </div>
+                <!-- Live Exam News & Notification Broadcaster Card -->
+                <div class="kb-card news-broadcast-card">
+                    <h3><i class="fa-solid fa-bullhorn"></i> Broadcast Exam News & Calendar Deadline</h3>
+                    <p class="card-desc">Publish official entrance notifications, registration deadlines, and urgent alerts visible to all students and parents.</p>
+                    <form id="adminNewsForm" class="faq-form">
+                        <input type="text" id="newsTitle" placeholder="Notification Title (e.g. KEAM 2025 Registration Open)" required>
+                        <div class="form-row">
+                            <select id="newsExam" required>
+                                <option value="KEAM">KEAM (Kerala)</option>
+                                <option value="JEE Main">JEE Main (Engineering)</option>
+                                <option value="NEET-UG">NEET-UG (Medical)</option>
+                                <option value="CUET-UG">CUET-UG (Central Univs)</option>
+                                <option value="All">All Exams</option>
+                            </select>
+                            <select id="newsCategory" required>
+                                <option value="Registration">Registration Window</option>
+                                <option value="Admit Card">Admit Card / Hall Ticket</option>
+                                <option value="Exam Date">Exam Date & Shifts</option>
+                                <option value="Results">Results & Scorecard</option>
+                                <option value="Counseling">Counseling & Seat Allotment</option>
+                                <option value="General">General Notification</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <input type="text" id="newsDate" placeholder="Published Date (e.g. Nov 12, 2026)">
+                            <input type="date" id="newsDeadlineDate" placeholder="Deadline Date for Countdown" title="Target Deadline Date">
+                        </div>
+                        <textarea id="newsSummary" placeholder="Summary of announcement & key dates for students..." rows="3" required></textarea>
+                        <input type="url" id="newsLink" placeholder="Official Government Portal Link (e.g. https://cee.kerala.gov.in/)">
+                        <textarea id="newsParentTip" placeholder="Parent Advisory Tip (e.g. Keep income/caste certificates ready for fee concessions...)" rows="2"></textarea>
+                        <div class="form-row-checkbox">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="newsUrgent">
+                                <span><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> Mark as Urgent / Breaking Announcement (Glowing Red Badge)</span>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> Broadcast Live Announcement</button>
+                    </form>
+                    <div id="adminNewsStatus" class="status-msg"></div>
+
+                    <hr class="divider">
+
+                    <h4><i class="fa-solid fa-list-check"></i> Manage Active Live Announcements</h4>
+                    <div id="adminNewsList" class="admin-active-news-list">
+                        <!-- Populated dynamically with delete buttons -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -719,6 +869,6 @@
     </div>
 
     <!-- Script -->
-    <script src="/static/app.js?v=sree-admin-nav-v3"></script>
+    <script src="/static/app.js?v=sree-news-v4"></script>
 </body>
 </html>

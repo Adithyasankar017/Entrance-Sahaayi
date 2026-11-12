@@ -345,6 +345,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     applyLanguage();
     loadUploadedVideos();
+    loadLiveNews();
 
     // Admin Elements
     const dropZone = document.getElementById("dropZone");
@@ -574,6 +575,7 @@ document.addEventListener("DOMContentLoaded", () => {
             switchScreen(landingScreen);
         }
         applyLanguage();
+        renderLiveNews();
     }
 
     // Role Cards for Guest Mode & Admin Portal
@@ -630,6 +632,7 @@ document.addEventListener("DOMContentLoaded", () => {
             switchScreen(landingScreen);
         }
         applyLanguage();
+        renderLiveNews();
     }
 
     logoutBtn.addEventListener("click", () => {
@@ -2404,7 +2407,332 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (err) { console.error("Error fetching stats:", err); }
     }
 
-    function formatMarkdown(str) {
+
+    // -------------------------------------------------------------
+    // LIVE EXAM NEWS, ANNOUNCEMENTS & CALENDAR CONTROLLER
+    // -------------------------------------------------------------
+    let liveNewsData = [];
+    let currentNewsExamFilter = "All";
+    let currentNewsView = "feed"; // "feed" or "calendar"
+
+    const tabNewsFeed = document.getElementById("tabNewsFeed");
+    const tabExamCalendar = document.getElementById("tabExamCalendar");
+    const newsFeedContainer = document.getElementById("newsFeedContainer");
+    const examCalendarContainer = document.getElementById("examCalendarContainer");
+    const urgentCountLabel = document.getElementById("urgentCountLabel");
+    const adminLiveNewsTicker = document.getElementById("adminLiveNewsTicker");
+    const adminNewsForm = document.getElementById("adminNewsForm");
+    const adminNewsStatus = document.getElementById("adminNewsStatus");
+    const adminNewsList = document.getElementById("adminNewsList");
+
+    async function loadLiveNews() {
+        try {
+            const res = await fetch("/api/news");
+            if (res.ok) {
+                const data = await res.json();
+                liveNewsData = data.news || [];
+                renderLiveNews();
+                renderAdminLiveNews();
+            }
+        } catch (e) {
+            console.error("Error fetching live exam news:", e);
+        }
+    }
+
+    function renderLiveNews() {
+        if (!newsFeedContainer) return;
+
+        // 1. Filter news by active exam chip
+        let filtered = liveNewsData;
+        if (currentNewsExamFilter !== "All") {
+            filtered = liveNewsData.filter(n => 
+                (n.exam && n.exam.toLowerCase() === currentNewsExamFilter.toLowerCase()) || 
+                (n.exam && n.exam.toLowerCase() === "all")
+            );
+        }
+
+        // 2. Urgent counter badge
+        const urgentCount = liveNewsData.filter(n => n.urgent).length;
+        if (urgentCountLabel) {
+            urgentCountLabel.innerHTML = urgentCount > 0 ? 
+                `<strong>${urgentCount}</strong> Urgent Deadlines Active` : 
+                `All Official Updates Verified`;
+        }
+
+        // 3. Render News Feed View
+        if (filtered.length === 0) {
+            newsFeedContainer.innerHTML = `<div class="news-loading-box"><i class="fa-solid fa-circle-info"></i> No announcements currently found for ${currentNewsExamFilter}.</div>`;
+        } else {
+            newsFeedContainer.innerHTML = filtered.map(item => {
+                const examLower = (item.exam || "general").toLowerCase().replace(/[^a-z]/g, "");
+                let badgeClass = "badge-general";
+                if (examLower.includes("keam")) badgeClass = "badge-keam";
+                else if (examLower.includes("jee")) badgeClass = "badge-jee";
+                else if (examLower.includes("neet")) badgeClass = "badge-neet";
+                else if (examLower.includes("cuet")) badgeClass = "badge-cuet";
+
+                // Deadline countdown
+                let countdownHtml = "";
+                if (item.deadline_date) {
+                    try {
+                        const target = new Date(item.deadline_date);
+                        const today = new Date();
+                        const diffTime = target - today;
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        if (diffDays > 0) {
+                            const isClose = diffDays <= 15;
+                            countdownHtml = `<span class="deadline-countdown-badge ${isClose ? 'danger' : ''}"><i class="fa-regular fa-clock"></i> <strong>${diffDays} Days Left</strong> (Deadline: ${item.deadline_date})</span>`;
+                        } else if (diffDays === 0) {
+                            countdownHtml = `<span class="deadline-countdown-badge danger"><i class="fa-solid fa-triangle-exclamation"></i> <strong>Closes Today!</strong></span>`;
+                        } else {
+                            countdownHtml = `<span class="deadline-countdown-badge" style="opacity:0.6;"><i class="fa-solid fa-check"></i> Concluded (${item.deadline_date})</span>`;
+                        }
+                    } catch (e) {}
+                }
+
+                // Parent Tip Box (Specially highlighted if currentUserRole === 'Parent')
+                let parentTipHtml = "";
+                if (item.parent_tip) {
+                    const isParentActive = currentUserRole === "Parent";
+                    parentTipHtml = `
+                        <div class="news-parent-highlight" style="${isParentActive ? 'border-width: 2px; box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);' : ''}">
+                            <i class="fa-solid fa-hands-holding-child"></i> <strong>${isParentActive ? 'Parent Advisory Action:' : 'For Parents:'}</strong> ${item.parent_tip}
+                        </div>
+                    `;
+                }
+
+                // Official Link
+                const linkHtml = item.link ? `
+                    <div class="news-card-footer">
+                        <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="news-official-link-btn">
+                            <span>Official Portal</span> <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                    </div>
+                ` : "";
+
+                return `
+                    <div class="news-card ${item.urgent ? 'urgent-card' : ''}">
+                        <div>
+                            <div class="news-card-header">
+                                <div class="news-badge-group">
+                                    <span class="exam-pill-badge ${badgeClass}">${item.exam || 'General'}</span>
+                                    <span class="category-tag-pill">${item.category || 'Notification'}</span>
+                                </div>
+                                ${item.urgent ? '<span class="urgent-badge-flag"><i class="fa-solid fa-bolt"></i> URGENT</span>' : ''}
+                            </div>
+                            <h4 class="news-card-title">${item.title}</h4>
+                            <div class="news-dates-row">
+                                <span class="news-pub-date"><i class="fa-regular fa-calendar"></i> ${item.date || 'Recent'}</span>
+                                ${countdownHtml}
+                            </div>
+                            <p class="news-card-summary">${item.summary}</p>
+                            ${parentTipHtml}
+                        </div>
+                        ${linkHtml}
+                    </div>
+                `;
+            }).join("");
+        }
+
+        // 4. Render Calendar Timeline View
+        if (examCalendarContainer) {
+            const calendarItems = liveNewsData.slice().filter(n => n.deadline_date || n.date);
+            // Sort by deadline
+            calendarItems.sort((a, b) => {
+                const dateA = a.deadline_date ? new Date(a.deadline_date) : new Date(a.date);
+                const dateB = b.deadline_date ? new Date(b.deadline_date) : new Date(b.date);
+                return dateA - dateB;
+            });
+
+            if (calendarItems.length === 0) {
+                examCalendarContainer.innerHTML = `<div class="news-loading-box">No upcoming scheduled exam dates in knowledge base.</div>`;
+            } else {
+                examCalendarContainer.innerHTML = `
+                    <div class="calendar-timeline-track">
+                        ${calendarItems.map(item => {
+                            const dateStr = item.deadline_date || item.date || "TBA";
+                            let daysLeftStr = "";
+                            let isClose = false;
+                            if (item.deadline_date) {
+                                try {
+                                    const diff = Math.ceil((new Date(item.deadline_date) - new Date()) / (1000 * 60 * 60 * 24));
+                                    if (diff > 0) {
+                                        daysLeftStr = `${diff} days remaining`;
+                                        isClose = diff <= 15;
+                                    } else if (diff === 0) {
+                                        daysLeftStr = "Due Today!";
+                                        isClose = true;
+                                    } else {
+                                        daysLeftStr = "Completed";
+                                    }
+                                } catch (e) {}
+                            }
+
+                            const examLower = (item.exam || "general").toLowerCase().replace(/[^a-z]/g, "");
+                            let badgeClass = "badge-general";
+                            if (examLower.includes("keam")) badgeClass = "badge-keam";
+                            else if (examLower.includes("jee")) badgeClass = "badge-jee";
+                            else if (examLower.includes("neet")) badgeClass = "badge-neet";
+                            else if (examLower.includes("cuet")) badgeClass = "badge-cuet";
+
+                            return `
+                                <div class="timeline-event-card">
+                                    <div class="timeline-date-col">
+                                        <span class="timeline-date-day">${dateStr.split("-").pop() || dateStr.split(" ")[0]}</span>
+                                        <span class="timeline-date-meta">${dateStr}</span>
+                                    </div>
+                                    <div class="timeline-info-col">
+                                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                                            <span class="exam-pill-badge ${badgeClass}">${item.exam}</span>
+                                            <span class="category-tag-pill">${item.category}</span>
+                                        </div>
+                                        <h4>${item.title}</h4>
+                                        <p>${item.summary.substring(0, 140)}...</p>
+                                    </div>
+                                    <div class="timeline-action-col">
+                                        ${daysLeftStr ? `<span class="deadline-countdown-badge ${isClose ? 'danger' : ''}"><i class="fa-regular fa-clock"></i> ${daysLeftStr}</span>` : ''}
+                                        ${item.link ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="news-official-link-btn" style="padding:4px 10px; font-size:0.75rem;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Portal</a>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        }).join("")}
+                    </div>
+                `;
+            }
+        }
+    }
+
+    function renderAdminLiveNews() {
+        // 1. Update Ticker Row in Admin Screen
+        if (adminLiveNewsTicker) {
+            if (liveNewsData.length === 0) {
+                adminLiveNewsTicker.innerHTML = `<span style="color:#94a3b8; font-size:0.85rem;">No active exam alerts in database.</span>`;
+            } else {
+                adminLiveNewsTicker.innerHTML = liveNewsData.map(n => `
+                    <div class="admin-ticker-item">
+                        <span class="live-pulse-dot" style="${n.urgent ? '' : 'background:#38bdf8; box-shadow:0 0 8px #38bdf8;'}"></span>
+                        <strong>[${n.exam}]</strong> ${n.title}
+                        <span style="opacity:0.6; font-size:0.75rem;">(${n.date || 'Recent'})</span>
+                    </div>
+                `).join("");
+            }
+        }
+
+        // 2. Update Admin Manageable List with Delete Buttons
+        if (adminNewsList) {
+            if (liveNewsData.length === 0) {
+                adminNewsList.innerHTML = `<div style="color:#94a3b8; font-size:0.85rem; padding:10px;">No announcements currently active.</div>`;
+            } else {
+                adminNewsList.innerHTML = liveNewsData.map(n => `
+                    <div class="admin-news-item-row">
+                        <div>
+                            <span class="exam-pill-badge badge-${(n.exam || 'general').toLowerCase().substring(0,4)}" style="font-size:0.7rem;">${n.exam}</span>
+                            <span class="news-item-title">${n.title}</span>
+                            ${n.urgent ? '<span style="color:#ef4444; font-weight:700; font-size:0.75rem; margin-left:6px;"><i class="fa-solid fa-bolt"></i> Urgent</span>' : ''}
+                        </div>
+                        <button type="button" class="btn-delete-news" onclick="deleteLiveNewsItem('${n.id}')">
+                            <i class="fa-solid fa-trash"></i> Delete
+                        </button>
+                    </div>
+                `).join("");
+            }
+        }
+    }
+
+    // Window global for admin delete action
+    window.deleteLiveNewsItem = async function(newsId) {
+        if (!confirm("Are you sure you want to remove this announcement from all logins?")) return;
+        try {
+            const res = await fetch(`/api/news/${newsId}`, {
+                method: "DELETE",
+                headers: { "x-admin-key": adminPasscode }
+            });
+            if (res.ok) {
+                loadLiveNews();
+            } else {
+                alert("Failed to delete notification. Check admin permissions.");
+            }
+        } catch (e) {
+            console.error("Error deleting news:", e);
+        }
+    };
+
+    // Tab switching between News Feed and Calendar Timeline
+    if (tabNewsFeed && tabExamCalendar) {
+        tabNewsFeed.addEventListener("click", () => {
+            currentNewsView = "feed";
+            tabNewsFeed.classList.add("active");
+            tabExamCalendar.classList.remove("active");
+            if (newsFeedContainer) newsFeedContainer.classList.remove("hidden");
+            if (examCalendarContainer) examCalendarContainer.classList.add("hidden");
+            renderLiveNews();
+        });
+
+        tabExamCalendar.addEventListener("click", () => {
+            currentNewsView = "calendar";
+            tabExamCalendar.classList.add("active");
+            tabNewsFeed.classList.remove("active");
+            if (newsFeedContainer) newsFeedContainer.classList.add("hidden");
+            if (examCalendarContainer) examCalendarContainer.classList.remove("hidden");
+            renderLiveNews();
+        });
+    }
+
+    // Filter Chips: All, KEAM, JEE Main, NEET-UG, CUET-UG
+    const newsFilterChips = document.querySelectorAll("#newsExamFilterChips .news-chip");
+    newsFilterChips.forEach(chip => {
+        chip.addEventListener("click", () => {
+            newsFilterChips.forEach(c => c.classList.remove("active"));
+            chip.classList.add("active");
+            currentNewsExamFilter = chip.dataset.exam || "All";
+            renderLiveNews();
+        });
+    });
+
+    // Admin News Broadcast Form Submit
+    if (adminNewsForm) {
+        adminNewsForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const title = document.getElementById("newsTitle").value;
+            const exam = document.getElementById("newsExam").value;
+            const category = document.getElementById("newsCategory").value;
+            const date = document.getElementById("newsDate").value;
+            const deadline_date = document.getElementById("newsDeadlineDate").value;
+            const summary = document.getElementById("newsSummary").value;
+            const link = document.getElementById("newsLink").value;
+            const parent_tip = document.getElementById("newsParentTip").value;
+            const urgent = document.getElementById("newsUrgent").checked;
+
+            if (adminNewsStatus) adminNewsStatus.innerHTML = `<span style="color:#93c5fd;"><i class="fa-solid fa-spinner fa-spin"></i> Broadcasting notification to all user profiles...</span>`;
+
+            try {
+                const res = await fetch("/api/news", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "x-admin-key": adminPasscode
+                    },
+                    body: JSON.stringify({
+                        title, exam, category, date, deadline_date, summary, link, parent_tip, urgent
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    if (adminNewsStatus) adminNewsStatus.innerHTML = `<span style="color:#10b981;"><i class="fa-solid fa-check-circle"></i> Live announcement broadcasted! Visible to Students, Parents & Admin.</span>`;
+                    adminNewsForm.reset();
+                    loadLiveNews();
+                } else {
+                    if (adminNewsStatus) adminNewsStatus.innerHTML = `<span style="color:#ef4444;">${data.detail || 'Failed to broadcast announcement.'}</span>`;
+                }
+            } catch (err) {
+                if (adminNewsStatus) adminNewsStatus.innerHTML = `<span style="color:#ef4444;">Error connecting to server.</span>`;
+            }
+        });
+    }
+
+
+        function formatMarkdown(str) {
         return str.replace(/\n/g, "<br>").replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\*(.*?)\*/g, "<em>$1</em>");
     }
 

@@ -1,6 +1,7 @@
 import sys
 import os
 import json
+import uuid
 import shutil
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Header
 from fastapi.middleware.cors import CORSMiddleware
@@ -32,6 +33,20 @@ app.add_middleware(
 
 DATA_DIR = os.path.join(os.path.dirname(BASE_DIR), "data")
 FRONTEND_DIR = os.path.join(os.path.dirname(BASE_DIR), "frontend")
+NEWS_FILE = os.path.join(DATA_DIR, "news_calendar.json")
+
+def load_news_data() -> List[Dict[str, Any]]:
+    if os.path.exists(NEWS_FILE):
+        try:
+            with open(NEWS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Error reading news file: {e}")
+    return []
+
+def save_news_data(data: List[Dict[str, Any]]):
+    with open(NEWS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
 
 rag = RAGSystem(data_dir=DATA_DIR)
 db = DatabaseManager()
@@ -90,6 +105,17 @@ class FAQRequest(BaseModel):
     answer: str
     category: Optional[str] = "General"
     target: Optional[str] = "Both"
+
+class NewsRequest(BaseModel):
+    title: str
+    exam: str
+    category: Optional[str] = "General"
+    date: Optional[str] = None
+    deadline_date: Optional[str] = None
+    summary: str
+    urgent: Optional[bool] = False
+    link: Optional[str] = None
+    parent_tip: Optional[str] = None
 
 class VideoRequest(BaseModel):
     title: str
@@ -444,6 +470,54 @@ def add_video(req: VideoRequest, x_admin_key: Optional[str] = Header(None)):
     with open(rag.videos_file, "w", encoding="utf-8") as f:
         json.dump(rag.videos, f, indent=2)
     return {"message": "Video added by Admin!", "video": new_video}
+
+# -------------------------------------------------------------
+# Live Exam News, Notifications & Calendar Endpoints
+# -------------------------------------------------------------
+@app.get("/api/news")
+def get_exam_news(exam: Optional[str] = None, category: Optional[str] = None):
+    all_news = load_news_data()
+    if exam and exam.lower() != "all":
+        all_news = [n for n in all_news if n.get("exam", "").lower() == exam.lower() or n.get("exam", "").lower() == "all"]
+    if category and category.lower() != "all":
+        all_news = [n for n in all_news if n.get("category", "").lower() == category.lower()]
+    return {
+        "total": len(all_news),
+        "news": all_news
+    }
+
+@app.post("/api/news")
+def create_exam_news(req: NewsRequest, x_admin_key: Optional[str] = Header(None)):
+    verify_admin(x_admin_key)
+    news_items = load_news_data()
+    
+    new_item = {
+        "id": f"news_{uuid.uuid4().hex[:8]}",
+        "title": req.title.strip(),
+        "exam": req.exam.strip(),
+        "category": req.category.strip() if req.category else "General",
+        "date": req.date.strip() if req.date else "Nov 2026",
+        "deadline_date": req.deadline_date.strip() if req.deadline_date else "",
+        "summary": req.summary.strip(),
+        "urgent": bool(req.urgent),
+        "link": req.link.strip() if req.link else "",
+        "parent_tip": req.parent_tip.strip() if req.parent_tip else ""
+    }
+    
+    # Prepend new alert to the top
+    news_items.insert(0, new_item)
+    save_news_data(news_items)
+    return {"message": "Live exam alert published successfully!", "news": new_item}
+
+@app.delete("/api/news/{news_id}")
+def delete_exam_news(news_id: str, x_admin_key: Optional[str] = Header(None)):
+    verify_admin(x_admin_key)
+    news_items = load_news_data()
+    filtered = [n for n in news_items if n.get("id") != news_id]
+    if len(filtered) == len(news_items):
+        raise HTTPException(status_code=404, detail="News item not found.")
+    save_news_data(filtered)
+    return {"message": "News item removed successfully!"}
 
 if os.path.exists(FRONTEND_DIR):
     app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
