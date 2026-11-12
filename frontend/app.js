@@ -953,12 +953,16 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Navigation: Exit Admin Mode back to Welcome / Landing Page
+    // Navigation: Exit Admin Mode back to Main Login / Authentication Portal
     if (backToLandingFromAdmin) {
         backToLandingFromAdmin.addEventListener("click", () => {
+            adminPasscode = "";
+            currentUserRole = null;
+            currentUser = null;
             document.body.classList.remove("admin-mode");
+            if (adminPanelBtn) adminPanelBtn.classList.add("hidden");
             stopActiveSreeConversation();
-            switchScreen(landingScreen);
+            switchScreen(loginScreen);
         });
     }
 

@@ -330,22 +330,161 @@ class RAGSystem:
         result["detected_percentage"] = class12_marks
         return result
 
+    def _simplify_jargon_for_parent(self, text: str) -> str:
+        """
+        Translates dense bureaucratic and technical exam jargon into plain,
+        intuitive explanations designed for parents and first-generation families.
+        """
+        patterns = [
+            (r'\bComputer Based Test\s*\(\s*CBT\s*\)|\bComputer Based Test\b|\bCBT\b', 'Computer-Based Test (exam held on a computer screen using a mouse at an authorized test center)'),
+            (r'\bPen and Paper\s*\(\s*OMR\s*\)|\bPen and Paper OMR\b|\bPen and Paper\b|\bOMR\b', 'Paper exam (answering on paper sheets by filling circles with a black ballpoint pen)'),
+            (r'\bnormalized NTA percentile score\b|\bpercentile score\b|\bpercentile rank\b|\bpercentile\b', 'percentile rank (percentage of students your child scored higher than out of 100)'),
+            (r'\bstatistical normalization\b|\bmark normalization\b|\bnormalized score\b|\bnormalization\b', 'mark normalization (fair score adjustment across different school boards so every student is treated equally)'),
+            (r'\b50:50 weightage\b|\b50:50 ratio\b|\b50:50\b', 'equal 50:50 balance (50% from 12th Board marks and 50% from the entrance exam — both count equally)'),
+            (r'\b-1\s*mark(?:\s*negative\s*marking)?\b|\bnegative\s*marking\b', 'negative marking (-1 mark deducted for wrong answers — encourage your child not to make wild guesses)'),
+            (r'\bqualifying examination\b|\bqualifying exam\b', 'Class 12 / Plus Two Board examination'),
+            (r'\b75% aggregate\b', 'at least 75% total marks in Class 12 (65% for SC/ST)'),
+            (r'\b50% aggregate in PCB\b', 'at least 50% average marks in Physics, Chemistry, and Biology (40% for reserved categories)'),
+            (r'\bNITs\b|\bNIT\b', 'NITs (top Government National Institutes of Technology with low fees and high job placements)'),
+            (r'\bIIITs\b|\bIIIT\b', 'IIITs (top Government Information Technology Institutes)'),
+            (r'\bAIIMS\b', 'AIIMS (India’s premier Government Medical Colleges where MBBS education is practically free)'),
+            (r'\bCentral Universities\b', 'Central Government Universities (highly reputed with very affordable tuition fees)'),
+            (r'\bCommissioner for Entrance Examinations\s*\(\s*CEE\s*\)|\bCommissioner for Entrance Examinations\b|\bCEE\b', 'State Entrance Office (CEE Kerala)'),
+            (r'\bCentralized Allotment Process\s*\(\s*CAP\s*\)|\bCentralized Allotment Process\b|\bCAP\b', 'Centralized Online Admission (selecting college options online from home)'),
+            (r'\bEWS\b', 'EWS (Economically Weaker Section quota for fee concession)'),
+            (r'\bSEBC\b|\bOBC-NCL\b', 'OBC / Backward Community quota for seat reservation and fee concessions'),
+        ]
+        
+        simplified = text
+        for p, r in patterns:
+            simplified = re.sub(p, r, simplified, flags=re.IGNORECASE)
+        return simplified
+
     def _synthesize_response(self, context: str, persona: str, is_faq: bool, exam: Optional[str] = None, language: str = "en-IN") -> str:
         clean_context = context.strip()
         exam_hdr = f" [{exam}]" if exam else ""
-        if persona.lower() == "parent":
-            parent_note = {
-                "hi-IN": "अभिभावक ध्यान दें: कृपया आधिकारिक पोर्टल पर पंजीकरण तिथियां और संस्थान की फीस संरचना भी जांचें।",
-                "ml-IN": "രക്ഷിതാക്കൾ ശ്രദ്ധിക്കുക: ഔദ്യോഗിക പോർട്ടലിലെ രജിസ്ട്രേഷൻ തീയതികളും ഫീസ് ഘടനയും പരിശോധിക്കുക.",
-            }.get(language, "Parent Note: Please verify registration deadlines and fee structures on official portals.")
-            return f"👨‍👩‍👧 **Parent Guidance Briefing{exam_hdr}:**\n\n{clean_context}\n\n💡 *{parent_note}*"
+        is_parent = persona and persona.lower() == "parent"
+
+        if is_parent:
+            return self._build_parent_explanation(clean_context, exam_hdr, language)
         else:
-            return clean_context
+            return self._build_student_explanation(clean_context, exam_hdr, language)
+
+    def _build_parent_explanation(self, clean_context: str, exam_hdr: str, language: str) -> str:
+        simplified_text = self._simplify_jargon_for_parent(clean_context)
+        
+        # Extract meaningful bullet points from context lines, stripping raw section numbers
+        lines = [l.strip() for l in simplified_text.splitlines() if l.strip()]
+        bullet_points = []
+        for l in lines:
+            if l.upper().startswith("SECTION") or l.startswith("---") or l.startswith("=="):
+                continue
+            bullet_points.append(f"• {l}")
+            if len(bullet_points) >= 6:
+                break
+        
+        summary_bullets = "\n".join(bullet_points) if bullet_points else f"• {simplified_text[:350]}..."
+
+        if language == "ml-IN":
+            return f"""👨‍👩‍👧 **രക്ഷിതാക്കൾക്കായുള്ള ലളിതമായ വിവരണം{exam_hdr}:**
+
+പ്രിയ രക്ഷിതാവേ, ഔദ്യോഗിക പരീക്ഷാ ബ്രോഷറിലെ പ്രധാന വിവരങ്ങൾ ലളിതമായി താഴെ നൽകുന്നു:
+
+📌 **ലളിതമായി പറഞ്ഞാൽ (നിങ്ങളുടെ മക്കൾക്കായി അറിയേണ്ട പ്രധാന കാര്യങ്ങൾ):**
+{summary_bullets}
+
+💰 **ഫീസും സാമ്പത്തിക വിവരങ്ങളും (കുടുംബത്തിനുള്ള ആശ്വാസം):**
+• സർക്കാർ കോളേജുകളിലും മെറിറ്റ് സീറ്റുകളിലും ഫീസ് വളരെ കുറവാണ്. സ്വകാര്യ മാനേജ്‌മെന്റ് സീറ്റുകളേക്കാൾ എത്രയോ കുറഞ്ഞ ചിലവിൽ മികച്ച പഠനം നേടാം.
+• മെറിറ്റ് സീറ്റുകൾ ലഭിക്കുന്ന വിദ്യാർത്ഥികൾക്ക് ബാങ്ക് വിദ്യാഭ്യാസ വായ്പകളും (Education Loans) വിവിധ സർക്കാർ സ്കോളർഷിപ്പുകളും ലഭ്യമാണ്.
+
+📋 **രക്ഷിതാക്കൾ ചെയ്യേണ്ട കാര്യങ്ങൾ:**
+1. **മാർക്ക് പരിശോധിക്കുക:** മക്കളുടെ പ്ലസ് ടു മാർക്ക് ലിസ്റ്റ് പരിശോധിച്ച് ആവശ്യമായ മിനിമം യോഗ്യത ഉണ്ടെന്ന് ഉറപ്പുവരുത്തുക.
+2. **സർട്ടിഫിക്കറ്റുകൾ തയ്യാറാക്കുക:** ഫീസ് ഇളവുകൾക്കും സംവരണ ആനുകൂല്യങ്ങൾക്കുമായി വരുമാനം, ജാതി സർട്ടിഫിക്കറ്റുകൾ മുൻകൂട്ടി തയ്യാറാക്കുക.
+3. **മാനസിക പിന്തുണ:** പരീക്ഷാ പേടിയില്ലാതെ ശാന്തമായി പഠിക്കാൻ മക്കൾക്ക് ആത്മവിശ്വാസവും പിന്തുണയും നൽകുക."""
+
+        elif language == "hi-IN":
+            return f"""👨‍👩‍👧 **अभिभावकों के लिए सरल मार्गदर्शन{exam_hdr}:**
+
+प्रिय अभिभावक, आधिकारिक विवरणिका (Brochure) की जरूरी जानकारी आपके समझने के लिए आसान भाषा में नीचे दी गई है:
+
+📌 **सरल शब्दों में (आपके बच्चे के लिए मुख्य जानकारी):**
+{summary_bullets}
+
+💰 **कॉलेज फीस और खर्च की जानकारी:**
+• सरकारी संस्थानों और मेरिट सीटों पर प्राइवेट कॉलेजों की तुलना में फीस बेहद कम होती है।
+• बैंक एजुकेशन लोन (शिक्षा ऋण) और सरकारी छात्रवृत्तियां आसानी से उपलब्ध होती हैं।
+
+📋 **अभिभावकों के लिए ज़रूरी कदम:**
+1. **12वीं के अंक जांचें:** 12वीं के अंकपत्र की जांच करें कि आवश्यक न्यूनतम प्रतिशत पूरा हो रहा है।
+2. **प्रमाण पत्र तैयार रखें:** फीस छूट और आरक्षण लाभ के लिए आय व जाति प्रमाण पत्र समय पर तैयार रखें।
+3. **सकारात्मक माहौल दें:** बच्चे पर ज्यादा तनाव न डालें और उन्हें आत्मविश्वास व प्रोत्साहन दें."""
+
+        elif language == "ta-IN":
+            return f"""👨‍👩‍👧 **பெற்றோருக்கான எளிய வழிகாட்டுதல்{exam_hdr}:**
+
+அன்பான பெற்றோரே, உத்தியோகபூர்வ தகவல் கையேட்டின் முக்கிய விவரங்கள் எளிமையான முறையில் கீழே தரப்பட்டுள்ளன:
+
+📌 **எளிய விளக்கக் குறிப்புகள் (உங்கள் பிள்ளைக்கு தேவையானவை):**
+{summary_bullets}
+
+💰 **கல்லூரி கட்டணம் மற்றும் நிதி சலுகைகள்:**
+• அரசு கல்லூரிகளில் தனியார் கல்லூரிகளை விட கட்டணம் மிகக் குறைவு.
+• வங்கி கல்விக்கடன் மற்றும் அரசு உதவித்தொகைகள் எளிதில் கிடைக்கின்றன.
+
+📋 **பெற்றோர்களுக்கான முக்கிய வழிமுறைகள்:**
+1. பிளஸ் 2 மதிப்பெண் சான்றிதழில் குறைந்தபட்ச தகுதி இருப்பதை உறுதிப்படுத்தவும்.
+2. கட்டண சலுகைக்கு சாதி மற்றும் வருமான சான்றிதழ்களை முன்கூட்டியே பெறவும்.
+3. பிள்ளைகளுக்கு மன அழுத்தம் இல்லாமல் படிக்க ஊக்கமளிக்கவும்."""
+
+        elif language == "te-IN":
+            return f"""👨‍👩‍👧 **తల్లిదండ్రులకు సరళమైన మార్గదర్శకం{exam_hdr}:**
+
+ప్రియమైన తల్లిదండ్రులకు, అధికారిక సమాచార పత్రంలోని ముఖ్యమైన వివరాలు సులభంగా అర్థమయ్యేలా క్రింద ఇవ్వబడ్డాయి:
+
+📌 **సులభమైన వివరణ (మీ పిల్లల కోసం ముఖ్యమైన విషయాలు):**
+{summary_bullets}
+
+💰 **కళాశాల ఫీజులు మరియు ఆర్థిక సమాచారం:**
+• ప్రభుత్వ కళాశాలల్లో ప్రైవేట్ కళాశాలల కంటే ఫీజులు చాలా తక్కువగా ఉంటాయి.
+• బ్యాంక్ ఎడ్యుకేషన్ లోన్లు మరియు ప్రభుత్వ స్కాలర్‌షిప్‌లు అందుబాటులో ఉంటాయి.
+
+📋 **తల్లిదండ్రులు తీసుకోవలసిన జాగ్రత్తలు:**
+1. 12వ తరగతి మార్కులు అవసరమైన అర్హతను చేరుకున్నాయో లేదో తనిఖీ చేయండి.
+2. ఫీజు రాయితీల కోసం ఆదాయం మరియు కుల ధృవీకరణ పత్రాలను సిద్ధంగా ఉంచుకోండి.
+3. పిల్లలపై ఒత్తిడి లేకుండా ఇంట్లో ప్రశాంతమైన వాతావరణం కల్పించండి."""
+
+        else: # en-IN (default English)
+            return f"""👨‍👩‍👧 **Parent Guidance Briefing{exam_hdr}:**
+
+*Dear Parent, here is the official entrance information explained in simple, clear everyday language for your family:*
+
+📌 **What this means in simple words for your child:**
+{summary_bullets}
+
+💰 **College Fees & Financial Options (Parent's Financial View):**
+• **Subsidized Education:** Government institutes and state merit quota seats have very low, regulated fees compared to expensive private colleges.
+• **Financial Aid:** Bank education loans and government scholarships/fee-waivers are widely accessible for students securing merit ranks.
+
+📋 **Helpful Steps for Parents:**
+1. **Check 12th Marks:** Verify your child's Class 12 / Plus Two marksheet to confirm they satisfy the minimum qualifying percentage.
+2. **Keep Documents Ready:** Obtain community, category, or income certificates early to secure eligible fee concessions and quota seats.
+3. **Encourage Calmly:** Provide a supportive, pressure-free study environment at home to keep your child confident and focused."""
+
+    def _build_student_explanation(self, clean_context: str, exam_hdr: str, language: str) -> str:
+        # Candidate format for Students: technical, precise, and exam-focused
+        return f"""🎓 **Student Exam Briefing{exam_hdr}:**
+
+{clean_context}
+
+🎯 **Candidate Action & Strategy:**
+• Master core NCERT textbook concepts across all relevant subjects.
+• Practice timed mock tests to adapt to the exam pattern and avoid negative marking penalty."""
 
     def _check_conversational_response(self, query: str, persona: str = "Student", exam_context: Optional[str] = None, language: str = "en-IN") -> Optional[Dict[str, Any]]:
         clean_q = query.strip().lower()
         exam_keywords = ["neet", "jee", "keam", "cuet", "clat", "gate", "cat", "bitsat", "nift", "nda"]
         has_exam_keyword = any(k in clean_q for k in exam_keywords)
+        is_parent = persona and persona.lower() == "parent"
 
         # 1. GREETINGS ("hi", "hello", "hey", "hey sree", "good morning", etc.)
         greeting_words = ["hi", "hello", "hey", "namaste", "vanakkam", "namaskaram", "hey sree", "hi sree", "sree", "good morning", "good evening", "greetings"]
@@ -353,16 +492,28 @@ class RAGSystem:
 
         if is_greeting:
             exam_hdr = f" for {exam_context}" if exam_context else ""
-            if language == "hi-IN":
-                ans = f"नमस्ते! 👋 मैं **Sree** हूँ। आप मुझसे{exam_hdr} प्रवेश परीक्षा से संबंधित कोई भी सवाल पूछ सकते हैं।"
-            elif language == "ml-IN":
-                ans = f"ഹലോ! 👋 ഞാൻ **Sree**.{exam_hdr} പ്രവേശന പരീക്ഷയുമായി ബന്ധപ്പെട്ട നിങ്ങളുടെ ചോദ്യം ചോദിക്കാം."
-            elif language == "ta-IN":
-                ans = f"வணக்கம்! 👋 நான் **Sree**.{exam_hdr} நுழைவுத் தேர்வு கேள்வியைக் கேளுங்கள்."
-            elif language == "te-IN":
-                ans = f"నమస్కారం! 👋 నేను **Sree**.{exam_hdr} മീ പ്രవేశ పరీక్ష ప్రశ్నను అడగండి."
-            else: # en-IN
-                ans = f"Hello! 👋 I am **Sree**. How can I help you with your{exam_hdr} entrance exam question today?"
+            if is_parent:
+                if language == "hi-IN":
+                    ans = f"नमस्ते, आदरणीय अभिभावक! 👋 मैं **Sree** हूँ। आप मुझसे{exam_hdr} अपने बच्चे की प्रवेश परीक्षा, कॉलेज फीस या पात्रता से जुड़ा कोई भी सवाल आसान भाषा में पूछ सकते हैं।"
+                elif language == "ml-IN":
+                    ans = f"നമസ്കാരം! 👋 ഞാൻ **Sree**. പ്രവേശന പരീക്ഷകൾ, കോളേജ് ഫീസ്, യോഗ്യത എന്നിവ രക്ഷിതാക്കൾക്ക് ലളിതമായി മനസ്സിലാക്കാൻ ഞാൻ സഹായിക്കാം. മക്കളുടെ തുടർപഠനത്തെക്കുറിച്ച് എന്ത് സംശയമാണ് ഉള്ളത്?"
+                elif language == "ta-IN":
+                    ans = f"வணக்கம் பெற்றோரே! 👋 நான் **Sree**.{exam_hdr} உங்கள் பிள்ளையின் நுழைவுத் தேர்வு, கல்வி கட்டணம் குறித்து எளிமையாக கேட்டுத் தெரிந்து கொள்ளலாம்."
+                elif language == "te-IN":
+                    ans = f"నమస్కారం తల్లిదండ్రులారా! 👋 నేను **Sree**.{exam_hdr} మీ పిల్లల ప్రవేశ పరీక్ష, ఫీజుల వివరాలను సులభంగా అడగండి."
+                else: # en-IN
+                    ans = f"Hello, Dear Parent! 👋 I am **Sree**. I explain entrance exams, college fees, eligibility, and admission processes in simple, easy-to-understand terms for families. How can I guide you today{exam_hdr}?"
+            else:
+                if language == "hi-IN":
+                    ans = f"नमस्ते! 👋 मैं **Sree** हूँ। आप मुझसे{exam_hdr} प्रवेश परीक्षा से संबंधित कोई भी सवाल पूछ सकते हैं।"
+                elif language == "ml-IN":
+                    ans = f"ഹലോ! 👋 ഞാൻ **Sree**.{exam_hdr} പ്രവേശന പരീക്ഷയുമായി ബന്ധപ്പെട്ട നിങ്ങളുടെ ചോദ്യം ചോദിക്കാം."
+                elif language == "ta-IN":
+                    ans = f"வணக்கம்! 👋 நான் **Sree**.{exam_hdr} நுழைவுத் தேர்வு கேள்வியைக் கேளுங்கள்."
+                elif language == "te-IN":
+                    ans = f"నమస్కారం! 👋 నేను **Sree**.{exam_hdr} మీ ప్రవేశ పరీక్ష ప్రశ్నను అడగండి."
+                else: # en-IN
+                    ans = f"Hello! 👋 I am **Sree**, your AI entrance exam assistant. How can I help you with your{exam_hdr} entrance exam question today?"
 
             return {
                 "answer": ans,
@@ -379,16 +530,28 @@ class RAGSystem:
 
         is_identity = any(phrase in clean_q for phrase in identity_phrases)
         if is_identity and not has_exam_keyword:
-            if language == "hi-IN":
-                ans = "मैं **Sree** हूँ — आपका AI प्रवेश परीक्षा सहायक। कृपया प्रवेश परीक्षा, पात्रता या करियर से जुड़ा अपना सवाल पूछें।"
-            elif language == "ml-IN":
-                ans = "ഞാൻ **Sree** — നിങ്ങളുടെ AI പ്രവേശന പരീക്ഷാ സഹായി. പരീക്ഷ, യോഗ്യത അല്ലെങ്കിൽ കരിയർ സംബന്ധിച്ച ചോദ്യങ്ങൾ ചോദിക്കാം."
-            elif language == "ta-IN":
-                ans = "நான் **Sree** — உங்கள் AI நுழைவுத் தேர்வு உதவியாளர். சேர்க்கை தேர்வுகள் அல்லது தகுதிகள் பற்றிய கேள்வியைக் கேளுங்கள்."
-            elif language == "te-IN":
-                ans = "నేను **Sree** — మీ AI ప్రవేశ పరీక్ష సహాయకుడిని. ప్రవేశ పరీక్షలు లేదా అర్హతల గురించి ప్రశ్న అడగండి."
+            if is_parent:
+                if language == "hi-IN":
+                    ans = "मैं **Sree** हूँ — अभिभावकों के लिए विशेष AI करियर मार्गदर्शक। मैं जटिल प्रवेश परीक्षाओं, कटऑफ और कॉलेज फीस को सरल भाषा में समझाती हूँ ताकि आप अपने बच्चे का सही मार्गदर्शन कर सकें।"
+                elif language == "ml-IN":
+                    ans = "ഞാൻ **Sree** — രക്ഷിതാക്കൾക്കായുള്ള AI പ്രവേശന പരീക്ഷാ സഹായി. പരീക്ഷാ യോഗ്യതകൾ, കോളേജ് ഫീസുകൾ, അഡ്മിഷൻ രീതികൾ എന്നിവ ലളിതമായ ഭാഷയിൽ രക്ഷിതാക്കൾക്ക് മനസ്സിലാക്കി നൽകുകയാണ് എന്റെ ലക്ഷ്യം."
+                elif language == "ta-IN":
+                    ans = "நான் **Sree** — பெற்றோருக்கான சிறப்பு AI நுழைவுத் தேர்வு உதவியாளர். கடினமான விதிமுறைகளை எளிய தமிழில் விளக்குகிறேன்."
+                elif language == "te-IN":
+                    ans = "నేను **Sree** — తల్లిదండ్రుల కోసం ప్రత్యేక AI ప్రవేశ పరీక్ష సహాయకుడిని. సంక్లిష్టమైన ప్రవేశ పరీక్ష నిబంధనలను సులభంగా వివరిస్తాను."
+                else:
+                    ans = "I am **Sree** — an AI guidance assistant dedicated to helping parents navigate entrance exams, eligibility criteria, and college costs in simple, straightforward language."
             else:
-                ans = "I am **Sree**, your AI entrance assistant. Please ask any question about entrance exams, eligibility, or career options."
+                if language == "hi-IN":
+                    ans = "मैं **Sree** हूँ — आपका AI प्रवेश परीक्षा सहायक। कृपया प्रवेश परीक्षा, पात्रता या करियर से जुड़ा अपना सवाल पूछें।"
+                elif language == "ml-IN":
+                    ans = "ഞാൻ **Sree** — നിങ്ങളുടെ AI പ്രവേശന പരീക്ഷാ സഹായി. പരീക്ഷ, യോഗ്യത അല്ലെങ്കിൽ കരിയർ സംബന്ധിച്ച ചോദ്യങ്ങൾ ചോദിക്കാം."
+                elif language == "ta-IN":
+                    ans = "நான் **Sree** — உங்கள் AI நுழைவுத் தேர்வு உதவியாளர். சேர்க்கை தேர்வுகள் அல்லது தகுதிகள் பற்றிய கேள்வியைக் கேளுங்கள்."
+                elif language == "te-IN":
+                    ans = "నేను **Sree** — మీ AI ప్రవేశ పరీక్ష సహాయకుడిని. ప్రవేశ పరీక్షలు లేదా అర్హతల గురించి ప్రశ్న అడగండి."
+                else:
+                    ans = "I am **Sree**, your AI entrance assistant. Please ask any question about entrance exams, syllabus, eligibility, or career options."
 
             return {
                 "answer": ans,
@@ -402,11 +565,18 @@ class RAGSystem:
         is_thanks = (clean_q in thanks_words or clean_q.startswith("thank you") or clean_q.startswith("thanks")) and not has_exam_keyword
 
         if is_thanks:
-            ans = "You're very welcome! 😊 Feel free to ask if you have any more questions about entrance exams, cutoffs, or eligibility criteria. Good luck with your preparation!"
-            if language == "hi-IN":
-                ans = "आपका स्वागत है! 😊 यदि आपके पास प्रवेश परीक्षा या पात्रता के संबंध में कोई अन्य प्रश्न हैं, तो निसंकोच पूछें। आपकी तैयारी के लिए शुभकामनाएं!"
-            elif language == "ml-IN":
-                ans = "നിങ്ങള്‍ക്ക് സ്വാഗതം! 😊 പ്രവേശന പരീക്ഷകളെക്കുറിച്ച് കൂടുതൽ ചോദ്യങ്ങളുണ്ടെങ്കിൽ ചോദിക്കാം. ആശംസകൾ!"
+            if is_parent:
+                ans = "You're most welcome, Dear Parent! 😊 It is our pleasure to support you and your family. Feel free to ask whenever you have questions about your child's education and career."
+                if language == "hi-IN":
+                    ans = "आपका बहुत-बहुत स्वागत है! 😊 आपके बच्चे के उज्ज्वल भविष्य के लिए शुभकामनाएं। जब भी कोई शंका हो, निसंकोच पूछें।"
+                elif language == "ml-IN":
+                    ans = "സ്വാഗതം! 😊 മക്കളുടെ ശോഭനമായ ഭാവിക്കായി എല്ലാവിധ ആശംസകളും. എന്ത് സംശയമുണ്ടെങ്കിലും ചോദിക്കാൻ മടിക്കരുത്."
+            else:
+                ans = "You're very welcome! 😊 Feel free to ask if you have any more questions about entrance exams, cutoffs, or eligibility criteria. Good luck with your preparation!"
+                if language == "hi-IN":
+                    ans = "आपका स्वागत है! 😊 यदि आपके पास प्रवेश परीक्षा या पात्रता के संबंध में कोई अन्य प्रश्न हैं, तो निसंकोच पूछें। आपकी तैयारी के लिए शुभकामनाएं!"
+                elif language == "ml-IN":
+                    ans = "നിങ്ങള്‍ക്ക് സ്വാഗതം! 😊 പ്രവേശന പരീക്ഷകളെക്കുറിച്ച് കൂടുതൽ ചോദ്യങ്ങളുണ്ടെങ്കിൽ ചോദിക്കാം. ആശംസകൾ!"
 
             return {
                 "answer": ans,
@@ -420,11 +590,18 @@ class RAGSystem:
         is_farewell = (clean_q in farewell_words or clean_q.startswith("bye") or clean_q.startswith("goodbye")) and not has_exam_keyword
 
         if is_farewell:
-            ans = "Goodbye! 👋 Wish you all the best for your entrance exam preparation and future career! Feel free to return anytime."
-            if language == "hi-IN":
-                ans = "अलविदा! 👋 आपकी प्रवेश परीक्षा की तैयारी और भविष्य के करियर के लिए शुभकामनाएं!"
-            elif language == "ml-IN":
-                ans = "വിട! 👋 പരീക്ഷാ തയ്യാറെടുപ്പുകൾക്ക് എല്ലാവിധ ആശംസകളും!"
+            if is_parent:
+                ans = "Goodbye, Dear Parent! 👋 Wishing your child all the success and peace of mind in their upcoming entrance exams. Take care!"
+                if language == "hi-IN":
+                    ans = "अलविदा! 👋 आपके बच्चे के सफल और उज्ज्वल भविष्य की कामना करते हैं!"
+                elif language == "ml-IN":
+                    ans = "വിട! 👋 മക്കളുടെ പരീക്ഷാ വിജയത്തിനും നല്ലൊരു ഭാവിക്കും ആശംസകൾ!"
+            else:
+                ans = "Goodbye! 👋 Wish you all the best for your entrance exam preparation and future career! Feel free to return anytime."
+                if language == "hi-IN":
+                    ans = "अलविदा! 👋 आपकी प्रवेश परीक्षा की तैयारी और भविष्य के करियर के लिए शुभकामनाएं!"
+                elif language == "ml-IN":
+                    ans = "വിട! 👋 പരീക്ഷാ തയ്യാറെടുപ്പുകൾക്ക് എല്ലാവിധ ആശംസകളും!"
 
             return {
                 "answer": ans,
@@ -434,7 +611,6 @@ class RAGSystem:
             }
 
         return None
-
     def _translate(self, text: str, language: str) -> str:
         translations = {
             "hi-IN": {
