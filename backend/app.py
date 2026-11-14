@@ -16,6 +16,13 @@ if BASE_DIR not in sys.path:
 
 from rag_engine import RAGSystem
 from database import DatabaseManager
+from live_news_service import (
+    fetch_live_exam_updates,
+    get_sync_metadata,
+    start_background_live_sync,
+    load_news_file,
+    save_news_file
+)
 
 app = FastAPI(
     title="Entrance Sahaayi API",
@@ -36,17 +43,10 @@ FRONTEND_DIR = os.path.join(os.path.dirname(BASE_DIR), "frontend")
 NEWS_FILE = os.path.join(DATA_DIR, "news_calendar.json")
 
 def load_news_data() -> List[Dict[str, Any]]:
-    if os.path.exists(NEWS_FILE):
-        try:
-            with open(NEWS_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception as e:
-            print(f"Error reading news file: {e}")
-    return []
+    return load_news_file()
 
 def save_news_data(data: List[Dict[str, Any]]):
-    with open(NEWS_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
+    save_news_file(data)
 
 rag = RAGSystem(data_dir=DATA_DIR)
 db = DatabaseManager()
@@ -476,6 +476,12 @@ def add_video(req: VideoRequest, x_admin_key: Optional[str] = Header(None)):
 # -------------------------------------------------------------
 @app.get("/api/news")
 def get_exam_news(exam: Optional[str] = None, category: Optional[str] = None):
+    sync_meta = get_sync_metadata()
+    import time
+    last_sync_ts = sync_meta.get("last_synced_timestamp", 0)
+    if time.time() - last_sync_ts > 1800:
+        start_background_live_sync()
+
     all_news = load_news_data()
     if exam and exam.lower() != "all":
         all_news = [n for n in all_news if n.get("exam", "").lower() == exam.lower() or n.get("exam", "").lower() == "all"]
@@ -483,8 +489,13 @@ def get_exam_news(exam: Optional[str] = None, category: Optional[str] = None):
         all_news = [n for n in all_news if n.get("category", "").lower() == category.lower()]
     return {
         "total": len(all_news),
-        "news": all_news
+        "news": all_news,
+        "sync_meta": get_sync_metadata()
     }
+
+@app.post("/api/news/sync")
+def sync_live_exam_news():
+    return fetch_live_exam_updates()
 
 @app.post("/api/news")
 def create_exam_news(req: NewsRequest, x_admin_key: Optional[str] = Header(None)):
@@ -501,7 +512,9 @@ def create_exam_news(req: NewsRequest, x_admin_key: Optional[str] = Header(None)
         "summary": req.summary.strip(),
         "urgent": bool(req.urgent),
         "link": req.link.strip() if req.link else "",
-        "parent_tip": req.parent_tip.strip() if req.parent_tip else ""
+        "parent_tip": req.parent_tip.strip() if req.parent_tip else "",
+        "source": "admin_manual",
+        "auto_synced": False
     }
     
     # Prepend new alert to the top

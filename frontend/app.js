@@ -2424,18 +2424,71 @@ document.addEventListener("DOMContentLoaded", () => {
     const adminNewsForm = document.getElementById("adminNewsForm");
     const adminNewsStatus = document.getElementById("adminNewsStatus");
     const adminNewsList = document.getElementById("adminNewsList");
+    const landingSyncNewsBtn = document.getElementById("landingSyncNewsBtn");
+    const adminSyncLiveNewsBtn = document.getElementById("adminSyncLiveNewsBtn");
+    const adminLastSyncTime = document.getElementById("adminLastSyncTime");
+    const adminLiveCountBadge = document.getElementById("adminLiveCountBadge");
+    const landingLiveWirePill = document.getElementById("landingLiveWirePill");
 
     async function loadLiveNews() {
         try {
             const res = await fetch("/api/news");
             if (res.ok) {
                 const data = await res.json();
-                liveNewsData = data.news || [];
+                const rawList = data.news || [];
+                // Strictly filter upcoming news only (no past years like 2025, 2024 or concluded allotments)
+                liveNewsData = rawList.filter(n => {
+                    const combined = `${n.title || ''} ${n.summary || ''}`.toLowerCase();
+                    if (combined.includes("2025") || combined.includes("2024") || combined.includes("2023")) return false;
+                    if (combined.includes("round 1") || combined.includes("round 2") || combined.includes("phase 1") || combined.includes("phase 2") || combined.includes("seat allotment result") || combined.includes("llb")) return false;
+                    return true;
+                });
+                if (data.sync_meta) {
+                    if (adminLastSyncTime) {
+                        adminLastSyncTime.innerHTML = `<i class="fa-regular fa-clock"></i> Last Synced: ${data.sync_meta.last_synced || 'Just now'}`;
+                    }
+                    if (adminLiveCountBadge) {
+                        adminLiveCountBadge.innerHTML = `<i class="fa-solid fa-satellite-dish"></i> ${data.total || liveNewsData.length} Live Alerts Active`;
+                    }
+                    if (landingLiveWirePill) {
+                        landingLiveWirePill.innerHTML = `<span class="pulse-dot-green"></span> Live Wire Active (${liveNewsData.length} Updates)`;
+                    }
+                }
                 renderLiveNews();
                 renderAdminLiveNews();
             }
         } catch (e) {
             console.error("Error fetching live exam news:", e);
+        }
+    }
+
+    async function triggerLiveNewsSync(btnElement, statusElement) {
+        if (btnElement) {
+            btnElement.disabled = true;
+            btnElement.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Syncing Live Wire...`;
+        }
+        if (statusElement) {
+            statusElement.innerHTML = `<span style="color:#93c5fd;"><i class="fa-solid fa-spinner fa-spin"></i> Querying NTA, CEE Kerala & National Education wires...</span>`;
+        }
+        try {
+            const res = await fetch("/api/news/sync", { method: "POST" });
+            if (res.ok) {
+                const result = await res.json();
+                await loadLiveNews();
+                if (statusElement) {
+                    statusElement.innerHTML = `<span style="color:#10b981;"><i class="fa-solid fa-circle-check"></i> Live wire sync complete! Added ${result.new_items_count} new announcements. (Total active: ${result.total_items})</span>`;
+                    setTimeout(() => { if (statusElement) statusElement.innerHTML = ""; }, 5000);
+                }
+            } else {
+                if (statusElement) statusElement.innerHTML = `<span style="color:#ef4444;">Failed to sync live news.</span>`;
+            }
+        } catch (err) {
+            if (statusElement) statusElement.innerHTML = `<span style="color:#ef4444;">Connection error while syncing.</span>`;
+        } finally {
+            if (btnElement) {
+                btnElement.disabled = false;
+                btnElement.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i> ${btnElement.id === 'landingSyncNewsBtn' ? 'Sync Live Updates' : 'Sync Live Exam News Now'}`;
+            }
         }
     }
 
@@ -2517,6 +2570,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 <div class="news-badge-group">
                                     <span class="exam-pill-badge ${badgeClass}">${item.exam || 'General'}</span>
                                     <span class="category-tag-pill">${item.category || 'Notification'}</span>
+                                    ${item.auto_synced ? '<span class="wire-source-tag" title="Real-time automated update from education wire"><i class="fa-solid fa-bolt-lightning"></i> Live Wire</span>' : '<span class="tag-pill-manual" title="Official admin broadcast"><i class="fa-solid fa-bullhorn"></i> Official Broadcast</span>'}
                                 </div>
                                 ${item.urgent ? '<span class="urgent-badge-flag"><i class="fa-solid fa-bolt"></i> URGENT</span>' : ''}
                             </div>
@@ -2625,10 +2679,14 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 adminNewsList.innerHTML = liveNewsData.map(n => `
                     <div class="admin-news-item-row">
-                        <div>
-                            <span class="exam-pill-badge badge-${(n.exam || 'general').toLowerCase().substring(0,4)}" style="font-size:0.7rem;">${n.exam}</span>
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span class="exam-pill-badge badge-${(n.exam || 'general').toLowerCase().substring(0,4)}" style="font-size:0.7rem;">${n.exam}</span>
+                                ${n.auto_synced ? '<span class="tag-pill-auto"><i class="fa-solid fa-rss"></i> Auto-Synced</span>' : '<span class="tag-pill-manual"><i class="fa-solid fa-bullhorn"></i> Manual Broadcast</span>'}
+                                ${n.urgent ? '<span style="color:#ef4444; font-weight:700; font-size:0.75rem;"><i class="fa-solid fa-bolt"></i> Urgent</span>' : ''}
+                            </div>
                             <span class="news-item-title">${n.title}</span>
-                            ${n.urgent ? '<span style="color:#ef4444; font-weight:700; font-size:0.75rem; margin-left:6px;"><i class="fa-solid fa-bolt"></i> Urgent</span>' : ''}
+                            <span style="font-size:0.75rem; color:#94a3b8;"><i class="fa-regular fa-calendar"></i> ${n.date || 'Recent'} ${n.deadline_date ? `| Deadline: ${n.deadline_date}` : ''}</span>
                         </div>
                         <button type="button" class="btn-delete-news" onclick="deleteLiveNewsItem('${n.id}')">
                             <i class="fa-solid fa-trash"></i> Delete
@@ -2688,6 +2746,14 @@ document.addEventListener("DOMContentLoaded", () => {
             renderLiveNews();
         });
     });
+
+    // Live News Sync Buttons Binding
+    if (landingSyncNewsBtn) {
+        landingSyncNewsBtn.addEventListener("click", () => triggerLiveNewsSync(landingSyncNewsBtn, null));
+    }
+    if (adminSyncLiveNewsBtn) {
+        adminSyncLiveNewsBtn.addEventListener("click", () => triggerLiveNewsSync(adminSyncLiveNewsBtn, adminNewsStatus));
+    }
 
     // Admin News Broadcast Form Submit
     if (adminNewsForm) {

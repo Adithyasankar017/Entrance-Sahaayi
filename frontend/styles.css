@@ -3320,3 +3320,357 @@ body.admin-mode #landingScreen {
         grid-template-columns: 1fr;
     }
 }
+
+/* ------------------------------------------------------------- */
+/* Live Exam Updates Engine & Sync Controls                      */
+/* ------------------------------------------------------------- */
+.sync-engine-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 18px 24px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(14, 165, 233, 0.08));
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 12px;
+    margin-bottom: 22px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
+}
+
+.sync-engine-left {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sync-status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #34d399;
+    font-size: 0.82rem;
+    letter-spacing: 0.5px;
+}
+
+.sync-engine-desc {
+    color: #cbd5e1;
+    font-size: 0.88rem;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.sync-meta-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+.sync-count-badge {
+    background: rgba(16, 185, 129, 0.15);
+    color: #6ee7b7;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.btn-sync-live {
+    background: linear-gradient(135deg, #059669 0%, #0284c7 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.btn-sync-live:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.45);
+    filter: brightness(1.1);
+}
+
+.btn-sync-live:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.news-tab-btn.sync-btn {
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    color: #6ee7b7;
+    margin-left: 6px;
+}
+
+.news-tab-btn.sync-btn:hover {
+    background: rgba(16, 185, 129, 0.25);
+    color: #a7f3d0;
+}
+
+.live-wire-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    color: #6ee7b7;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 10px;
+}
+
+.pulse-dot-green {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    animation: pulse-green-glow 2s infinite;
+}
+
+@keyframes pulse-green-glow {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.tag-pill-auto {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(14, 165, 233, 0.15);
+    border: 1px solid rgba(14, 165, 233, 0.35);
+    color: #7dd3fc;
+    font-size: 0.68rem;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.tag-pill-manual {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    color: #fcd34d;
+    font-size: 0.68rem;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.wire-source-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    color: #34d399;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+/* ==========================================================================
+   2-COLUMN DASHBOARD LAYOUT (Main Guidance Workspace on Left, Live News on Right)
+   ========================================================================== */
+.landing-dashboard-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.62fr) minmax(360px, 1fr);
+    gap: 28px;
+    align-items: start;
+    width: 100%;
+}
+
+.landing-main-col {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    min-width: 0;
+}
+
+.landing-sidebar-col {
+    position: sticky;
+    top: 85px;
+    min-width: 0;
+}
+
+.sidebar-news-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--bg-card-border);
+    border-radius: var(--radius-lg);
+    padding: 22px 20px;
+    box-shadow: var(--shadow-glow);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(16px);
+}
+
+.sidebar-news-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ef4444 0%, #f59e0b 25%, #38bdf8 50%, #818cf8 75%, #a855f7 100%);
+}
+
+.landing-sidebar-col .news-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.landing-sidebar-col .news-header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.landing-sidebar-col .news-main-heading {
+    font-size: 1.15rem;
+    margin: 0;
+    font-weight: 700;
+}
+
+.landing-sidebar-col .news-main-subheading {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+.landing-sidebar-col .news-view-switch-btns {
+    padding: 3px;
+    gap: 3px;
+}
+
+.landing-sidebar-col .news-tab-btn {
+    padding: 5px 11px;
+    font-size: 0.78rem;
+    gap: 5px;
+}
+
+.landing-sidebar-col .news-filter-bar {
+    padding: 10px 0 12px;
+    gap: 8px;
+}
+
+.landing-sidebar-col .news-filter-chips {
+    gap: 6px;
+}
+
+.landing-sidebar-col .news-chip {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+}
+
+.landing-sidebar-col .news-urgent-counter {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+}
+
+.landing-sidebar-col .news-feed-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 14px;
+    max-height: calc(100vh - 250px);
+    min-height: 440px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+.landing-sidebar-col .exam-calendar-timeline {
+    max-height: calc(100vh - 250px);
+    min-height: 440px;
+    overflow-y: auto;
+    padding-right: 6px;
+    margin-top: 14px;
+}
+
+.landing-sidebar-col .news-card {
+    padding: 16px;
+    border-radius: 12px;
+}
+
+.landing-sidebar-col .news-card-title {
+    font-size: 0.92rem;
+    line-height: 1.35;
+    margin: 8px 0 6px 0;
+}
+
+.landing-sidebar-col .news-card-summary {
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: #cbd5e1;
+    margin-bottom: 8px;
+}
+
+.landing-sidebar-col .news-parent-highlight {
+    font-size: 0.76rem;
+    padding: 8px 10px;
+    margin: 8px 0 10px 0;
+}
+
+.landing-sidebar-col .news-official-link-btn {
+    font-size: 0.78rem;
+    padding: 5px 12px;
+}
+
+/* Sidebar Custom Sleek Scrollbar */
+.landing-sidebar-col .news-feed-grid::-webkit-scrollbar,
+.landing-sidebar-col .exam-calendar-timeline::-webkit-scrollbar {
+    width: 5px;
+}
+
+.landing-sidebar-col .news-feed-grid::-webkit-scrollbar-track,
+.landing-sidebar-col .exam-calendar-timeline::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.4);
+    border-radius: 4px;
+}
+
+.landing-sidebar-col .news-feed-grid::-webkit-scrollbar-thumb,
+.landing-sidebar-col .exam-calendar-timeline::-webkit-scrollbar-thumb {
+    background: rgba(56, 189, 248, 0.35);
+    border-radius: 4px;
+}
+
+.landing-sidebar-col .news-feed-grid::-webkit-scrollbar-thumb:hover,
+.landing-sidebar-col .exam-calendar-timeline::-webkit-scrollbar-thumb:hover {
+    background: rgba(56, 189, 248, 0.65);
+}
+
+@media (max-width: 1100px) {
+    .landing-dashboard-layout {
+        grid-template-columns: 1fr;
+    }
+    .landing-sidebar-col {
+        position: static;
+        order: 2;
+    }
+    .landing-main-col {
+        order: 1;
+    }
+    .landing-sidebar-col .news-feed-grid,
+    .landing-sidebar-col .exam-calendar-timeline {
+        max-height: 520px;
+    }
+}
