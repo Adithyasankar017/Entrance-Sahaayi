@@ -1089,6 +1089,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const query = userInput.value.trim();
         if (!query) return;
 
+        // Auto-detect regional language from query
+        const detectedLang = detectUserLanguage(query);
+        if (detectedLang && detectedLang !== currentLanguage) {
+            changeLanguage(detectedLang);
+        }
+
         appendMessage("user", query, currentUserRole);
         userInput.value = "";
 
@@ -1469,7 +1475,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     "hey sri", "hi sri", "hello sri", "ok sri",
                     "hey siri", "hi siri", "hello siri",
                     "hey three", "hey 3", "a3",
-                    "sree", "shree", "sri", "siri"
+                    "sree", "shree", "sri", "siri",
+                    // Malayalam wake words
+                    "ശ്രീ", "ഹലോ ശ്രീ", "ഹായ് ശ്രീ", "നമസ്കാരം ശ്രീ", "ഹലോ sree", "ഹായ് sree",
+                    // Hindi, Tamil, Telugu wake words
+                    "नमस्ते श्री", "வணக்கம் ஸ்ரீ", "నమస్కారం శ్రీ"
                 ];
 
                 let matchedKeyword = null;
@@ -1574,6 +1584,100 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // -------------------------------------------------------------
+    // Regional Voice & Multi-Lingual Speech Processing Engine
+    // -------------------------------------------------------------
+    function detectUserLanguage(text) {
+        if (!text || typeof text !== "string") return currentLanguage || "en-IN";
+        const clean = text.trim();
+
+        // 1. Script checks
+        if (/[\u0D00-\u0D7F]/.test(clean)) return "ml-IN";
+        if (/[\u0900-\u097F]/.test(clean)) return "hi-IN";
+        if (/[\u0B80-\u0BFF]/.test(clean)) return "ta-IN";
+        if (/[\u0C00-\u0C7F]/.test(clean)) return "te-IN";
+
+        // 2. Phonetic / Romanized regional keywords (e.g. Manglish, Hinglish)
+        const mlPhonetic = /\b(enthanu|entha|eppozhanu|eppol|eppozha|engane|parayamo|parayu|parayum|ariyaamo|ariyumo|chodikkan|padikkan|padikuka|njan|ente|enikku|makkal|makkalkku|pariiksha|pareeksha|parixa|sahayikku|sahayam|aaranu|enthokkeyanu|kooduthal|marupadi|keralathile|keralam|malayalam|malayalathil|silabas|yogyatha|markukal|vidyarthikal|rakshithakkal)\b/i;
+        if (mlPhonetic.test(clean)) return "ml-IN";
+
+        const hiPhonetic = /\b(kya|kaise|kab|kahan|kyon|batao|bataiye|namaste|padhai|chahiye|hindi|hindimein|pariksha|patrata|bachhon)\b/i;
+        if (hiPhonetic.test(clean)) return "hi-IN";
+
+        const taPhonetic = /\b(eppadi|eppothu|enna|sollunga|vanakkam|theriyuma|padikka|tamil|tamilil|thervu|thakuthi)\b/i;
+        if (taPhonetic.test(clean)) return "ta-IN";
+
+        const tePhonetic = /\b(eppudu|ela|enti|cheppandi|namaskaram|teliyali|telugu|telugulo|pariksha|arhatha)\b/i;
+        if (tePhonetic.test(clean)) return "te-IN";
+
+        return currentLanguage || "en-IN";
+    }
+
+    function prepareTextForSpeech(rawText) {
+        if (!rawText) return "";
+        return rawText
+            .replace(/https?:\/\/\S+/g, "")
+            .replace(/[*#_`>~]/g, "")
+            .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, "") // Strip emoji symbols for clean diction
+            .replace(/\b(NTA|CBT|OMR|CEE|CAP|DU|BHU|JNU|NIT|IIIT|AIIMS|MBBS|BDS)\b/g, (m) => m.split("").join(" "))
+            .replace(/\s+/g, " ")
+            .trim();
+    }
+
+    function getBestVoiceForLanguage(targetLang, sampleText) {
+        if (!('speechSynthesis' in window)) return null;
+        const voices = window.speechSynthesis.getVoices() || [];
+        if (voices.length === 0) return null;
+
+        let lang = targetLang || currentLanguage || "en-IN";
+        if (sampleText) {
+            if (/[\u0D00-\u0D7F]/.test(sampleText)) lang = "ml-IN";
+            else if (/[\u0900-\u097F]/.test(sampleText)) lang = "hi-IN";
+            else if (/[\u0B80-\u0BFF]/.test(sampleText)) lang = "ta-IN";
+            else if (/[\u0C00-\u0C7F]/.test(sampleText)) lang = "te-IN";
+        }
+
+        const prefix = lang.split("-")[0].toLowerCase();
+        const langNames = {
+            "ml": ["malayalam", "മലയാളം"],
+            "hi": ["hindi", "हिन्दी", "हिंदी"],
+            "ta": ["tamil", "தமிழ்"],
+            "te": ["telugu", "తెలుగు"],
+            "en": ["english"]
+        };
+        const keywords = langNames[prefix] || [];
+
+        // 1. Exact match on BCP-47 tag (e.g. 'ml-IN', 'hi-IN', 'ta-IN')
+        let match = voices.find(v => v.lang && v.lang.toLowerCase().replace('_', '-') === lang.toLowerCase());
+        if (match) return { voice: match, lang: lang };
+
+        // 2. Prefix match on language code (e.g. 'ml', 'hi', 'ta', 'te')
+        match = voices.find(v => v.lang && v.lang.toLowerCase().startsWith(prefix));
+        if (match) return { voice: match, lang: lang };
+
+        // 3. Name match on voice name (e.g. 'Google മലയാളം', 'Microsoft Hemant')
+        for (const kw of keywords) {
+            match = voices.find(v => v.name && v.name.toLowerCase().includes(kw));
+            if (match) return { voice: match, lang: lang };
+        }
+
+        // 4. Fallback to Indian English / Indian voice for authentic subcontinental pronunciation
+        const indianVoice = voices.find(v => v.lang && (v.lang.toLowerCase().includes("in") || v.name.toLowerCase().includes("india")));
+        if (indianVoice) return { voice: indianVoice, lang: lang };
+
+        // 5. Default browser voice
+        const defaultVoice = voices.find(v => v.default) || voices[0];
+        return { voice: defaultVoice, lang: lang };
+    }
+
+    // Pre-warm voices list on initial load
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = () => {
+            window.speechSynthesis.getVoices();
+        };
+        window.speechSynthesis.getVoices();
+    }
+
     function speakAssistantVoice(text, onComplete) {
         if (!('speechSynthesis' in window)) {
             if (onComplete) onComplete();
@@ -1585,9 +1689,20 @@ document.addEventListener("DOMContentLoaded", () => {
             safeStopRecognition();
             window.speechSynthesis.cancel();
 
-            const cleanText = text.replace(/[*#_`>]/g, '').replace(/https?:\/\/\S+/g, '').trim();
+            const cleanText = prepareTextForSpeech(text);
             const utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.lang = currentLanguage || "en-IN";
+
+            // Select best matching regional voice (Malayalam, Hindi, Tamil, Telugu, English)
+            const voiceInfo = getBestVoiceForLanguage(currentLanguage, cleanText);
+            if (voiceInfo && voiceInfo.voice) {
+                utterance.voice = voiceInfo.voice;
+                utterance.lang = voiceInfo.lang;
+            } else {
+                utterance.lang = currentLanguage || "en-IN";
+            }
+
+            utterance.rate = 0.95; // Clear and measured pace for educational guidance
+            utterance.pitch = 1.0;
             activeUtterance = utterance;
 
             let finished = false;
@@ -1645,6 +1760,12 @@ document.addEventListener("DOMContentLoaded", () => {
     async function submitGlobalSreeVoiceChat(queryText) {
         const headers = { "Content-Type": "application/json" };
         if (authToken) headers["X-User-Token"] = authToken;
+
+        // Auto-detect regional language from spoken or typed query
+        const detectedLang = detectUserLanguage(queryText);
+        if (detectedLang && detectedLang !== currentLanguage) {
+            changeLanguage(detectedLang);
+        }
 
         // If currently in exam detail screen with chat history visible, append user query
         if (examChatHistory && currentExamContext) {
@@ -1863,9 +1984,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // -------------------------------------------------------------
     // LANDING PAGE DIRECT AI QUERY SEARCH & CHAT ENGINE
     // -------------------------------------------------------------
-    async function submitLandingQuery(queryText) {
+    async function submitLandingQuery(queryText, wasVoiceInput = false) {
         if (!queryText || !queryText.trim()) return;
         const cleanQuery = queryText.trim();
+
+        // Auto-detect language from user input (spoken or typed)
+        const detectedLang = detectUserLanguage(cleanQuery);
+        if (detectedLang && detectedLang !== currentLanguage) {
+            changeLanguage(detectedLang);
+        }
 
         if (landingQueryInput) landingQueryInput.value = cleanQuery;
         if (landingSendBtn) {
@@ -1921,6 +2048,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 appendOverlayUserMessage(cleanQuery);
                 appendOverlayBotMessage(data.answer, data.sources);
 
+                // If user asked via microphone, read aloud answer in regional voice automatically
+                if (wasVoiceInput) {
+                    speakAssistantVoice(data.answer);
+                }
+
                 if (landingQueryResponse) {
                     landingQueryResponse.scrollIntoView({ behavior: "smooth", block: "nearest" });
                 }
@@ -1965,7 +2097,7 @@ document.addEventListener("DOMContentLoaded", () => {
         landingSpeechRec.onresult = (e) => {
             const transcript = e.results[0][0].transcript;
             if (landingQueryInput) landingQueryInput.value = transcript;
-            submitLandingQuery(transcript);
+            submitLandingQuery(transcript, true);
         };
 
         landingSpeechRec.onend = () => {
@@ -2206,10 +2338,22 @@ document.addEventListener("DOMContentLoaded", () => {
             isSpeaking = true;
             safeStopRecognition();
             window.speechSynthesis.cancel();
-            const cleanText = text.replace(/[*#_`]/g, '');
+
+            const cleanText = prepareTextForSpeech(text);
             const utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.lang = currentLanguage || "en-IN";
+
+            // Regional voice resolution
+            const voiceInfo = getBestVoiceForLanguage(currentLanguage, cleanText);
+            if (voiceInfo && voiceInfo.voice) {
+                utterance.voice = voiceInfo.voice;
+                utterance.lang = voiceInfo.lang;
+            } else {
+                utterance.lang = currentLanguage || "en-IN";
+            }
+            utterance.rate = 0.95;
+            utterance.pitch = 1.0;
             activeUtterance = utterance;
+
             const pauseButton = button.parentElement.querySelector(".audio-pause-btn");
             const resumeButton = button.parentElement.querySelector(".audio-resume-btn");
             const speech = { button, pauseButton, resumeButton, utterance, isPaused: false };

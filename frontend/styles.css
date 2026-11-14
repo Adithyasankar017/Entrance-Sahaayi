@@ -397,8 +397,9 @@ body.admin-mode #landingScreen {
 .dropdown-selection-box {
     background: rgba(15, 23, 42, 0.6);
     border: 1px solid var(--bg-card-border);
-    padding: 24px;
+    padding: 22px;
     border-radius: var(--radius-md);
+    overflow: hidden;
 }
 
 .dropdown-selection-box label {
@@ -411,26 +412,44 @@ body.admin-mode #landingScreen {
 
 .select-action-row {
     display: flex;
-    gap: 16px;
+    gap: 14px;
     align-items: center;
-}
-
-@media (max-width: 768px) {
-    .select-action-row {
-        flex-direction: column;
-        align-items: stretch;
-    }
+    flex-wrap: wrap;
+    width: 100%;
 }
 
 .select-action-row select {
-    flex: 1;
-    background: rgba(15, 23, 42, 0.8);
+    flex: 1 1 240px;
+    min-width: 0;
+    max-width: 100%;
+    background: rgba(15, 23, 42, 0.85);
     border: 1px solid var(--bg-card-border);
-    padding: 14px 18px;
+    padding: 13px 16px;
     border-radius: var(--radius-md);
     color: #fff;
     font-size: 0.95rem;
     outline: none;
+    box-sizing: border-box;
+}
+
+#goToExamBtn {
+    flex: 0 1 auto;
+    white-space: nowrap;
+    padding: 13px 20px;
+    font-size: 0.92rem;
+    box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+    .select-action-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .select-action-row select,
+    #goToExamBtn {
+        width: 100%;
+        justify-content: center;
+    }
 }
 
 .btn-accent {
@@ -3490,7 +3509,7 @@ body.admin-mode #landingScreen {
    ========================================================================== */
 .landing-dashboard-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1.62fr) minmax(360px, 1fr);
+    grid-template-columns: minmax(0, 1.72fr) minmax(330px, 0.95fr);
     gap: 28px;
     align-items: start;
     width: 100%;

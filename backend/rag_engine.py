@@ -42,6 +42,108 @@ class RAGSystem:
         self.load_videos()
         self.index_documents()
 
+    # -------------------------------------------------------------
+    # Multi-Lingual Regional Language Auto-Detection & Keyword Expansion
+    # -------------------------------------------------------------
+    ML_SCRIPT = re.compile(r'[ഀ-ൿ]')
+    HI_SCRIPT = re.compile(r'[ऀ-ॿ]')
+    TA_SCRIPT = re.compile(r'[஀-௿]')
+    TE_SCRIPT = re.compile(r'[ఀ-౿]')
+
+    ML_PHONETIC = re.compile(
+        r'\b(enthanu|entha|eppozhanu|eppol|eppozha|engane|parayamo|parayu|parayum|'
+        r'ariyaamo|ariyumo|chodikkan|padikkan|padikuka|njan|ente|enikku|makkal|makkalkku|'
+        r'pariiksha|pareeksha|parixa|sahayikku|sahayam|aaranu|enthokkeyanu|kooduthal|'
+        r'marupadi|keralathile|keralam|malayalam|malayalathil|silabas|yogyatha|markukal|'
+        r'vidyarthikal|rakshithakkal)\b',
+        re.IGNORECASE
+    )
+    HI_PHONETIC = re.compile(
+        r'\b(kya|kaise|kab|kahan|kyon|batao|bataiye|namaste|padhai|chahiye|'
+        r'hindi|hindimein|pariksha|patrata|bachhon)\b',
+        re.IGNORECASE
+    )
+    TA_PHONETIC = re.compile(
+        r'\b(eppadi|eppothu|enna|sollunga|vanakkam|theriyuma|padikka|'
+        r'tamil|tamilil|thervu|thakuthi)\b',
+        re.IGNORECASE
+    )
+    TE_PHONETIC = re.compile(
+        r'\b(eppudu|ela|enti|cheppandi|namaskaram|teliyali|telugu|'
+        r'telugulo|pariksha|arhatha)\b',
+        re.IGNORECASE
+    )
+
+    def detect_language(self, text: str, default_lang: str = "en-IN") -> str:
+        """
+        Detects Indian regional languages (Malayalam, Hindi, Tamil, Telugu)
+        from Unicode script characters or common phonetic romanized words.
+        """
+        if not text:
+            return default_lang
+            
+        if self.ML_SCRIPT.search(text) or self.ML_PHONETIC.search(text):
+            return "ml-IN"
+        if self.HI_SCRIPT.search(text) or self.HI_PHONETIC.search(text):
+            return "hi-IN"
+        if self.TA_SCRIPT.search(text) or self.TA_PHONETIC.search(text):
+            return "ta-IN"
+        if self.TE_SCRIPT.search(text) or self.TE_PHONETIC.search(text):
+            return "te-IN"
+            
+        return default_lang
+
+    def expand_regional_query(self, user_query: str, language: str) -> str:
+        """
+        Bridges the gap between regional language queries and English official brochures.
+        Maps Malayalam/Hindi/Tamil/Telugu terms to English official brochure concepts.
+        """
+        expansions = []
+        q_lower = user_query.lower()
+
+        # 1. Exam Names
+        if "കീം" in user_query or "keam" in q_lower:
+            expansions.append("KEAM engineering pharmacy Kerala CEE Commissioner")
+        if "നീറ്റ്" in user_query or "neet" in q_lower:
+            expansions.append("NEET-UG medical MBBS BDS NMC biology physics chemistry")
+        if "ജെഇഇ" in user_query or "jee" in q_lower:
+            expansions.append("JEE Main engineering NTA CBT NIT IIIT mathematics")
+        if "ക്യൂറ്റ്" in user_query or "സിയുഇടി" in user_query or "cuet" in q_lower:
+            expansions.append("CUET-UG Central Universities DU domain general test")
+
+        # 2. Key Educational Concepts
+        if any(w in user_query or w in q_lower for w in ["പരീക്ഷ", "pareeksha", "pariksha", "परीक्षा", "தேர்வு", "పరీక్ష"]):
+            expansions.append("entrance exam examination schedule")
+            
+        if any(w in user_query or w in q_lower for w in ["എപ്പോഴാണ്", "eppozhanu", "eppol", "തീയതി", "തിയതി", "തീയ്യതി", "dates", "date", "कब", "eppothu", "eppudu"]):
+            expansions.append("important dates schedule timeline registration date calendar deadlines")
+
+        if any(w in user_query or w in q_lower for w in ["റാങ്ക്", "ഫോർമുല", "rank", "formula", "നമ്പർ", "रैंक", "ரேங்க்", "ర్యాంక్"]):
+            expansions.append("rank formula 50:50 weightage normalization board marks percentile")
+
+        if any(w in user_query or w in q_lower for w in ["യോഗ്യത", "yogyatha", "eligibility", "പാത്രത", "पात्रता", "தகுதி", "అర్హత"]):
+            expansions.append("eligibility criteria qualifying marks minimum percentage Class 12 aggregate")
+
+        if any(w in user_query or w in q_lower for w in ["സിലബസ്", "syllabus", "വിഷയങ്ങൾ", "सिलेबस", "பாடத்திட்டம்", "సిలబస్"]):
+            expansions.append("syllabus subjects questions pattern duration marking scheme")
+
+        if any(w in user_query or w in q_lower for w in ["ഫീസ്", "fees", "ചിലവ്", "പണം", "फीस", "கட்டணம்", "ఫీజు"]):
+            expansions.append("college fees tuition fees financial scholarship loans concession reservation")
+
+        if any(w in user_query or w in q_lower for w in ["അഡ്മിഷൻ", "പ്രവേശനം", "admission", "allotment", "സീറ്റ്", "प्रवेश", "சேர்க்கை", "ప్రవేశం"]):
+            expansions.append("admission centralized allotment process CAP seats merit counseling")
+
+        if any(w in user_query or w in q_lower for w in ["കട്ട് ഓഫ്", "cutoff", "കട്ട്-ഓഫ്", "कटऑफ"]):
+            expansions.append("cutoff marks rank percentile qualifying score minimum")
+
+        if any(w in user_query or w in q_lower for w in ["നെഗറ്റീവ്", "negative", "മൈനസ്", "नेगेटिव"]):
+            expansions.append("negative marking -1 mark penalty deduction wrong answer")
+
+        if any(w in user_query or w in q_lower for w in ["അപേക്ഷ", "രജിസ്ട്രേഷൻ", "registration", "apply", "आवेदन", "பதிவு", "దరఖాస్తు"]):
+            expansions.append("application form registration apply online portal official website")
+
+        return " ".join(expansions)
+
     def load_faqs(self):
         if os.path.exists(self.faqs_file):
             try:
@@ -118,17 +220,24 @@ class RAGSystem:
         3. Strict grounding check: Returns transparent notice if information is absent in brochures.
         """
         query_text = user_query.strip()
+        
+        # Auto-detect language if query text is in regional script or regional phonetics
+        detected_lang = self.detect_language(query_text, default_lang=language)
+        effective_language = detected_lang if detected_lang != "en-IN" else language
+
         if not query_text:
             return {
-                "answer": self._translate("Please ask a specific question about entrance exams, eligibility, cutoffs, or career options.", language),
+                "answer": self._translate("Please ask a specific question about entrance exams, eligibility, cutoffs, or career options.", effective_language),
                 "sources": [],
                 "confidence": 0.0,
-                "is_faq_short_circuit": False
+                "is_faq_short_circuit": False,
+                "language": effective_language
             }
 
         # 0. Interactive Conversational Greeting / Small-Talk / Identity Handler
-        conv_response = self._check_conversational_response(query_text, persona, exam_context, language)
+        conv_response = self._check_conversational_response(query_text, persona, exam_context, effective_language)
         if conv_response:
+            conv_response["language"] = effective_language
             return conv_response
 
         # Context enrichment from conversation history (multi-turn memory)
@@ -139,8 +248,11 @@ class RAGSystem:
             if past_queries:
                 context_history_str = " ".join(past_queries)
 
-        # Include exam context and history context in search query if provided
-        components = [exam_context, context_history_str, query_text]
+        # Regional keyword expansion to match English official brochures
+        regional_expanded = self.expand_regional_query(query_text, effective_language)
+
+        # Include exam context, history, and expanded English terms in vector query
+        components = [exam_context, context_history_str, query_text, regional_expanded]
         augmented_query = " ".join([c for c in components if c])
 
 
@@ -154,7 +266,7 @@ class RAGSystem:
 
             if best_faq_sim >= 0.52:
                 faq_match = self.faqs[best_faq_idx]
-                synthesized = self._synthesize_response(faq_match["answer"], persona, is_faq=True, exam=exam_context, language=language)
+                synthesized = self._synthesize_response(faq_match["answer"], persona, is_faq=True, exam=exam_context, language=effective_language)
                 return {
                     "answer": synthesized,
                     "sources": [{
@@ -164,7 +276,8 @@ class RAGSystem:
                         "relevance": round(float(best_faq_sim * 100), 1)
                     }],
                     "confidence": round(float(best_faq_sim * 100), 1),
-                    "is_faq_short_circuit": True
+                    "is_faq_short_circuit": True,
+                    "language": effective_language
                 }
 
         # 2. Vector Document Search
@@ -207,21 +320,23 @@ class RAGSystem:
         # 3. Strict Grounding Verification
         if not retrieved_texts:
             return {
-                "answer": self._translate("ℹ️ **Strict Grounding Notice:** The official brochures and documents currently in our knowledge base do not contain specific information regarding your query. Entrance Sahaayi only provides verified details directly extracted from official exam guides.", language),
+                "answer": self._translate("ℹ️ **Strict Grounding Notice:** The official brochures and documents currently in our knowledge base do not contain specific information regarding your query. Entrance Sahaayi only provides verified details directly extracted from official exam guides.", effective_language),
                 "sources": [],
                 "confidence": 0.0,
-                "is_faq_short_circuit": False
+                "is_faq_short_circuit": False,
+                "language": effective_language
             }
 
         avg_confidence = round(float(np.mean([s["relevance"] for s in retrieved_sources])), 1)
         raw_context = "\n\n---\n\n".join(retrieved_texts)
-        synthesized_answer = self._synthesize_response(raw_context, persona, is_faq=False, exam=exam_context, language=language)
+        synthesized_answer = self._synthesize_response(raw_context, persona, is_faq=False, exam=exam_context, language=effective_language)
 
         return {
             "answer": synthesized_answer,
             "sources": retrieved_sources,
             "confidence": avg_confidence,
-            "is_faq_short_circuit": False
+            "is_faq_short_circuit": False,
+            "language": effective_language
         }
 
     def analyze_student_profile(self, stream: str, class12_marks: float, physics: float, math: float, bio: float, interests: List[str], budget: str) -> Dict[str, Any]:
@@ -472,7 +587,48 @@ class RAGSystem:
 
     def _build_student_explanation(self, clean_context: str, exam_hdr: str, language: str) -> str:
         # Candidate format for Students: technical, precise, and exam-focused
-        return f"""🎓 **Student Exam Briefing{exam_hdr}:**
+        if language == "ml-IN":
+            return f"""🎓 **വിദ്യാർത്ഥികൾക്കായുള്ള പരീക്ഷാ വിവരണം{exam_hdr}:**
+
+{clean_context}
+
+🎯 **പരീക്ഷാ തയ്യാറെടുപ്പ് തന്ത്രങ്ങൾ:**
+• എൻ.സി.ഇ.ആർ.ടി (NCERT) പാഠപുസ്തകങ്ങളിലെ അടിസ്ഥാന പാഠങ്ങൾ വ്യക്തമായി പഠിക്കുക.
+• സമയക്രമം പാലിച്ച് മുൻവർഷ ചോദ്യപേപ്പറുകളും മോക്ക് ടെസ്റ്റുകളും പരിശീലിക്കുക.
+• തെറ്റായ ഉത്തരങ്ങൾക്കുള്ള നെഗറ്റീവ് മാർക്കിംഗ് (-1 മാർക്ക്) ഒഴിവാക്കാൻ ശ്രദ്ധിക്കുക."""
+
+        elif language == "hi-IN":
+            return f"""🎓 **विद्यार्थियों के लिए परीक्षा मार्गदर्शन{exam_hdr}:**
+
+{clean_context}
+
+🎯 **परीक्षा तैयारी की मुख्य रणनीतियाँ:**
+• एनसीईआरटी (NCERT) की पाठ्यपुस्तकों के मुख्य सिद्धांतों को गहराई से समझें।
+• समय प्रबंधन के लिए पिछले वर्षों के प्रश्नपत्रों और मॉक टेस्ट का अभ्यास करें।
+• नेगेटिव मार्किंग (-1 अंक) से बचने के लिए अंदाज़े से उत्तर न दें।"""
+
+        elif language == "ta-IN":
+            return f"""🎓 **மாணவர்களுக்கான தேர்வு வழிகாட்டுதல்{exam_hdr}:**
+
+{clean_context}
+
+🎯 **தேர்வு தயாரிப்பு உத்திகள்:**
+• என்சிஇஆர்டி (NCERT) பாடப்புத்தகங்களை முழுமையாக படிக்கவும்.
+• மாதிரித் தேர்வுகளை காலநேரத்திற்குள் எழுதிப் பழகவும்.
+• தவறான விடைகளுக்கான நெகட்டிவ் மதிப்பெண்ணைத் தவிர்க்கவும்."""
+
+        elif language == "te-IN":
+            return f"""🎓 **విద్యార్థుల కోసం పరీక్ష మార్గదర్శకం{exam_hdr}:**
+
+{clean_context}
+
+🎯 **పరీక్ష తయారీ వ్యూహాలు:**
+• ఎన్‌సిఈఆర్‌టి (NCERT) పాఠ్యపుస్తకాలలోని ముఖ్య భావనలను క్షుణ్ణంగా చదవండి.
+• సమయపాలన కోసం మునుపటి ప్రశ్నపత్రాలు మరియు మాక్ పరీక్షలను ప్రాక్టీస్ చేయండి.
+• నెగటివ్ మార్కింగ్ (-1 మార్కు) నివారించడానికి జాగ్రత్తగా సమాధానాలు ఇవ్వండి."""
+
+        else:
+            return f"""🎓 **Student Exam Briefing{exam_hdr}:**
 
 {clean_context}
 
@@ -487,7 +643,11 @@ class RAGSystem:
         is_parent = persona and persona.lower() == "parent"
 
         # 1. GREETINGS ("hi", "hello", "hey", "hey sree", "good morning", etc.)
-        greeting_words = ["hi", "hello", "hey", "namaste", "vanakkam", "namaskaram", "hey sree", "hi sree", "sree", "good morning", "good evening", "greetings"]
+        greeting_words = [
+            "hi", "hello", "hey", "namaste", "vanakkam", "namaskaram", "hey sree", "hi sree", "sree", "good morning", "good evening", "greetings",
+            "നമസ്കാരം", "നമസ്തേ", "ഹലോ", "ഹായ്", "ഹലോ ശ്രീ", "ഹായ് ശ്രീ", "നമസ്കാരം ശ്രീ", "ഹലോ sree", "ഹായ് sree",
+            "नमस्ते", "प्रणाम", "हेलो", "வணக்கம்", "ஹலோ", "నమస్కారం", "హలో"
+        ]
         is_greeting = any(clean_q == g or clean_q.startswith(g + " ") or clean_q.startswith(g + ",") or clean_q.startswith(g + "!") for g in greeting_words) and len(clean_q.split()) <= 4
 
         if is_greeting:
@@ -525,7 +685,9 @@ class RAGSystem:
         # 2. BOT IDENTITY & CAPABILITIES ("who are you", "who is sree", "what is your name", "help")
         identity_phrases = [
             "who are you", "what are you", "who is sree", "who is shree", "what is sree", "what is shree",
-            "what is your name", "who are u", "tell me about yourself", "help", "what can you do", "who made you"
+            "what is your name", "who are u", "tell me about yourself", "help", "what can you do", "who made you",
+            "ആരാണ് ശ്രീ", "ശ്രീ ആരാണ്", "നിങ്ങൾ ആരാണ്", "എനിക്ക് സഹായം വേണം", "സഹായം",
+            "आप कौन हैं", "श्री कौन है", "मदद", "நீங்கள் யார்", "உதவி", "మీరు ఎవరు", "సహాయం"
         ]
 
         is_identity = any(phrase in clean_q for phrase in identity_phrases)
@@ -561,7 +723,10 @@ class RAGSystem:
             }
 
         # 3. THANKS / GRATITUDE ("thank you", "thanks", "awesome")
-        thanks_words = {"thanks", "thankyou", "thx", "awesome", "great", "cool", "nice", "perfect"}
+        thanks_words = {
+            "thanks", "thankyou", "thx", "awesome", "great", "cool", "nice", "perfect",
+            "നന്ദി", "വളരെ നന്ദി", "താങ്ക്സ്", "താങ്ക് യു", "धन्यवाद", "நன்றி", "ధన్యవాదాలు"
+        }
         is_thanks = (clean_q in thanks_words or clean_q.startswith("thank you") or clean_q.startswith("thanks")) and not has_exam_keyword
 
         if is_thanks:
@@ -586,7 +751,10 @@ class RAGSystem:
             }
 
         # 4. FAREWELL ("bye", "goodbye", "see you")
-        farewell_words = {"bye", "goodbye", "exit", "quit", "cya"}
+        farewell_words = {
+            "bye", "goodbye", "exit", "quit", "cya",
+            "വിട", "പോയി വരാം", "ബൈ", "अलविदा", "பிரியாவிடை", "వీడ్కోలు"
+        }
         is_farewell = (clean_q in farewell_words or clean_q.startswith("bye") or clean_q.startswith("goodbye")) and not has_exam_keyword
 
         if is_farewell:
@@ -617,6 +785,21 @@ class RAGSystem:
                 "Please ask a specific question about entrance exams, eligibility, cutoffs, or career options.": "कृपया प्रवेश परीक्षाओं, पात्रता, कटऑफ या करियर विकल्पों के बारे में स्पष्ट प्रश्न पूछें।",
                 "⚠️ *Strict Document Grounding Notice:* No official brochures have been uploaded yet to answer this query. Please ask the administrator to upload official exam PDFs.": "⚠️ *सख्त दस्तावेज़ सूचना:* इस प्रश्न का उत्तर देने के लिए कोई आधिकारिक ब्रोशर अपलोड नहीं है। कृपया व्यवस्थापक से आधिकारिक परीक्षा PDF अपलोड करने को कहें।",
                 "ℹ️ **Strict Grounding Notice:** The official brochures and documents currently in our knowledge base do not contain specific information regarding your query. Entrance Sahaayi only provides verified details directly extracted from official exam guides.": "ℹ️ **सख्त दस्तावेज़ सूचना:** वर्तमान आधिकारिक ब्रोशर में आपके प्रश्न की विशेष जानकारी नहीं है। Entrance Sahaayi केवल आधिकारिक परीक्षा मार्गदर्शिकाओं से निकली सत्यापित जानकारी देता है।"
+            },
+            "ml-IN": {
+                "Please ask a specific question about entrance exams, eligibility, cutoffs, or career options.": "പ്രവേശന പരീക്ഷകൾ, യോഗ്യത, കട്ട് ഓഫ് അല്ലെങ്കിൽ കരിയർ സംബന്ധിച്ച നിങ്ങളുടെ വ്യക്തമായ ചോദ്യം ചോദിക്കുക.",
+                "⚠️ *Strict Document Grounding Notice:* No official brochures have been uploaded yet to answer this query. Please ask the administrator to upload official exam PDFs.": "⚠️ *ഔദ്യോഗിക രേഖാ അറിയിപ്പ്:* ഈ ചോദ്യത്തിന് മറുപടി നൽകാൻ ആവശ്യമായ ബ്രോഷറുകൾ ഇതുവരെ അപ്‌ലോഡ് ചെയ്തിട്ടില്ല. ഔദ്യോഗിക പരീക്ഷാ പി.ഡി.എഫ് അപ്‌ലോഡ് ചെയ്യാൻ അഡ്മിനോട് ആവശ്യപ്പെടുക.",
+                "ℹ️ **Strict Grounding Notice:** The official brochures and documents currently in our knowledge base do not contain specific information regarding your query. Entrance Sahaayi only provides verified details directly extracted from official exam guides.": "ℹ️ **വിവര ലഭ്യതാ അറിയിപ്പ്:** ഈ ചോദ്യത്തിനുള്ള കൃത്യമായ വിവരങ്ങൾ നിലവിലെ ഔദ്യോഗിക ബ്രോഷറുകളിൽ ലഭ്യമല്ല. ഔദ്യോഗിക ഗൈഡുകളിൽ നിന്ന് സ്ഥിരീകരിച്ച വിവരങ്ങൾ മാത്രമേ Entrance Sahaayi ലഭ്യമാക്കൂ."
+            },
+            "ta-IN": {
+                "Please ask a specific question about entrance exams, eligibility, cutoffs, or career options.": "நுழைவுத் தேர்வுகள், தகுதி, கட்-ஆஃப் அல்லது தொழில் வாய்ப்புகள் பற்றிய உங்கள் குறிப்பிட்ட கேள்வியைக் கேட்கவும்.",
+                "⚠️ *Strict Document Grounding Notice:* No official brochures have been uploaded yet to answer this query. Please ask the administrator to upload official exam PDFs.": "⚠️ *அதிகாரப்பூர்வ ஆவண அறிவிப்பு:* இந்த கேள்விக்கு பதிலளிக்க அதிகாரப்பூர்வ கையேடுகள் இன்னும் பதிவேற்றப்படவில்லை.",
+                "ℹ️ **Strict Grounding Notice:** The official brochures and documents currently in our knowledge base do not contain specific information regarding your query. Entrance Sahaayi only provides verified details directly extracted from official exam guides.": "ℹ️ **அதிகாரப்பூர்வ அறிவிப்பு:** உங்கள் கேள்விக்கான குறிப்பிட்ட விவரங்கள் அதிகாரப்பூர்வ கையேடுகளில் காணப்படவில்லை."
+            },
+            "te-IN": {
+                "Please ask a specific question about entrance exams, eligibility, cutoffs, or career options.": "ప్రవేశ పరీక్షలు, అర్హత, కటాఫ్ లేదా కెరీర్ ఎంపికల గురించి మీ స్పష్టమైన ప్రశ్నను అడగండి.",
+                "⚠️ *Strict Document Grounding Notice:* No official brochures have been uploaded yet to answer this query. Please ask the administrator to upload official exam PDFs.": "⚠️ *అధికారిక పత్రాల నోటీసు:* ఈ ప్రశ్నకు సమాధానం ఇవ్వడానికి అధికారిక బ్రోచర్‌లు ఇంకా అప్‌లోడ్ చేయబడలేదు.",
+                "ℹ️ **Strict Grounding Notice:** The official brochures and documents currently in our knowledge base do not contain specific information regarding your query. Entrance Sahaayi only provides verified details directly extracted from official exam guides.": "ℹ️ **అధికారిక నోటీసు:** మీ ప్రశ్నకు సంబంధించిన ఖచ్చితమైన సమాచారం ప్రస్తుత అధికారిక బ్రోచర్‌లలో అందుబాటులో లేదు."
             }
         }
         return translations.get(language, {}).get(text, text)
