@@ -69,5 +69,18 @@ class TestEntranceSahaayiV2(unittest.TestCase):
         self.assertEqual(len(res["sources"]), 0)
         self.assertIn("Sree", res["answer"])
 
+    def test_malayalam_regional_query(self):
+        res = self.rag.query("നീറ്റ് എന്നാ നടക്കുന്നേ", persona="Student", language="ml-IN")
+        self.assertEqual(res["language"], "ml-IN")
+        self.assertIn("പരീക്ഷാ തീയതി", res["answer"])
+        self.assertNotIn("SECTION", res["answer"])
+        self.assertNotIn("guidelines, there is NO upper age limit", res["answer"])
+
+    def test_malayalam_keam_formula_query(self):
+        res = self.rag.query("കീം റാങ്ക് ഫോർമുല", persona="Student", language="ml-IN")
+        self.assertEqual(res["language"], "ml-IN")
+        self.assertIn("50:50", res["answer"])
+        self.assertIn("റാങ്ക്", res["answer"])
+
 if __name__ == "__main__":
     unittest.main()

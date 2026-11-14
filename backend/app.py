@@ -1,12 +1,14 @@
 import sys
 import os
+import re
 import json
 import uuid
 import shutil
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, Response
+import hashlib
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 
@@ -323,6 +325,61 @@ def chat_endpoint(req: ChatRequest, x_user_token: Optional[str] = Header(None), 
             result["session_title"] = updated_session["title"]
             
     return result
+
+
+# -------------------------------------------------------------
+# Regional Text-to-Speech (TTS) Engine for Natural Spoken Audio
+# -------------------------------------------------------------
+TTS_CACHE_DIR = os.path.join(DATA_DIR, "tts_cache")
+os.makedirs(TTS_CACHE_DIR, exist_ok=True)
+
+@app.get("/api/tts")
+def text_to_speech(text: str, lang: Optional[str] = "en"):
+    if not text or not text.strip():
+        raise HTTPException(status_code=400, detail="Text parameter required.")
+    
+    clean_text = text.strip()
+    # Normalize language: if contains Malayalam Unicode or lang='ml', use 'ml'
+    is_ml = any('\u0d00' <= ch <= '\u0d7f' for ch in clean_text) or "ml" in (lang or "").lower()
+    is_hi = any('\u0900' <= ch <= '\u097f' for ch in clean_text) or "hi" in (lang or "").lower()
+    is_ta = any('\u0b80' <= ch <= '\u0bff' for ch in clean_text) or "ta" in (lang or "").lower()
+    is_te = any('\u0c00' <= ch <= '\u0c7f' for ch in clean_text) or "te" in (lang or "").lower()
+
+    if is_ml:
+        tts_lang = "ml"
+    elif is_hi:
+        tts_lang = "hi"
+    elif is_ta:
+        tts_lang = "ta"
+    elif is_te:
+        tts_lang = "te"
+    else:
+        tts_lang = "en"
+
+    # Clean markdown, bullets, emojis, and symbols so speech is crystal clear
+    clean_speech = re.sub(r'[*#_`>~•\-]', '', clean_text)
+    clean_speech = re.sub(r'[\U00010000-\U0010ffff]', '', clean_speech)
+    clean_speech = re.sub(r'\s+', ' ', clean_speech).strip()
+
+    # Truncate to first 450 characters for fast audio delivery
+    speech_snippet = clean_speech[:450]
+
+    cache_hash = hashlib.md5(f"{speech_snippet}_{tts_lang}".encode("utf-8")).hexdigest()
+    cache_path = os.path.join(TTS_CACHE_DIR, f"{cache_hash}.mp3")
+
+    if not os.path.exists(cache_path):
+        try:
+            from gtts import gTTS
+            tts = gTTS(text=speech_snippet, lang=tts_lang, slow=False)
+            tts.save(cache_path)
+        except Exception as e:
+            print(f"[TTS Error] {e}")
+            raise HTTPException(status_code=500, detail="TTS generation failed.")
+
+    with open(cache_path, "rb") as f:
+        audio_bytes = f.read()
+
+    return Response(content=audio_bytes, media_type="audio/mpeg")
 
 
 @app.post("/api/analyze-profile")

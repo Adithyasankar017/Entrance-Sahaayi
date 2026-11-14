@@ -115,14 +115,20 @@ class RAGSystem:
         if any(w in user_query or w in q_lower for w in ["പരീക്ഷ", "pareeksha", "pariksha", "परीक्षा", "தேர்வு", "పరీక్ష"]):
             expansions.append("entrance exam examination schedule")
             
-        if any(w in user_query or w in q_lower for w in ["എപ്പോഴാണ്", "eppozhanu", "eppol", "തീയതി", "തിയതി", "തീയ്യതി", "dates", "date", "कब", "eppothu", "eppudu"]):
-            expansions.append("important dates schedule timeline registration date calendar deadlines")
+        if any(w in user_query or w in q_lower for w in [
+            "എപ്പോഴാണ്", "eppozhanu", "eppol", "തീയതി", "തിയതി", "തീയ്യതി", "dates", "date", "कब", "eppothu", "eppudu",
+            "എന്നാ", "എപ്പഴാ", "എപ്പോഴാ", "നടക്കുന്നത്", "നടക്കുന്നേ", "നടത്തുന്നത്", "എന്ന്", "മാസം", "സമയം"
+        ]):
+            expansions.append("important dates schedule timeline registration date calendar deadlines May first Sunday exam date")
 
         if any(w in user_query or w in q_lower for w in ["റാങ്ക്", "ഫോർമുല", "rank", "formula", "നമ്പർ", "रैंक", "ரேங்க்", "ర్యాంక్"]):
             expansions.append("rank formula 50:50 weightage normalization board marks percentile")
 
-        if any(w in user_query or w in q_lower for w in ["യോഗ്യത", "yogyatha", "eligibility", "പാത്രത", "पात्रता", "தகுதி", "అర్హత"]):
-            expansions.append("eligibility criteria qualifying marks minimum percentage Class 12 aggregate")
+        if any(w in user_query or w in q_lower for w in [
+            "യോഗ്യത", "yogyatha", "eligibility", "പാത്രത", "पात्रता", "தகுதி", "అర్హత",
+            "പ്രായം", "വയസ്സ്", "വയസ്", "age", "age limit", "ആർക്കൊക്കെ", "ആർക്കൊക്കെ എഴുതാം"
+        ]):
+            expansions.append("eligibility criteria qualifying marks minimum percentage Class 12 aggregate age limit 17 years no upper limit")
 
         if any(w in user_query or w in q_lower for w in ["സിലബസ്", "syllabus", "വിഷയങ്ങൾ", "सिलेबस", "பாடத்திட்டம்", "సిలబస్"]):
             expansions.append("syllabus subjects questions pattern duration marking scheme")
@@ -485,6 +491,133 @@ class RAGSystem:
         else:
             return self._build_student_explanation(clean_context, exam_hdr, language)
 
+    def _localize_brochure_content(self, context: str, language: str, persona: str = "Student", exam: Optional[str] = None) -> str:
+        if language == "en-IN" or not language:
+            return context
+
+        c_lower = context.lower()
+        bullets = []
+
+        if language == "ml-IN":
+            # 1. NEET Date / Schedule / Mode
+            if "first sunday of may" in c_lower or "pen-paper" in c_lower or "omr" in c_lower or ("neet" in c_lower and ("date" in c_lower or "schedule" in c_lower or "may" in c_lower or "duration" in c_lower)):
+                bullets.append("• **പരീക്ഷാ തീയതിയും രീതിയും:** എല്ലാ വർഷവും മെയ് മാസത്തിലെ ആദ്യ ഞായറാഴ്ചയാണ് നീറ്റ്-യുജി (NEET-UG) പരീക്ഷ നാഷണൽ ടെസ്റ്റിംഗ് ഏജൻസി (NTA) നടത്തുന്നത്. പേനയും ഒ.എം.ആർ (OMR) ഷീറ്റും ഉപയോഗിച്ചുള്ള ഓഫ്‌ലൈൻ പരീക്ഷയാണിത്. ആകെ പരീക്ഷാ സമയം 3 മണിക്കൂർ 20 മിനിറ്റാണ്.")
+
+            # 2. NEET Age Limit
+            if "upper age limit" in c_lower or "17 years" in c_lower or "december 31" in c_lower:
+                bullets.append("• **പ്രായപരിധി:** എൻ.എം.സി (NMC) ഔദ്യോഗിക മാനദണ്ഡപ്രകാരം നീറ്റ് പരീക്ഷ എഴുതാൻ ഉയർന്ന പ്രായപരിധിയില്ല (No Upper Age Limit). എന്നാൽ പ്രവേശന വർഷം ഡിസംബർ 31-നകം കുറഞ്ഞത് 17 വയസ്സ് പൂർത്തിയായിരിക്കണം.")
+
+            # 3. NEET Eligibility & Marks
+            if "aggregate marks" in c_lower or "50% aggregate" in c_lower or "pcb" in c_lower or "minimum 50%" in c_lower or "physics, chemistry, biology" in c_lower:
+                bullets.append("• **വിദ്യാഭ്യാസ യോഗ്യത:** പ്ലസ് ടു തലത്തിൽ ഫിസിക്സ്, കെമിസ്ട്രി, ബയോളജി (PCB), ഇംഗ്ലീഷ് എന്നിവ പഠിച്ചിരിക്കണം. ജനറൽ വിഭാഗത്തിന് PCB വിഷയങ്ങൾക്ക് കുറഞ്ഞത് 50% മാർക്കും, SC/ST/OBC വിഭാഗങ്ങൾക്ക് 40% മാർക്കും യോഗ്യതയായി വേണം.")
+
+            # 4. NEET Exam Pattern & Marks
+            if "720 marks" in c_lower or "200 questions" in c_lower or "marking scheme" in c_lower or "+4 marks" in c_lower or "-1 mark" in c_lower or "physics: 45" in c_lower:
+                bullets.append("• **പരീക്ഷാ ഘടനയും മാർക്കും:** ആകെ 720 മാർക്ക് (200 ചോദ്യങ്ങളിൽ 180 എണ്ണത്തിന് ഉത്തരം നൽകണം). ബയോളജി 360 മാർക്ക്, ഫിസിക്സ് 180 മാർക്ക്, കെമിസ്ട്രി 180 മാർക്ക്. ഓരോ ശരിയുത്തരത്തിനും +4 മാർക്കും തെറ്റായ ഉത്തരത്തിന് -1 നെഗറ്റീവ് മാർക്കും ഉണ്ടായിരിക്കും.")
+
+            # 5. NEET Counseling & Seats
+            if "all india quota" in c_lower or "aiq" in c_lower or "mcc" in c_lower or "state quota" in c_lower or "medical counseling" in c_lower:
+                bullets.append("• **കൗൺസിലിംഗ് & സീറ്റ് അലോട്ട്മെന്റ്:** 15% ഓൾ ഇന്ത്യാ ക്വാട്ട (AIQ) സീറ്റുകളിലേക്ക് മെഡിക്കൽ കൗൺസിലിംഗ് കമ്മിറ്റിയും (MCC), 85% സംസ്ഥാന ക്വാട്ട സീറ്റുകളിലേക്ക് അതത് സംസ്ഥാന പ്രവേശന കൗൺസിലിംഗും (കേരളത്തിൽ CEE Kerala) വഴിയാണ് അലോട്ട്മെന്റ് നടക്കുന്നത്.")
+
+            # 6. NEET Allied Health Alternatives
+            if ("allied health" in c_lower or "physiotherapy" in c_lower or "bpt" in c_lower or ("b.sc nursing" in c_lower and "neet" in c_lower)) and "keam engineering" not in c_lower and "engineering rank" not in c_lower and "50:50" not in c_lower:
+                bullets.append("• **അനുബന്ധ മെഡിക്കൽ കോഴ്സുകൾ:** എം.ബി.ബി.എസ് ലഭിച്ചില്ലെങ്കിൽ ബി.ഡി.എസ് (ഡെന്റൽ), ബി.എസ്.സി നഴ്സിംഗ്, ബി.ഫാം (ഫാർമസി), ഫിസിയോതെറാപ്പി (BPT), റേഡിയോളജി, മെഡിക്കൽ ലാബ് ടെക്നോളജി (MLT) എന്നിവ മികച്ച തൊഴിൽ സാധ്യതയുള്ള കോഴ്സുകളാണ്.")
+
+            # 7. KEAM Rank Formula
+            if "engineering rank formula" in c_lower or "50:50" in c_lower or "50% weightage" in c_lower or "normalization" in c_lower:
+                bullets.append("• **കീം എൻജിനീയറിങ് റാങ്ക് ഫോർമുല:** 50:50 അനുപാതത്തിലാണ് റാങ്ക് പട്ടിക തയ്യാറാക്കുന്നത്. 50% വെയിറ്റേജ് കീം പ്രവേശന പരീക്ഷയിലെ മാർക്കിനും, 50% വെയിറ്റേജ് പ്ലസ് ടു ഫിസിക്സ്, കെമിസ്ട്രി, മാത്തമാറ്റിക്സ് (PCM) ബോർഡ് മാർക്ക് സ്റ്റാൻഡേർഡൈസ് ചെയ്തതിനും നൽകുന്നു.")
+
+            # 8. KEAM Option Registration & CAP
+            if "option registration" in c_lower or "cee portal" in c_lower or "cee.kerala.gov.in" in c_lower or "trial allotment" in c_lower or "centralized allotment" in c_lower:
+                bullets.append("• **ഓപ്ഷൻ രജിസ്ട്രേഷനും അലോട്ട്മെന്റും:** പ്രവേശന പരീക്ഷാ കമ്മീഷണറുടെ ഔദ്യോഗിക വെബ്‌സൈറ്റ് (www.cee.kerala.gov.in) വഴിയാണ് കോളേജ് ഓപ്ഷനുകൾ ഓൺലൈനായി നൽകേണ്ടത്. ട്രയൽ അലോട്ട്മെന്റിന് ശേഷം വിവിധ ഘട്ടങ്ങളിലായി കേന്ദ്രീകൃത അലോട്ട്മെന്റ് (CAP) നടക്കും.")
+
+            # 9. KEAM Fees & Categories
+            if "8,000 to rs 15,000" in c_lower or "tuition fees" in c_lower or "government colleges have fees" in c_lower or "sebc" in c_lower:
+                bullets.append("• **ഫീസ് ഘടന:** സർക്കാർ കോളേജുകളിൽ സെമസ്റ്ററിന് ഏകദേശം ₹8,000 മുതൽ ₹15,000 വരെ മാത്രമാണ് ഫീസ്. സ്വാശ്രയ കോളേജുകളിൽ ഫീസ് കൂടുതലാണ്. സംവരണ വിഭാഗങ്ങൾക്കും സാമ്പത്തികമായി പിന്നോക്കം നിൽക്കുന്നവർക്കും ഫീസ് ഇളവുകളും സ്കോളർഷിപ്പുകളും ലഭ്യമാണ്.")
+
+            # 10. JEE Main Eligibility
+            if "75% aggregate marks" in c_lower or "65% for sc/st" in c_lower or "top 20 percentile" in c_lower or "nits/iiits" in c_lower:
+                bullets.append("• **ജെ.ഇ.ഇ മെയിൻ യോഗ്യത:** പ്ലസ് ടുവിൽ ഫിസിക്സ്, കെമിസ്ട്രി, മാത്തമാറ്റിക്സ് (PCM) പഠിച്ചിരിക്കണം. NIT, IIIT, CFTI പ്രവേശനത്തിന് പ്ലസ് ടു പരീക്ഷയിൽ കുറഞ്ഞത് 75% മാർക്ക് (SC/ST വിഭാഗങ്ങൾക്ക് 65%) അല്ലെങ്കിൽ അതത് ബോർഡിലെ ടോപ്പ് 20 പെർസന്റൈലിൽ ഉൾപ്പെട്ടിരിക്കണം.")
+
+            # 11. JEE Main Pattern
+            if "computer based test" in c_lower or "cbt" in c_lower or "300 marks" in c_lower or "90 questions" in c_lower or "attempt 75" in c_lower:
+                bullets.append("• **പരീക്ഷാ രീതി:** കമ്പ്യൂട്ടർ അധിഷ്ഠിത പരീക്ഷയാണ് (CBT). ഫിസിക്സ്, കെമിസ്ട്രി, മാത്തമാറ്റിക്സ് എന്നിവയിൽ നിന്ന് ആകെ 300 മാർക്കിനായിരിക്കും പരീക്ഷ. ശരിയുത്തരത്തിന് +4 മാർക്ക്, തെറ്റായ ഉത്തരത്തിന് -1 മാർക്ക് നെഗറ്റീവ്.")
+
+            # 12. JEE Advanced & IITs
+            if "jee advanced" in c_lower or "2,50,000" in c_lower or "23 indian institutes of technology" in c_lower or "iits" in c_lower:
+                bullets.append("• **ഐ.ഐ.ടി പ്രവേശനം:** ജെ.ഇ.ഇ മെയിനിൽ ആദ്യ 2,50,000 റാങ്കിൽ വരുന്ന വിദ്യാർത്ഥികൾക്ക് മാത്രമേ ഐ.ഐ.ടികളിലേക്ക് (IIT) പ്രവേശനത്തിനായുള്ള ജെ.ഇ.ഇ അഡ്വാൻസ്ഡ് (JEE Advanced) പരീക്ഷ എഴുതാനാകൂ.")
+
+            # 13. CUET-UG Central Universities
+            if "central universities" in c_lower or "delhi university" in c_lower or "bhu" in c_lower or "jnu" in c_lower or "cuet-ug" in c_lower or "cuet" in c_lower:
+                bullets.append("• **CUET-UG പ്രവേശനം:** ഡൽഹി യൂണിവേഴ്സിറ്റി (DU), ബി.എച്ച്.യു (BHU), ജെ.എൻ.യു (JNU) ഉൾപ്പെടെയുള്ള 45-ലധികം കേന്ദ്ര സർവ്വകലാശാലകളിലേക്കുള്ള ഏകീകൃത പ്രവേശന പരീക്ഷയാണിത്. പ്ലസ് ടു പാസ്സായ ഏതൊരു വിദ്യാർത്ഥിക്കും എഴുതാം.")
+
+            # 14. CUET-UG Sections
+            if "domain specific" in c_lower or "general test" in c_lower or "section ia & ib" in c_lower or "ncert syllabus" in c_lower:
+                bullets.append("• **പരീക്ഷാ ഘടന:** മൂന്ന് വിഭാഗങ്ങളുണ്ട്: സെക്ഷൻ 1 (ഭാഷകൾ), സെക്ഷൻ 2 (27 ഡൊമെയ്ൻ വിഷയങ്ങൾ - പ്ലസ് ടു NCERT സിലബസ് അടിസ്ഥാനമാക്കി), സെക്ഷൻ 3 (ജനറൽ ടെസ്റ്റ് - പൊതുവിജ്ഞാനവും അഭിരുചി പരീക്ഷയും).")
+
+            # 15. Computer Science Career Options
+            if "artificial intelligence & machine learning" in c_lower or "data science" in c_lower or "cyber security" in c_lower or "b.tech / b.e" in c_lower:
+                bullets.append("• **കമ്പ്യൂട്ടർ സയൻസ് തുടർപഠന സാധ്യതകൾ:** ബി.ടെക് കമ്പ്യൂട്ടർ സയൻസ്, ആർട്ടിഫിഷ്യൽ ഇന്റലിജൻസ്, ഡാറ്റാ സയൻസ്, സൈബർ സെക്യൂരിറ്റി, ബി.സി.എ, ഇന്റഗ്രേറ്റഡ് എം.എസ്.സി എന്നിവ ഉയർന്ന ശമ്പളവും തൊഴിൽ സാധ്യതയുമുള്ള കോഴ്സുകളാണ്.")
+
+            # 16. Engineering vs Medical Choice
+            if "problem-solving" in c_lower or "mathematics, coding" in c_lower or "patience, and long-term commitment" in c_lower:
+                bullets.append("• **എൻജിനീയറിങ് vs മെഡിക്കൽ തെരഞ്ഞെടുപ്പ്:** കണക്കിലും സാങ്കേതികവിദ്യയിലും താല്പര്യമുണ്ടെങ്കിൽ 4 വർഷ എൻജിനീയറിങ്ങും, ജീവശാസ്ത്രത്തിലും രോഗീപരിചരണത്തിലും താല്പര്യവും ദീർഘകാല സമർപ്പണവുമുണ്ടെങ്കിൽ മെഡിക്കൽ പഠനവുമാണ് ഉചിതം.")
+
+            if bullets:
+                return "\n\n".join(bullets[:4])
+
+            # Fallback sentence-by-sentence cleaner for Malayalam
+            clean_lines = [l.strip() for l in context.splitlines() if l.strip() and not l.upper().startswith("SECTION") and not l.startswith("---")]
+            return "\n".join([f"• {l}" for l in clean_lines[:4]]) if clean_lines else "• ഔദ്യോഗിക പരീക്ഷാ ബ്രോഷറിലെ വിവരങ്ങൾ പരിശോധിച്ചു."
+
+        elif language == "hi-IN":
+            if "first sunday of may" in c_lower or "pen-paper" in c_lower or "omr" in c_lower or ("neet" in c_lower and ("date" in c_lower or "schedule" in c_lower or "may" in c_lower)):
+                bullets.append("• **परीक्षा तिथि एवं मोड:** नीट-यूजी (NEET-UG) परीक्षा हर साल मई के पहले रविवार को एनटीए (NTA) द्वारा पेन-पेपर (ओएमआर शीट) मोड में आयोजित की जाती है। परीक्षा की कुल अवधि 3 घंटे 20 मिनट होती है।")
+            if "upper age limit" in c_lower or "17 years" in c_lower or "december 31" in c_lower:
+                bullets.append("• **आयु सीमा:** एनएमसी (NMC) दिशानिर्देशों के अनुसार नीट परीक्षा के लिए कोई अधिकतम आयु सीमा नहीं है। छात्र को प्रवेश वर्ष के 31 दिसंबर तक न्यूनतम 17 वर्ष की आयु पूरी करनी चाहिए।")
+            if "aggregate marks" in c_lower or "50% aggregate" in c_lower or "pcb" in c_lower:
+                bullets.append("• **शैक्षणिक योग्यता:** 12वीं में भौतिकी, रसायन विज्ञान और जीव विज्ञान (PCB) अनिवार्य है। सामान्य वर्ग के लिए कम से कम 50% और आरक्षित वर्ग (SC/ST/OBC) के लिए 40% अंक आवश्यक हैं।")
+            if "720 marks" in c_lower or "200 questions" in c_lower or "marking scheme" in c_lower:
+                bullets.append("• **परीक्षा पैटर्न:** कुल 720 अंक (200 प्रश्नों में से 180 हल करने होते हैं)। सही उत्तर पर +4 अंक और गलत उत्तर पर -1 अंक नेगेटिव मार्किंग होती है।")
+            if "engineering rank formula" in c_lower or "50:50" in c_lower:
+                bullets.append("• **कीम (KEAM) रैंक फॉर्मूला:** रैंक सूची 50:50 के अनुपात में तैयार की जाती है: 50% प्रवेश परीक्षा के अंक और 50% 12वीं बोर्ड परीक्षा के पीसीएम अंक।")
+            if "75% aggregate marks" in c_lower or "top 20 percentile" in c_lower or "nits/iiits" in c_lower:
+                bullets.append("• **जेईई मेन योग्यता:** एनआईटी और आईआईआईटी में प्रवेश के लिए 12वीं में न्यूनतम 75% अंक (एससी/एसटी के लिए 65%) या शीर्ष 20 पर्सेंटाइल में होना अनिवार्य है।")
+            if bullets:
+                return "\n\n".join(bullets[:4])
+            clean_lines = [l.strip() for l in context.splitlines() if l.strip() and not l.upper().startswith("SECTION") and not l.startswith("---")]
+            return "\n".join([f"• {l}" for l in clean_lines[:4]]) if clean_lines else "• आधिकारिक विवरणिका से सत्यापित जानकारी।"
+
+        elif language == "ta-IN":
+            if "first sunday of may" in c_lower or "pen-paper" in c_lower or "omr" in c_lower or ("neet" in c_lower and ("date" in c_lower or "schedule" in c_lower or "may" in c_lower)):
+                bullets.append("• **தேர்வு தேதி மற்றும் முறை:** நீட்-யூஜி (NEET-UG) தேர்வு ஆண்டுதோறும் மே மாதத்தின் முதல் ஞாயிற்றுக்கிழமை NTA-ஆல் பேனா-தாள் (OMR) முறையில் நடத்தப்படுகிறது.")
+            if "upper age limit" in c_lower or "17 years" in c_lower:
+                bullets.append("• **வயது வரம்பு:** நீட் தேர்வுக்கு அதிகபட்ச வயது வரம்பு இல்லை. மாணவர் சேர்க்கை ஆண்டின் டிசம்பர் 31க்குள் குறைந்தபட்சம் 17 வயதை பூர்த்தி செய்திருக்க வேண்டும்.")
+            if "aggregate marks" in c_lower or "50% aggregate" in c_lower or "pcb" in c_lower:
+                bullets.append("• **கல்வித் தகுதி:** பிளஸ் 2-வில் இயற்பியல், வேதியியல், உயிரியல் (PCB) பாடங்களில் பொது பிரிவினருக்கு குறைந்தபட்சம் 50% மதிப்பெண்களும், இடஒதுக்கீடு பிரிவினருக்கு 40% மதிப்பெண்களும் தேவை.")
+            if "75% aggregate marks" in c_lower or "top 20 percentile" in c_lower:
+                bullets.append("• **ஜேஇஇ மெயின் தகுதி:** NIT மற்றும் IIIT கல்லூரிகளில் சேர 12-ஆம் வகுப்பில் குறைந்தபட்சம் 75% மதிப்பெண்கள் (SC/ST பிரிவினருக்கு 65%) பெற்றிருக்க வேண்டும்.")
+            if bullets:
+                return "\n\n".join(bullets[:4])
+            clean_lines = [l.strip() for l in context.splitlines() if l.strip() and not l.upper().startswith("SECTION") and not l.startswith("---")]
+            return "\n".join([f"• {l}" for l in clean_lines[:4]]) if clean_lines else "• அதிகாரப்பூர்வ ஆவணத்திலிருந்து பெறப்பட்ட விவரங்கள்."
+
+        elif language == "te-IN":
+            if "first sunday of may" in c_lower or "pen-paper" in c_lower or "omr" in c_lower or ("neet" in c_lower and ("date" in c_lower or "schedule" in c_lower or "may" in c_lower)):
+                bullets.append("• **పరీక్ష తేదీ & విధానం:** నీట్-యుజి (NEET-UG) పరీక్ష ప్రతి సంవత్సరం మే మొదటి ఆదివారం నాడు NTA ద్వారా పెన్-పేపర్ (OMR) విధానంలో నిర్వహించబడుతుంది.")
+            if "upper age limit" in c_lower or "17 years" in c_lower:
+                bullets.append("• **వయోపరిమితి:** నీట్ పరీక్ష రాయడానికి గరిష్ట వయోపరిమితి లేదు. అడ్మిషన్ పొందే సంవత్సరంలో డిసెంబర్ 31 నాటికి అభ్యర్థికి కనీసం 17 సంవత్సరాలు నిండి ఉండాలి.")
+            if "aggregate marks" in c_lower or "50% aggregate" in c_lower or "pcb" in c_lower:
+                bullets.append("• **విద్యార్హత:** 12వ తరగతిలో ఫిజిక్స్, కెమిస్ట్రీ, బయాలజీ (PCB)లలో జనరల్ అభ్యర్థులకు కనీసం 50% మార్కులు, రిజర్వ్డ్ కేటగిరీలకు 40% మార్కులు అవసరం.")
+            if "75% aggregate marks" in c_lower or "top 20 percentile" in c_lower:
+                bullets.append("• **జేఈఈ మెయిన్ అర్హత:** NITలు మరియు IIITలలో ప్రవేశానికి 12వ తరగతిలో కనీసం 75% మార్కులు (SC/STలకు 65%) లేదా టాప్ 20 పర్సంటైల్‌లో ఉండాలి.")
+            if bullets:
+                return "\n\n".join(bullets[:4])
+            clean_lines = [l.strip() for l in context.splitlines() if l.strip() and not l.upper().startswith("SECTION") and not l.startswith("---")]
+            return "\n".join([f"• {l}" for l in clean_lines[:4]]) if clean_lines else "• అధికారిక బ్రోచర్ నుండి ధృవీకరించబడిన సమాచారం."
+
+        return context
+
     def _build_parent_explanation(self, clean_context: str, exam_hdr: str, language: str) -> str:
         simplified_text = self._simplify_jargon_for_parent(clean_context)
         
@@ -498,7 +631,8 @@ class RAGSystem:
             if len(bullet_points) >= 6:
                 break
         
-        summary_bullets = "\n".join(bullet_points) if bullet_points else f"• {simplified_text[:350]}..."
+        default_summary = "\n".join(bullet_points) if bullet_points else f"• {simplified_text[:350]}..."
+        localized_summary = self._localize_brochure_content(clean_context, language, persona="Parent")
 
         if language == "ml-IN":
             return f"""👨‍👩‍👧 **രക്ഷിതാക്കൾക്കായുള്ള ലളിതമായ വിവരണം{exam_hdr}:**
@@ -506,7 +640,7 @@ class RAGSystem:
 പ്രിയ രക്ഷിതാവേ, ഔദ്യോഗിക പരീക്ഷാ ബ്രോഷറിലെ പ്രധാന വിവരങ്ങൾ ലളിതമായി താഴെ നൽകുന്നു:
 
 📌 **ലളിതമായി പറഞ്ഞാൽ (നിങ്ങളുടെ മക്കൾക്കായി അറിയേണ്ട പ്രധാന കാര്യങ്ങൾ):**
-{summary_bullets}
+{localized_summary}
 
 💰 **ഫീസും സാമ്പത്തിക വിവരങ്ങളും (കുടുംബത്തിനുള്ള ആശ്വാസം):**
 • സർക്കാർ കോളേജുകളിലും മെറിറ്റ് സീറ്റുകളിലും ഫീസ് വളരെ കുറവാണ്. സ്വകാര്യ മാനേജ്‌മെന്റ് സീറ്റുകളേക്കാൾ എത്രയോ കുറഞ്ഞ ചിലവിൽ മികച്ച പഠനം നേടാം.
@@ -523,7 +657,7 @@ class RAGSystem:
 प्रिय अभिभावक, आधिकारिक विवरणिका (Brochure) की जरूरी जानकारी आपके समझने के लिए आसान भाषा में नीचे दी गई है:
 
 📌 **सरल शब्दों में (आपके बच्चे के लिए मुख्य जानकारी):**
-{summary_bullets}
+{localized_summary}
 
 💰 **कॉलेज फीस और खर्च की जानकारी:**
 • सरकारी संस्थानों और मेरिट सीटों पर प्राइवेट कॉलेजों की तुलना में फीस बेहद कम होती है।
@@ -540,7 +674,7 @@ class RAGSystem:
 அன்பான பெற்றோரே, உத்தியோகபூர்வ தகவல் கையேட்டின் முக்கிய விவரங்கள் எளிமையான முறையில் கீழே தரப்பட்டுள்ளன:
 
 📌 **எளிய விளக்கக் குறிப்புகள் (உங்கள் பிள்ளைக்கு தேவையானவை):**
-{summary_bullets}
+{localized_summary}
 
 💰 **கல்லூரி கட்டணம் மற்றும் நிதி சலுகைகள்:**
 • அரசு கல்லூரிகளில் தனியார் கல்லூரிகளை விட கட்டணம் மிகக் குறைவு.
@@ -557,7 +691,7 @@ class RAGSystem:
 ప్రియమైన తల్లిదండ్రులకు, అధికారిక సమాచార పత్రంలోని ముఖ్యమైన వివరాలు సులభంగా అర్థమయ్యేలా క్రింద ఇవ్వబడ్డాయి:
 
 📌 **సులభమైన వివరణ (మీ పిల్లల కోసం ముఖ్యమైన విషయాలు):**
-{summary_bullets}
+{localized_summary}
 
 💰 **కళాశాల ఫీజులు మరియు ఆర్థిక సమాచారం:**
 • ప్రభుత్వ కళాశాలల్లో ప్రైవేట్ కళాశాలల కంటే ఫీజులు చాలా తక్కువగా ఉంటాయి.
@@ -574,7 +708,7 @@ class RAGSystem:
 *Dear Parent, here is the official entrance information explained in simple, clear everyday language for your family:*
 
 📌 **What this means in simple words for your child:**
-{summary_bullets}
+{default_summary}
 
 💰 **College Fees & Financial Options (Parent's Financial View):**
 • **Subsidized Education:** Government institutes and state merit quota seats have very low, regulated fees compared to expensive private colleges.
@@ -587,10 +721,11 @@ class RAGSystem:
 
     def _build_student_explanation(self, clean_context: str, exam_hdr: str, language: str) -> str:
         # Candidate format for Students: technical, precise, and exam-focused
+        localized_content = self._localize_brochure_content(clean_context, language, persona="Student")
         if language == "ml-IN":
             return f"""🎓 **വിദ്യാർത്ഥികൾക്കായുള്ള പരീക്ഷാ വിവരണം{exam_hdr}:**
 
-{clean_context}
+{localized_content}
 
 🎯 **പരീക്ഷാ തയ്യാറെടുപ്പ് തന്ത്രങ്ങൾ:**
 • എൻ.സി.ഇ.ആർ.ടി (NCERT) പാഠപുസ്തകങ്ങളിലെ അടിസ്ഥാന പാഠങ്ങൾ വ്യക്തമായി പഠിക്കുക.
@@ -600,7 +735,7 @@ class RAGSystem:
         elif language == "hi-IN":
             return f"""🎓 **विद्यार्थियों के लिए परीक्षा मार्गदर्शन{exam_hdr}:**
 
-{clean_context}
+{localized_content}
 
 🎯 **परीक्षा तैयारी की मुख्य रणनीतियाँ:**
 • एनसीईआरटी (NCERT) की पाठ्यपुस्तकों के मुख्य सिद्धांतों को गहराई से समझें।
@@ -610,7 +745,7 @@ class RAGSystem:
         elif language == "ta-IN":
             return f"""🎓 **மாணவர்களுக்கான தேர்வு வழிகாட்டுதல்{exam_hdr}:**
 
-{clean_context}
+{localized_content}
 
 🎯 **தேர்வு தயாரிப்பு உத்திகள்:**
 • என்சிஇஆர்டி (NCERT) பாடப்புத்தகங்களை முழுமையாக படிக்கவும்.
@@ -620,7 +755,7 @@ class RAGSystem:
         elif language == "te-IN":
             return f"""🎓 **విద్యార్థుల కోసం పరీక్ష మార్గదర్శకం{exam_hdr}:**
 
-{clean_context}
+{localized_content}
 
 🎯 **పరీక్ష తయారీ వ్యూహాలు:**
 • ఎన్‌సిఈఆర్‌టి (NCERT) పాఠ్యపుస్తకాలలోని ముఖ్య భావనలను క్షుణ్ణంగా చదవండి.

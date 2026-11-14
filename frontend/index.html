@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrance Sahaayi | AI Career Guidance & Entrance Assistant</title>
-    <!-- Google Fonts -->
+    <!-- Google Fonts: Times New Roman Equivalent & Authentic Newspaper Serif Typefaces for Indic Scripts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;500;600;700;800&family=Noto+Serif+Malayalam:wght@400;500;600;700;800;900&family=Noto+Serif+Tamil:wght@400;500;600;700;800&family=Noto+Serif+Telugu:wght@400;500;600;700&family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Custom Styles -->
-    <link rel="stylesheet" href="/static/styles.css?v=sree-news-v4">
+    <link rel="stylesheet" href="/static/styles.css?v=sree-newspaper-times-v7">
 </head>
 <body>
     <!-- GRAPHICAL WELCOME OPENING / SPLASH SCREEN -->
@@ -783,11 +783,18 @@
 
             <!-- Voice Orb Container (Shown ONLY in Voice Mode) -->
             <div id="sreeVoiceModeSection" class="sree-voice-section hidden">
-                <div class="siri-orb-large" id="siriOrbLarge" role="button" tabindex="0" title="Click to speak directly to Sree">
+                <div class="siri-orb-large state-standby" id="siriOrbLarge" role="button" tabindex="0" title="Click to speak directly to Sree">
                     <div class="siri-waves-anim"></div>
-                    <i class="fa-solid fa-microphone"></i>
+                    <div class="siri-equalizer-bars">
+                        <span class="eq-bar bar-1"></span>
+                        <span class="eq-bar bar-2"></span>
+                        <span class="eq-bar bar-3"></span>
+                        <span class="eq-bar bar-4"></span>
+                    </div>
+                    <i class="fa-solid fa-microphone orb-mic-icon"></i>
                 </div>
                 <div id="sreeOverlayStatus" class="sree-overlay-status">Listening for <strong>"Hey Sree"</strong>... 🎙️</div>
+                <div id="sreeLiveInterim" class="sree-live-interim hidden"></div>
                 <div class="voice-hint-row">
                     <span>Microphone not working?</span>
                     <button type="button" id="sreeSwitchToTypeBtn" class="btn-link-action"><i class="fa-solid fa-keyboard"></i> Switch to Type Query Mode</button>
@@ -850,6 +857,6 @@
     </div>
 
     <!-- Script -->
-    <script src="/static/app.js?v=sree-news-v4"></script>
+    <script src="/static/app.js?v=sree-newspaper-times-v7"></script>
 </body>
 </html>

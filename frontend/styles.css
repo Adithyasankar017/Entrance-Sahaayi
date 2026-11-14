@@ -16,13 +16,17 @@
     --radius-md: 12px;
     --radius-sm: 8px;
     --shadow-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+
+    /* Authentic Newspaper Serif Typography for English & Regional Languages */
+    --font-newspaper: 'Times New Roman', 'Tinos', 'Noto Serif Malayalam', 'Noto Serif Devanagari', 'Noto Serif Tamil', 'Noto Serif Telugu', 'Nirmala UI', Georgia, Cambria, serif;
+    --font-headline: 'Times New Roman', 'Tinos', 'Noto Serif Malayalam', 'Noto Serif Devanagari', 'Noto Serif Tamil', 'Noto Serif Telugu', 'Nirmala UI', Georgia, Cambria, serif;
 }
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-newspaper);
 }
 
 body {
@@ -36,6 +40,12 @@ body {
     display: flex;
     justify-content: center;
     padding: 16px;
+    font-family: var(--font-newspaper);
+    letter-spacing: -0.01em;
+    line-height: 1.58;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
 .app-container {
@@ -98,9 +108,10 @@ body.admin-mode #landingScreen {
 }
 
 .portal-title {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-headline);
     font-size: 2.2rem;
-    font-weight: 800;
+    font-weight: 700;
+    letter-spacing: -0.02em;
     background: linear-gradient(90deg, #ffffff, #93c5fd);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -216,9 +227,10 @@ body.admin-mode #landingScreen {
 }
 
 .app-title {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-headline);
     font-size: 1.35rem;
     font-weight: 700;
+    letter-spacing: -0.015em;
 }
 
 .app-subtitle {
@@ -313,10 +325,11 @@ body.admin-mode #landingScreen {
 }
 
 .hero-welcome h2 {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-headline);
     font-size: 1.6rem;
     color: #fff;
     margin-bottom: 6px;
+    letter-spacing: -0.015em;
 }
 
 .hero-welcome p {
@@ -1596,9 +1609,10 @@ body.admin-mode #landingScreen {
 }
 
 .sree-modal-title {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-headline);
     font-size: 1.3rem;
     font-weight: 700;
+    letter-spacing: -0.015em;
     color: #ffffff;
     margin: 0;
 }
@@ -1723,17 +1737,59 @@ body.admin-mode #landingScreen {
     border-radius: 50%;
     background: conic-gradient(from 0deg, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #f59e0b, #06b6d4);
     box-shadow: 0 0 40px rgba(6, 182, 212, 0.7), 0 0 80px rgba(139, 92, 246, 0.5);
-    animation: rotateSiriOrb 3s linear infinite, pulseSiriLarge 2s infinite ease-in-out alternate;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+
+.siri-orb-large:hover {
+    transform: scale(1.05);
+}
+
+/* Dynamic Siri / Google Assistant Assistant Visual States */
+.siri-orb-large.state-listening {
+    animation: rotateSiriOrb 2s linear infinite, pulseSiriListening 1.1s infinite ease-in-out alternate;
+    box-shadow: 0 0 50px rgba(6, 182, 212, 0.9), 0 0 100px rgba(139, 92, 246, 0.8), 0 0 140px rgba(236, 72, 153, 0.5);
+}
+
+.siri-orb-large.state-thinking {
+    animation: rotateSiriOrb 0.9s linear infinite, pulseSiriThinking 1.4s infinite ease-in-out;
+    box-shadow: 0 0 60px rgba(245, 158, 11, 0.9), 0 0 110px rgba(139, 92, 246, 0.7);
+}
+
+.siri-orb-large.state-speaking {
+    animation: rotateSiriOrb 3.5s linear infinite, pulseSiriSpeaking 1.6s infinite ease-in-out alternate;
+    box-shadow: 0 0 45px rgba(16, 185, 129, 0.85), 0 0 90px rgba(6, 182, 212, 0.65);
+}
+
+.siri-orb-large.state-standby {
+    animation: rotateSiriOrb 6s linear infinite, pulseSiriLarge 3s infinite ease-in-out alternate;
+    opacity: 0.95;
+}
+
+@keyframes pulseSiriListening {
+    0% { transform: scale(1.0); }
+    100% { transform: scale(1.15); }
+}
+
+@keyframes pulseSiriThinking {
+    0% { transform: scale(0.96); filter: hue-rotate(0deg); }
+    50% { transform: scale(1.06); filter: hue-rotate(180deg); }
+    100% { transform: scale(0.96); filter: hue-rotate(360deg); }
+}
+
+@keyframes pulseSiriSpeaking {
+    0% { transform: scale(1.01); }
+    100% { transform: scale(1.1); }
 }
 
 @keyframes pulseSiriLarge {
     0% { transform: scale(0.95); box-shadow: 0 0 30px rgba(6, 182, 212, 0.6), 0 0 60px rgba(139, 92, 246, 0.4); }
-    100% { transform: scale(1.1); box-shadow: 0 0 60px rgba(56, 189, 248, 0.9), 0 0 100px rgba(236, 72, 153, 0.7); }
+    100% { transform: scale(1.08); box-shadow: 0 0 60px rgba(56, 189, 248, 0.9), 0 0 100px rgba(236, 72, 153, 0.7); }
 }
 
 .siri-waves-anim {
@@ -1750,10 +1806,90 @@ body.admin-mode #landingScreen {
     100% { transform: scale(1.6); opacity: 0; }
 }
 
+/* Siri Voice Equalizer Bars */
+.siri-equalizer-bars {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 32px;
+    z-index: 2;
+    transition: opacity 0.3s ease;
+}
+
+.siri-orb-large .orb-mic-icon {
+    font-size: 1.4rem;
+    color: #ffffff;
+    z-index: 2;
+    display: none;
+}
+
+.siri-orb-large.state-standby .orb-mic-icon {
+    display: block;
+}
+
+.siri-orb-large.state-standby .siri-equalizer-bars {
+    display: none;
+}
+
+.siri-equalizer-bars .eq-bar {
+    width: 5px;
+    border-radius: 4px;
+    background: #ffffff;
+    box-shadow: 0 0 8px #ffffff;
+    height: 8px;
+    transition: height 0.15s ease;
+}
+
+.siri-orb-large.state-listening .siri-equalizer-bars .bar-1 { animation: eqBounce 0.45s ease-in-out infinite alternate; background: #38bdf8; }
+.siri-orb-large.state-listening .siri-equalizer-bars .bar-2 { animation: eqBounce 0.65s ease-in-out infinite alternate 0.1s; background: #a855f7; }
+.siri-orb-large.state-listening .siri-equalizer-bars .bar-3 { animation: eqBounce 0.55s ease-in-out infinite alternate 0.2s; background: #ec4899; }
+.siri-orb-large.state-listening .siri-equalizer-bars .bar-4 { animation: eqBounce 0.75s ease-in-out infinite alternate 0.15s; background: #22d3ee; }
+
+.siri-orb-large.state-speaking .siri-equalizer-bars .bar-1 { animation: eqSpeech 0.7s ease-in-out infinite alternate; background: #34d399; }
+.siri-orb-large.state-speaking .siri-equalizer-bars .bar-2 { animation: eqSpeech 0.9s ease-in-out infinite alternate 0.15s; background: #38bdf8; }
+.siri-orb-large.state-speaking .siri-equalizer-bars .bar-3 { animation: eqSpeech 0.8s ease-in-out infinite alternate 0.25s; background: #a78bfa; }
+.siri-orb-large.state-speaking .siri-equalizer-bars .bar-4 { animation: eqSpeech 0.6s ease-in-out infinite alternate 0.1s; background: #f472b6; }
+
+@keyframes eqBounce {
+    0% { height: 8px; }
+    100% { height: 28px; }
+}
+
+@keyframes eqSpeech {
+    0% { height: 6px; }
+    50% { height: 22px; }
+    100% { height: 14px; }
+}
+
+/* Real-Time Live Transcript Preview Pill */
+.sree-live-interim {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(30, 41, 59, 0.9);
+    border: 1px solid rgba(56, 189, 248, 0.45);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), 0 0 16px rgba(56, 189, 248, 0.25);
+    padding: 8px 18px;
+    border-radius: 22px;
+    font-size: 0.92rem;
+    color: #e2e8f0;
+    margin-bottom: 18px;
+    animation: fadeIn 0.2s ease-in-out;
+    max-width: 90%;
+    word-break: break-word;
+}
+
+.sree-live-interim i {
+    color: #38bdf8;
+    animation: pulse 1s infinite alternate;
+}
+
 .sree-overlay-title {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-headline);
     font-size: 1.8rem;
-    font-weight: 800;
+    font-weight: 700;
+    letter-spacing: -0.02em;
     color: #ffffff;
     margin-bottom: 8px;
     background: linear-gradient(90deg, #ffffff, #38bdf8);
@@ -2070,9 +2206,10 @@ body.admin-mode #landingScreen {
 }
 
 #landingAskSreeTitle {
-    font-family: 'Outfit', sans-serif !important;
+    font-family: var(--font-headline) !important;
     font-size: 1.5rem !important;
     font-weight: 700 !important;
+    letter-spacing: -0.015em !important;
     color: #ffffff !important;
     margin-bottom: 6px !important;
 }
@@ -2130,7 +2267,7 @@ body.admin-mode #landingScreen {
     color: #ffffff !important;
     font-size: 1.15rem !important;
     font-weight: 500 !important;
-    font-family: 'Inter', sans-serif !important;
+    font-family: var(--font-newspaper) !important;
     padding: 14px 8px !important;
     min-width: 0 !important;
     box-shadow: none !important;
@@ -2264,7 +2401,7 @@ body.admin-mode #landingScreen {
     display: inline-flex !important;
     align-items: center !important;
     gap: 8px !important;
-    font-family: 'Inter', sans-serif !important;
+    font-family: var(--font-newspaper) !important;
     box-sizing: border-box !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
 }
@@ -2581,15 +2718,15 @@ body.admin-mode #landingScreen {
 }
 
 .splash-app-title {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-headline);
     font-size: 2.85rem;
-    font-weight: 800;
+    font-weight: 700;
     line-height: 1.15;
     background: linear-gradient(135deg, #ffffff 25%, #bae6fd 60%, #60a5fa 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin: 0 0 10px 0;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.02em;
     text-shadow: 0 4px 30px rgba(56, 189, 248, 0.25);
 }
 
@@ -3692,4 +3829,181 @@ body.admin-mode #landingScreen {
     .landing-sidebar-col .exam-calendar-timeline {
         max-height: 520px;
     }
+}
+
+/* ============================================================
+   AUTHENTIC NEWSPAPER EDITORIAL SERIF TYPOGRAPHY SYSTEM
+   (Times New Roman & High-Legibility Indic Newspaper Serifs)
+   ============================================================ */
+
+/* Global Newsprint Hierarchy */
+h1, h2, h3, h4, h5, h6,
+.portal-title,
+.welcome-title,
+.section-header-box h3,
+.news-header-left h3,
+.news-card-title,
+.sree-overlay-title,
+.video-card-title,
+.guidance-card h4,
+.hero-welcome h2 {
+    font-family: var(--font-headline) !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.018em !important;
+    line-height: 1.25 !important;
+}
+
+/* Base Body Newsprint Diction */
+body, p, span, a, label, li, td, th {
+    font-family: var(--font-newspaper);
+    letter-spacing: -0.008em;
+}
+
+/* ============================================================
+   REGIONAL LANGUAGE PRECISION SCALING & SPACING SYSTEM
+   (Malayalam, Hindi, Tamil, Telugu - Newspaper Column Style)
+   ============================================================ */
+
+/* 1. Global Proportional Scaling for Indic Regional Languages */
+html[lang="ml"], body.lang-ml,
+html[lang="hi"], body.lang-hi,
+html[lang="ta"], body.lang-ta,
+html[lang="te"], body.lang-te {
+    font-size: 14.75px !important;
+    line-height: 1.64 !important;
+    letter-spacing: -0.012em !important;
+}
+
+/* 2. Headlines in Regional Language (Authentic Newsprint Headline Styling) */
+body.lang-ml h1, body.lang-hi h1, body.lang-ta h1, body.lang-te h1,
+body.lang-ml h2, body.lang-hi h2, body.lang-ta h2, body.lang-te h2,
+body.lang-ml h3, body.lang-hi h3, body.lang-ta h3, body.lang-te h3,
+body.lang-ml h4, body.lang-hi h4, body.lang-ta h4, body.lang-te h4,
+body.lang-ml .portal-title,
+body.lang-ml .welcome-title,
+body.lang-ml .section-header-box h3,
+body.lang-ml .news-card-title,
+body.lang-ml .hero-welcome h2,
+body.lang-ml .sree-overlay-title {
+    font-size: 0.91em !important;
+    line-height: 1.30 !important;
+    letter-spacing: -0.02em !important;
+    font-weight: 700 !important;
+}
+
+/* 3. News Feed Cards & Timelines in Regional Languages */
+body.lang-ml .news-card-title,
+body.lang-hi .news-card-title,
+body.lang-ta .news-card-title,
+body.lang-te .news-card-title {
+    font-size: 0.90rem !important;
+    line-height: 1.35 !important;
+    letter-spacing: -0.015em !important;
+    margin-bottom: 6px !important;
+}
+
+body.lang-ml .news-card-summary,
+body.lang-hi .news-card-summary,
+body.lang-ta .news-card-summary,
+body.lang-te .news-card-summary {
+    font-size: 0.83rem !important;
+    line-height: 1.62 !important;
+    letter-spacing: -0.01em !important;
+    color: #cbd5e1 !important;
+}
+
+body.lang-ml .parent-tip-box,
+body.lang-hi .parent-tip-box,
+body.lang-ta .parent-tip-box,
+body.lang-te .parent-tip-box {
+    font-size: 0.80rem !important;
+    line-height: 1.55 !important;
+    letter-spacing: -0.008em !important;
+}
+
+/* 4. Chat Messages & AI Assistant Responses in Regional Languages */
+body.lang-ml .chat-message p,
+body.lang-hi .chat-message p,
+body.lang-ta .chat-message p,
+body.lang-te .chat-message p,
+body.lang-ml .bot-message,
+body.lang-hi .bot-message,
+body.lang-ta .bot-message,
+body.lang-te .bot-message,
+body.lang-ml .user-message,
+body.lang-hi .user-message,
+body.lang-ta .user-message,
+body.lang-te .user-message,
+body.lang-ml .sree-overlay-chat-body,
+.regional-newsprint,
+.regional-newsprint p {
+    font-family: var(--font-newspaper) !important;
+    font-size: 0.885rem !important;
+    line-height: 1.68 !important;
+    letter-spacing: -0.01em !important;
+    word-spacing: -0.005em !important;
+}
+
+/* Mixed Regional Chat Content (Malayalam responses inside default UI) */
+.regional-newsprint {
+    font-family: var(--font-newspaper) !important;
+    font-size: 0.885rem !important;
+    line-height: 1.68 !important;
+    letter-spacing: -0.01em !important;
+}
+
+.regional-newsprint h1,
+.regional-newsprint h2,
+.regional-newsprint h3,
+.regional-newsprint h4 {
+    font-family: var(--font-headline) !important;
+    font-size: 0.92em !important;
+    line-height: 1.30 !important;
+    letter-spacing: -0.018em !important;
+    font-weight: 700 !important;
+}
+
+/* 5. Buttons, Badges, Pills & Controls in Regional Languages */
+body.lang-ml button, body.lang-hi button, body.lang-ta button, body.lang-te button,
+body.lang-ml .stream-pill, body.lang-hi .stream-pill, body.lang-ta .stream-pill, body.lang-te .stream-pill,
+body.lang-ml .filter-pill, body.lang-hi .filter-pill, body.lang-ta .filter-pill, body.lang-te .filter-pill,
+body.lang-ml .news-tab-btn, body.lang-hi .news-tab-btn, body.lang-ta .news-tab-btn, body.lang-te .news-tab-btn,
+body.lang-ml .btn-primary, body.lang-hi .btn-primary, body.lang-ta .btn-primary, body.lang-te .btn-primary,
+body.lang-ml .btn-secondary, body.lang-hi .btn-secondary, body.lang-ta .btn-secondary, body.lang-te .btn-secondary,
+body.lang-ml .ask-sree-btn, body.lang-hi .ask-sree-btn, body.lang-ta .ask-sree-btn, body.lang-te .ask-sree-btn,
+body.lang-ml .landing-chip, body.lang-hi .landing-chip, body.lang-ta .landing-chip, body.lang-te .landing-chip,
+body.lang-ml .nav-btn, body.lang-hi .nav-btn, body.lang-ta .nav-btn, body.lang-te .nav-btn,
+body.lang-ml .urgent-badge, body.lang-hi .urgent-badge, body.lang-ta .urgent-badge, body.lang-te .urgent-badge,
+body.lang-ml .live-badge, body.lang-hi .live-badge, body.lang-ta .live-badge, body.lang-te .live-badge {
+    font-size: 0.81rem !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+    line-height: 1.35 !important;
+    letter-spacing: -0.01em !important;
+    font-weight: 600 !important;
+}
+
+/* 6. Form Fields, Inputs & Dropdowns */
+body.lang-ml input, body.lang-hi input, body.lang-ta input, body.lang-te input,
+body.lang-ml select, body.lang-hi select, body.lang-ta select, body.lang-te select,
+body.lang-ml textarea, body.lang-hi textarea, body.lang-ta textarea, body.lang-te textarea {
+    font-size: 0.88rem !important;
+    letter-spacing: -0.01em !important;
+    line-height: 1.5 !important;
+}
+
+/* 7. Dropdown Option lists */
+select option {
+    font-family: var(--font-newspaper);
+    font-size: 0.88rem;
+    background: #0f172a;
+    color: #ffffff;
+}
+
+body.lang-ml select option,
+body.lang-hi select option,
+body.lang-ta select option,
+body.lang-te select option {
+    font-size: 0.84rem !important;
+    line-height: 1.5 !important;
 }

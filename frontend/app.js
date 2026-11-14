@@ -159,6 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function applyLanguage() {
+        updateLanguageTypography(currentLanguage);
         const selectors = {
             ".portal-subtitle": "portalSubtitle", ".app-subtitle": "appSubtitle", ".hero-welcome p": "welcomeIntro",
             "#loginScreen .role-card:nth-child(1) h3": "studentLogin", "#loginScreen .role-card:nth-child(2) h3": "parentLogin", "#loginScreen .role-card:nth-child(3) h3": "adminLogin",
@@ -677,9 +678,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function stopActiveSreeConversation() {
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-        }
+        stopAllSpeechAudio();
         isSreeListeningForQuery = false;
         if (typeof sreeQueryTimeout !== 'undefined' && sreeQueryTimeout) {
             clearTimeout(sreeQueryTimeout);
@@ -1149,7 +1148,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function appendMessage(sender, text, role, sources = [], confidence = 0, isFaq = false) {
         const msgDiv = document.createElement("div");
-        msgDiv.className = `message ${sender}-message`;
+        const isRegional = /[\u0D00-\u0D7F\u0900-\u097F\u0B80-\u0BFF\u0C00-\u0C7F]/.test(text || "");
+        msgDiv.className = `message ${sender}-message ${isRegional ? 'regional-newsprint' : ''}`;
 
         const isBot = sender === "bot";
         const icon = isBot ? "fa-robot" : "fa-user";
@@ -1245,6 +1245,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const sreeWidgetStatus = document.getElementById("sreeWidgetStatus");
     const sreeVoiceOverlay = document.getElementById("sreeVoiceOverlay");
     const sreeOverlayStatus = document.getElementById("sreeOverlayStatus");
+    const sreeLiveInterim = document.getElementById("sreeLiveInterim");
     const sreeOverlayTranscript = document.getElementById("sreeOverlayTranscript");
     const sreeOverlayCloseBtn = document.getElementById("sreeOverlayCloseBtn");
     const sreeOverlayMuteBtn = document.getElementById("sreeOverlayMuteBtn");
@@ -1321,8 +1322,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const hint = sreeOverlayTranscript.querySelector(".sree-placeholder-hint");
         if (hint) hint.remove();
 
+        const isRegional = /[\u0D00-\u0D7F\u0900-\u097F\u0B80-\u0BFF\u0C00-\u0C7F]/.test(text || "");
         const bubble = document.createElement("div");
-        bubble.className = "sree-bubble sree-bubble-user";
+        bubble.className = `sree-bubble sree-bubble-user ${isRegional ? 'regional-newsprint' : ''}`;
         bubble.innerHTML = `
             <div class="sree-bubble-sender"><i class="fa-solid fa-user"></i> You</div>
             <div class="sree-bubble-text">${escapeQuotes(text)}</div>
@@ -1354,8 +1356,9 @@ document.addEventListener("DOMContentLoaded", () => {
         removeOverlayThinking();
         if (!sreeOverlayTranscript) return;
 
+        const isRegional = /[\u0D00-\u0D7F\u0900-\u097F\u0B80-\u0BFF\u0C00-\u0C7F]/.test(answer || "");
         const bubble = document.createElement("div");
-        bubble.className = "sree-bubble sree-bubble-bot";
+        bubble.className = `sree-bubble sree-bubble-bot ${isRegional ? 'regional-newsprint' : ''}`;
         let sourcesHtml = "";
         if (sources && Array.isArray(sources) && sources.length > 0) {
             sourcesHtml = `
@@ -1389,6 +1392,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    let speechSilenceDebounceTimer = null;
+
     function initWakeWordEngine() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
@@ -1413,143 +1418,171 @@ document.addEventListener("DOMContentLoaded", () => {
             isRecognitionRunning = true;
             console.log("Sree continuous recognition active. Lang:", rec.lang);
             updateVoiceUIState(true);
+            setAssistantVisualState("listening", isSreeListeningForQuery 
+                ? `Sree is listening to you... Speak now! 🎙️` 
+                : `Listening for <strong>"Hey Sree"</strong> (or speak your question)... 🎙️`);
         };
 
         rec.onresult = (event) => {
             if (!isWakeWordMode || isSpeaking) return;
 
+            let interimTranscript = "";
+            let finalTranscript = "";
+
             for (let i = event.resultIndex; i < event.results.length; i++) {
                 const res = event.results[i];
-                const rawTranscript = res[0].transcript;
-                const clean = normalizeVoiceText(rawTranscript);
-                const isFinal = res.isFinal;
+                if (res.isFinal) {
+                    finalTranscript += res[0].transcript + " ";
+                } else {
+                    interimTranscript += res[0].transcript;
+                }
+            }
 
-                // 1. Wait / Pause commands
-                const waitKeywords = ["wait", "hold on", "wait a second", "wait a minute", "just wait", "wait sree", "stop speaking", "pause"];
-                const isWaitCommand = waitKeywords.some(kw => clean.includes(kw));
-                if (isWaitCommand) {
-                    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-                    isSpeaking = false;
-                    isSreeListeningForQuery = true;
-                    if (sreeQueryTimeout) clearTimeout(sreeQueryTimeout);
+            const rawCombined = (finalTranscript + interimTranscript).trim();
+            if (!rawCombined) return;
+            const clean = normalizeVoiceText(rawCombined);
 
-                    const waitMessage = {
-                        "hi-IN": "ठीक है, मैं रुक रही हूँ। जब आप तैयार हों तब बोलिए।",
-                        "ml-IN": "ശരി, കാത്തിരിക്കാം. പറയൂ.",
-                        "ta-IN": "சரி, காத்திருக்கிறேன். சொல்லுங்கள்.",
-                        "te-IN": "సరే, వేచి ఉంటాను. చెప్పండి.",
-                        "en-IN": "Okay, waiting for you. Take your time!"
-                    }[currentLanguage] || "Okay, waiting for you. Take your time!";
+            // 1. Interrupt / Pause commands
+            const waitKeywords = ["wait", "hold on", "stop speaking", "pause", "നിൽക്കൂ", "കാത്തിരിക്കൂ", "ഒരു നിമിഷം", "രുകോ"];
+            if (waitKeywords.some(kw => clean.includes(kw))) {
+                stopAllSpeechAudio();
+                clearTimeout(speechSilenceDebounceTimer);
+                clearTimeout(sreeQueryTimeout);
+                playWakeChime();
+                isSreeListeningForQuery = true;
+                setAssistantVisualState("listening", `Waiting for you... Take your time! 🎙️`);
+                if (sreeLiveInterim) sreeLiveInterim.classList.add("hidden");
+                return;
+            }
 
-                    openSreeOverlay();
-                    updateSreeStatus(`<strong>Sree:</strong> "${waitMessage}" ⏳`);
-                    appendOverlayBotMessage(waitMessage, []);
+            // Real-Time Live Transcript Preview: User sees their words instantaneously!
+            if (sreeLiveInterim) {
+                sreeLiveInterim.classList.remove("hidden");
+                sreeLiveInterim.innerHTML = `<i class="fa-solid fa-waveform-lines"></i> Hearing: "<em>${escapeQuotes(rawCombined)}</em>"`;
+            }
 
-                    speakAssistantVoice(waitMessage, () => {
-                        isSreeListeningForQuery = true;
-                        updateSreeStatus(`Waiting for you to speak... 🎙️`);
-                    });
+            // 2. Wake Word Detection Keywords (Instant triggering on interim text!)
+            const wakeKeywords = [
+                "hey sree", "hi sree", "hello sree", "ok sree",
+                "hey shree", "hi shree", "hello shree", "ok shree",
+                "hey sri", "hi sri", "hello sri", "ok sri",
+                "hey siri", "hi siri", "hello siri",
+                "hey three", "hey 3", "a3",
+                "sree", "shree", "sri", "siri",
+                // Malayalam wake words
+                "ശ്രീ", "ഹലോ ശ്രീ", "ഹായ് ശ്രീ", "നമസ്കാരം ശ്രീ", "ഹലോ sree", "ഹായ് sree",
+                // Hindi, Tamil, Telugu wake words
+                "नमस्ते श्री", "வணக்கம் ஸ்ரீ", "నమస్కారం శ్రీ"
+            ];
+
+            let matchedKeyword = null;
+            let matchIndex = -1;
+            for (const kw of wakeKeywords) {
+                const idx = clean.indexOf(kw);
+                if (idx !== -1) {
+                    matchedKeyword = kw;
+                    matchIndex = idx;
                     break;
                 }
+            }
 
-                // 2. Active query listening mode (after greeting was spoken or orb tapped)
-                if (isSreeListeningForQuery) {
-                    if (clean.length > 2 && isFinal) {
+            // A. Wake word called alone (e.g. user says "Hey Sree" or "ശ്രീ")
+            if (matchedKeyword) {
+                let queryAfter = clean.substring(matchIndex + matchedKeyword.length).trim();
+                queryAfter = queryAfter.replace(/^[,\s.:?]+/, '').trim();
+
+                // Spoke wake word alone -> chime and greet immediately
+                if (queryAfter.length <= 1 && !isSreeListeningForQuery) {
+                    clearTimeout(speechSilenceDebounceTimer);
+                    playWakeChime();
+                    openSreeOverlay("voice");
+                    isSreeListeningForQuery = true;
+                    const greeting = getSreeVoiceGreeting();
+                    setAssistantVisualState("speaking", `<strong>Sree:</strong> "${greeting}"`);
+                    appendOverlayBotMessage(greeting, []);
+
+                    speakAssistantVoice(greeting, () => {
+                        isSreeListeningForQuery = true;
+                        setAssistantVisualState("listening", `Sree is listening to you... Speak your question now! 🎙️`);
+                        if (sreeLiveInterim) sreeLiveInterim.classList.add("hidden");
                         clearTimeout(sreeQueryTimeout);
-                        isSreeListeningForQuery = false;
-                        const userQuery = clean.replace(/^(hey|hi|hello|ok)?\s*(sree|shree|sri|siri|three)?\s*/i, '').trim();
-                        if (userQuery.length > 1) {
-                            processSreeVoiceQuery(userQuery);
-                        } else {
-                            processSreeVoiceQuery(clean);
-                        }
-                        break;
-                    }
-                    continue;
+                        sreeQueryTimeout = setTimeout(() => {
+                            if (isSreeListeningForQuery && !isSpeaking) {
+                                isSreeListeningForQuery = false;
+                                setAssistantVisualState("standby", `Ready • Say "Hey Sree" or speak your question 🎙️`);
+                            }
+                        }, 12000);
+                    });
+                    return;
                 }
+            }
 
-                // 3. Wake word detection
-                const wakeKeywords = [
-                    "hey sree", "hi sree", "hello sree", "ok sree",
-                    "hey shree", "hi shree", "hello shree", "ok shree",
-                    "hey sri", "hi sri", "hello sri", "ok sri",
-                    "hey siri", "hi siri", "hello siri",
-                    "hey three", "hey 3", "a3",
-                    "sree", "shree", "sri", "siri",
-                    // Malayalam wake words
-                    "ശ്രീ", "ഹലോ ശ്രീ", "ഹായ് ശ്രീ", "നമസ്കാരം ശ്രീ", "ഹലോ sree", "ഹായ് sree",
-                    // Hindi, Tamil, Telugu wake words
-                    "नमस्ते श्री", "வணக்கம் ஸ்ரீ", "నమస్కారం శ్రీ"
-                ];
-
-                let matchedKeyword = null;
-                let matchIndex = -1;
-                for (const kw of wakeKeywords) {
-                    const idx = clean.indexOf(kw);
-                    if (idx !== -1) {
-                        matchedKeyword = kw;
-                        matchIndex = idx;
-                        break;
-                    }
-                }
-
+            // B. User is speaking a query (with wake word in one breath, or in active voice mode)
+            if (isSreeListeningForQuery || currentModalMode === "voice" || matchedKeyword) {
+                let actualQuery = rawCombined.trim();
                 if (matchedKeyword) {
-                    // Extract query if spoken directly after the wake word
-                    let queryAfter = clean.substring(matchIndex + matchedKeyword.length).trim();
-                    queryAfter = queryAfter.replace(/^[,\s.:?]+/, '').trim();
+                    actualQuery = clean.substring(matchIndex + matchedKeyword.length).trim();
+                    actualQuery = actualQuery.replace(/^[,\s.:?]+/, '').trim();
+                }
 
-                    if (queryAfter.length > 2 && isFinal) {
-                        // Spoke wake word + query together in one breath
-                        playWakeChime();
-                        processSreeVoiceQuery(queryAfter);
-                        break;
-                    } else if (queryAfter.length <= 2 && (isFinal || clean === matchedKeyword)) {
-                        // Called "Hey Sree" alone -> chime, greet, and listen for query
-                        playWakeChime();
-                        openSreeOverlay();
-                        updateSreeStatus(`<strong>Sree:</strong> "${getSreeVoiceGreeting()}" 🎙️`);
-                        appendOverlayBotMessage(getSreeVoiceGreeting(), []);
+                if (actualQuery.length > 2) {
+                    setAssistantVisualState("listening", `Hearing: "<em>${escapeQuotes(actualQuery)}</em>" 🎙️`);
 
-                        speakAssistantVoice(getSreeVoiceGreeting(), () => {
-                            isSreeListeningForQuery = true;
-                            updateSreeStatus(`Sree is listening to your question... Speak now! 🎙️`);
-                            clearTimeout(sreeQueryTimeout);
-                            sreeQueryTimeout = setTimeout(() => {
-                                if (isSreeListeningForQuery) {
-                                    isSreeListeningForQuery = false;
-                                    updateSreeStatus(`Listening for <strong>"Hey Sree"</strong> (or type below)... 🎙️`);
-                                }
-                            }, 12000);
-                        });
-                        break;
-                    }
+                    // Fast Snappy Endpointing: 900ms silence or immediate on isFinal
+                    clearTimeout(speechSilenceDebounceTimer);
+                    const lastResult = event.results[event.results.length - 1];
+                    const isFinalEvent = lastResult && lastResult.isFinal;
+                    const delay = isFinalEvent ? 150 : 900;
+
+                    speechSilenceDebounceTimer = setTimeout(() => {
+                        clearTimeout(speechSilenceDebounceTimer);
+                        isSreeListeningForQuery = false;
+                        if (sreeLiveInterim) sreeLiveInterim.classList.add("hidden");
+                        processSreeVoiceQuery(actualQuery);
+                    }, delay);
                 }
             }
         };
 
         rec.onerror = (e) => {
             console.warn("SpeechRecognition error:", e.error);
-            stopWakeWordEngine(false); // Don't close overlay so user can type!
-            setSreeModalMode("type");
-            if (sreeTypeModeBanner) {
-                sreeTypeModeBanner.innerHTML = `<i class="fa-solid fa-circle-info" style="color:#f59e0b;"></i> <span>Microphone not available or blocked. Switched to Keyboard Typing mode — type your question freely below! ⌨️</span>`;
+            // DO NOT stop on normal pauses or silence timeouts!
+            if (e.error === "no-speech" || e.error === "aborted") {
+                return;
             }
-            if (sreeOverlayStatus) {
-                sreeOverlayStatus.innerHTML = `<span style="color:#f59e0b;"><i class="fa-solid fa-keyboard"></i> Switched to Typing Mode. Type your question below! ⌨️</span>`;
+            if (e.error === "network") {
+                // Smooth reconnect after transient network drop
+                clearTimeout(speechRestartTimeout);
+                speechRestartTimeout = setTimeout(() => {
+                    if (isWakeWordMode && !isSpeaking && !isRecognitionRunning) {
+                        safeStartRecognition();
+                    }
+                }, 600);
+                return;
             }
-            if (micPermissionToast) micPermissionToast.classList.add("hidden");
+            if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+                stopWakeWordEngine(false);
+                setSreeModalMode("type");
+                if (sreeTypeModeBanner) {
+                    sreeTypeModeBanner.innerHTML = `<i class="fa-solid fa-circle-info" style="color:#f59e0b;"></i> <span>Microphone blocked or not allowed. Switched to Keyboard Typing mode — type your question freely below! ⌨️</span>`;
+                }
+                if (sreeOverlayStatus) {
+                    sreeOverlayStatus.innerHTML = `<span style="color:#f59e0b;"><i class="fa-solid fa-keyboard"></i> Switched to Typing Mode. Type your question below! ⌨️</span>`;
+                }
+                if (micPermissionToast) micPermissionToast.classList.add("hidden");
+            }
         };
 
         rec.onend = () => {
             isRecognitionRunning = false;
-            console.log("SpeechRecognition cycle ended.");
+            // Always keep continuous assistant listening loop alive if active and not currently speaking
             if (isWakeWordMode && !isSpeaking) {
                 clearTimeout(speechRestartTimeout);
                 speechRestartTimeout = setTimeout(() => {
                     if (isWakeWordMode && !isSpeaking && !isRecognitionRunning) {
                         safeStartRecognition();
                     }
-                }, 300);
+                }, 200);
             }
         };
 
@@ -1678,30 +1711,127 @@ document.addEventListener("DOMContentLoaded", () => {
         window.speechSynthesis.getVoices();
     }
 
+    let currentTtsAudio = null;
+
+    function shouldUseBackendTTS(text, lang) {
+        if (!text) return false;
+        const isMalayalam = /[\u0D00-\u0D7F]/.test(text) || (lang && lang.startsWith("ml"));
+        if (isMalayalam) return true; // Windows has no offline Malayalam TTS voice; backend gTTS produces fluent Malayalam speech!
+
+        // For other regional scripts, if speechSynthesis has no native voice installed, use backend TTS
+        const isHindi = /[\u0900-\u097F]/.test(text) || (lang && lang.startsWith("hi"));
+        const isTamil = /[\u0B80-\u0BFF]/.test(text) || (lang && lang.startsWith("ta"));
+        const isTelugu = /[\u0C00-\u0C7F]/.test(text) || (lang && lang.startsWith("te"));
+
+        if (isHindi || isTamil || isTelugu) {
+            const voices = ('speechSynthesis' in window) ? (window.speechSynthesis.getVoices() || []) : [];
+            const prefix = isHindi ? "hi" : (isTamil ? "ta" : "te");
+            const hasVoice = voices.some(v => v.lang && v.lang.toLowerCase().startsWith(prefix));
+            return !hasVoice;
+        }
+        return false;
+    }
+
+    function stopAllSpeechAudio() {
+        if (currentTtsAudio) {
+            try {
+                currentTtsAudio.pause();
+                currentTtsAudio.currentTime = 0;
+            } catch (e) {}
+            currentTtsAudio = null;
+        }
+        if ('speechSynthesis' in window) {
+            try {
+                window.speechSynthesis.cancel();
+            } catch (e) {}
+        }
+        isSpeaking = false;
+        activeUtterance = null;
+    }
+
     function speakAssistantVoice(text, onComplete) {
-        if (!('speechSynthesis' in window)) {
+        if (!text || !text.trim()) {
             if (onComplete) onComplete();
             return;
         }
 
         try {
+            stopAllSpeechAudio();
             isSpeaking = true;
             safeStopRecognition();
-            window.speechSynthesis.cancel();
 
             const cleanText = prepareTextForSpeech(text);
-            const utterance = new SpeechSynthesisUtterance(cleanText);
+            const effectiveLang = currentLanguage || "en-IN";
 
-            // Select best matching regional voice (Malayalam, Hindi, Tamil, Telugu, English)
-            const voiceInfo = getBestVoiceForLanguage(currentLanguage, cleanText);
+            if (shouldUseBackendTTS(cleanText, effectiveLang)) {
+                let langCode = "ml";
+                if (/[\u0900-\u097F]/.test(cleanText) || effectiveLang.startsWith("hi")) langCode = "hi";
+                else if (/[\u0B80-\u0BFF]/.test(cleanText) || effectiveLang.startsWith("ta")) langCode = "ta";
+                else if (/[\u0C00-\u0C7F]/.test(cleanText) || effectiveLang.startsWith("te")) langCode = "te";
+
+                // Extract first 380 chars for snappy spoken audio response
+                const snippet = cleanText.substring(0, 380);
+                const audioUrl = `/api/tts?text=${encodeURIComponent(snippet)}&lang=${encodeURIComponent(langCode)}`;
+                const audio = new Audio(audioUrl);
+                currentTtsAudio = audio;
+
+                let finished = false;
+                const handleFinish = () => {
+                    if (finished) return;
+                    finished = true;
+                    isSpeaking = false;
+                    currentTtsAudio = null;
+                    if (onComplete) onComplete();
+                    if (isWakeWordMode) {
+                        setTimeout(() => safeStartRecognition(), 300);
+                    }
+                };
+
+                audio.onended = handleFinish;
+                audio.onerror = (err) => {
+                    console.warn("Backend TTS playback error, falling back to browser voice:", err);
+                    currentTtsAudio = null;
+                    fallbackBrowserSpeak(cleanText, effectiveLang, onComplete);
+                };
+
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(err => {
+                        console.warn("Audio play() blocked:", err);
+                        currentTtsAudio = null;
+                        fallbackBrowserSpeak(cleanText, effectiveLang, onComplete);
+                    });
+                }
+                return;
+            }
+
+            fallbackBrowserSpeak(cleanText, effectiveLang, onComplete);
+        } catch (e) {
+            console.warn("speakAssistantVoice exception:", e);
+            stopAllSpeechAudio();
+            if (onComplete) onComplete();
+            if (isWakeWordMode) setTimeout(() => safeStartRecognition(), 300);
+        }
+    }
+
+    function fallbackBrowserSpeak(cleanText, effectiveLang, onComplete) {
+        if (!('speechSynthesis' in window)) {
+            isSpeaking = false;
+            if (onComplete) onComplete();
+            return;
+        }
+
+        try {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            const voiceInfo = getBestVoiceForLanguage(effectiveLang, cleanText);
             if (voiceInfo && voiceInfo.voice) {
                 utterance.voice = voiceInfo.voice;
                 utterance.lang = voiceInfo.lang;
             } else {
-                utterance.lang = currentLanguage || "en-IN";
+                utterance.lang = effectiveLang;
             }
-
-            utterance.rate = 0.95; // Clear and measured pace for educational guidance
+            utterance.rate = 0.95;
             utterance.pitch = 1.0;
             activeUtterance = utterance;
 
@@ -1718,12 +1848,8 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             utterance.onend = handleFinish;
-            utterance.onerror = (err) => {
-                console.warn("SpeechSynthesis utterance error:", err);
-                handleFinish();
-            };
+            utterance.onerror = () => handleFinish();
 
-            // Watchdog in case Chrome stalls speechSynthesis.onend
             const durationEstimate = Math.max(3000, Math.min(30000, cleanText.length * 90));
             setTimeout(() => {
                 if (isSpeaking && activeUtterance === utterance) {
@@ -1734,11 +1860,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             window.speechSynthesis.speak(utterance);
         } catch (e) {
-            console.warn("speakAssistantVoice exception:", e);
+            console.warn("fallbackBrowserSpeak exception:", e);
             isSpeaking = false;
-            activeUtterance = null;
             if (onComplete) onComplete();
-            if (isWakeWordMode) setTimeout(() => safeStartRecognition(), 300);
         }
     }
 
@@ -1746,8 +1870,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!query || !query.trim()) return;
         const cleanQuery = query.trim();
 
-        openSreeOverlay();
-        updateSreeStatus(`Processing query: <em>"${escapeQuotes(cleanQuery)}"</em>...`);
+        openSreeOverlay("voice");
+        setAssistantVisualState("thinking", `Sree is thinking & consulting official brochures... ⚡`);
+        if (sreeLiveInterim) sreeLiveInterim.classList.add("hidden");
         appendOverlayUserMessage(cleanQuery);
         showOverlayThinking();
 
@@ -1800,12 +1925,27 @@ document.addEventListener("DOMContentLoaded", () => {
                     appendMessage("bot", data.answer, currentUserRole, data.sources, data.confidence, data.is_faq_short_circuit);
                 }
 
-                // Read aloud response
+                // Assistant speaking state with audio waves
+                setAssistantVisualState("speaking", `Sree is speaking... (Click orb or say "Wait" to pause) 🔊`);
+
+                // Read aloud response in regional voice
                 speakAssistantVoice(data.answer, () => {
-                    if (isWakeWordMode) {
-                        updateSreeStatus(`Listening for <strong>"Hey Sree"</strong> (or type below)... 🎙️`);
+                    // Continuous Turn-Taking Conversation Loop (Google Assistant / Siri Style!)
+                    if (isWakeWordMode || currentModalMode === "voice") {
+                        isSreeListeningForQuery = true;
+                        setAssistantVisualState("listening", `Listening for your next question... Speak freely! 🎙️`);
+                        if (sreeLiveInterim) sreeLiveInterim.classList.add("hidden");
+                        safeStartRecognition();
+
+                        clearTimeout(sreeQueryTimeout);
+                        sreeQueryTimeout = setTimeout(() => {
+                            if (isSreeListeningForQuery && !isSpeaking) {
+                                isSreeListeningForQuery = false;
+                                setAssistantVisualState("standby", `Ready • Say "Hey Sree" or speak your question 🎙️`);
+                            }
+                        }, 10000); // 10 second active follow-up conversational window
                     } else {
-                        updateSreeStatus(`Sree AI Ready. Ask another question by voice or typing! 💬`);
+                        setAssistantVisualState("standby", `Sree AI Ready. Ask another question by voice or typing! 💬`);
                     }
                 });
             } else {
@@ -1843,12 +1983,16 @@ document.addEventListener("DOMContentLoaded", () => {
             if (tabSreeType) tabSreeType.classList.remove("active");
             if (sreeVoiceModeSection) sreeVoiceModeSection.classList.remove("hidden");
             if (sreeTypeModeBanner) sreeTypeModeBanner.classList.add("hidden");
+            isSreeListeningForQuery = true;
+            setAssistantVisualState("listening", `Sree is listening to you... Speak your question now! 🎙️`);
             if (!isWakeWordMode) {
                 if (localStorage.getItem("sree_mic_permission") === "granted") {
                     startWakeWordEngine();
                 } else {
                     requestMicrophoneAccess(() => startWakeWordEngine());
                 }
+            } else {
+                safeStartRecognition();
             }
         }
     }
@@ -1862,6 +2006,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function closeSreeOverlay() {
         if (sreeVoiceOverlay) sreeVoiceOverlay.classList.add("hidden");
+        stopAllSpeechAudio();
     }
 
     function updateVoiceUIState(isActive) {
@@ -1889,6 +2034,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (sreeMuteBtnLabel) {
             sreeMuteBtnLabel.textContent = isActive ? "Mute Mic" : "Unmute Mic";
+        }
+    }
+
+    function setAssistantVisualState(state, statusHtml) {
+        if (siriOrbLarge) {
+            siriOrbLarge.className = `siri-orb-large state-${state}`;
+        }
+        if (statusHtml) {
+            updateSreeStatus(statusHtml);
         }
     }
 
@@ -1969,14 +2123,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!isWakeWordMode) startWakeWordEngine();
         playWakeChime();
         isSreeListeningForQuery = true;
-        updateSreeStatus(`Listening to you... Speak your question now! 🎙️`);
+        setAssistantVisualState("listening", `Sree is listening to you... Speak your question now! 🎙️`);
+        if (sreeLiveInterim) sreeLiveInterim.classList.add("hidden");
         safeStartRecognition();
 
         clearTimeout(sreeQueryTimeout);
         sreeQueryTimeout = setTimeout(() => {
-            if (isSreeListeningForQuery) {
+            if (isSreeListeningForQuery && !isSpeaking) {
                 isSreeListeningForQuery = false;
-                updateSreeStatus(`Listening for <strong>"Hey Sree"</strong> (or type below)... 🎙️`);
+                setAssistantVisualState("standby", `Ready • Say "Hey Sree" or speak your question 🎙️`);
             }
         }, 12000);
     }
@@ -2270,9 +2425,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     checkAutoMicPermission();
 
+    function updateLanguageTypography(language) {
+        const lang = language || currentLanguage || "en-IN";
+        const prefix = lang.substring(0, 2).toLowerCase();
+        document.documentElement.lang = prefix;
+        document.body.classList.remove("lang-ml", "lang-hi", "lang-ta", "lang-te", "lang-en");
+        document.body.classList.add(`lang-${prefix}`);
+    }
+
     // Speech Recognition for manual button
     function changeLanguage(language) {
         currentLanguage = language;
+        updateLanguageTypography(language);
         speechLanguageSelect.value = language;
         if (loginLanguageSelect) loginLanguageSelect.value = language;
         const selectedText = speechLanguageSelect.options[speechLanguageSelect.selectedIndex].text;
@@ -2333,48 +2497,83 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     window.speakText = function(text, button) {
+        if (activeSpeech) resetSpeechControls(activeSpeech);
+        stopAllSpeechAudio();
+        isSpeaking = true;
+        safeStopRecognition();
+
+        const cleanText = prepareTextForSpeech(text);
+        const effectiveLang = currentLanguage || "en-IN";
+        const pauseButton = button ? button.parentElement.querySelector(".audio-pause-btn") : null;
+        const resumeButton = button ? button.parentElement.querySelector(".audio-resume-btn") : null;
+
+        if (shouldUseBackendTTS(cleanText, effectiveLang)) {
+            let langCode = "ml";
+            if (/[\u0900-\u097F]/.test(cleanText) || effectiveLang.startsWith("hi")) langCode = "hi";
+            else if (/[\u0B80-\u0BFF]/.test(cleanText) || effectiveLang.startsWith("ta")) langCode = "ta";
+            else if (/[\u0C00-\u0C7F]/.test(cleanText) || effectiveLang.startsWith("te")) langCode = "te";
+
+            const snippet = cleanText.substring(0, 380);
+            const audioUrl = `/api/tts?text=${encodeURIComponent(snippet)}&lang=${encodeURIComponent(langCode)}`;
+            const audio = new Audio(audioUrl);
+            currentTtsAudio = audio;
+
+            const speech = { button, pauseButton, resumeButton, audio, isAudio: true, isPaused: false };
+            activeSpeech = speech;
+            setSpeechControls(speech, true);
+
+            const handleFinish = () => {
+                resetSpeechControls(speech);
+                stopAllSpeechAudio();
+                if (isWakeWordMode) {
+                    setTimeout(() => safeStartRecognition(), 400);
+                }
+            };
+
+            audio.onended = handleFinish;
+            audio.onerror = () => {
+                resetSpeechControls(speech);
+                stopAllSpeechAudio();
+            };
+
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(e => {
+                    console.warn("Audio play error:", e);
+                    resetSpeechControls(speech);
+                    stopAllSpeechAudio();
+                });
+            }
+            return;
+        }
+
         if ('speechSynthesis' in window) {
-            if (activeSpeech) resetSpeechControls(activeSpeech);
-            isSpeaking = true;
-            safeStopRecognition();
-            window.speechSynthesis.cancel();
-
-            const cleanText = prepareTextForSpeech(text);
             const utterance = new SpeechSynthesisUtterance(cleanText);
-
-            // Regional voice resolution
             const voiceInfo = getBestVoiceForLanguage(currentLanguage, cleanText);
             if (voiceInfo && voiceInfo.voice) {
                 utterance.voice = voiceInfo.voice;
                 utterance.lang = voiceInfo.lang;
             } else {
-                utterance.lang = currentLanguage || "en-IN";
+                utterance.lang = effectiveLang;
             }
             utterance.rate = 0.95;
             utterance.pitch = 1.0;
             activeUtterance = utterance;
 
-            const pauseButton = button.parentElement.querySelector(".audio-pause-btn");
-            const resumeButton = button.parentElement.querySelector(".audio-resume-btn");
-            const speech = { button, pauseButton, resumeButton, utterance, isPaused: false };
+            const speech = { button, pauseButton, resumeButton, utterance, isAudio: false, isPaused: false };
             activeSpeech = speech;
             setSpeechControls(speech, true);
+
             utterance.onend = () => {
                 resetSpeechControls(speech);
-                isSpeaking = false;
-                activeUtterance = null;
+                stopAllSpeechAudio();
                 if (isWakeWordMode) {
-                    // Continuous Siri voice loop: resume listening after Sree finishes speaking!
                     setTimeout(() => safeStartRecognition(), 400);
                 }
             };
             utterance.onerror = () => {
                 resetSpeechControls(speech);
-                isSpeaking = false;
-                activeUtterance = null;
-                if (isWakeWordMode) {
-                    setTimeout(() => safeStartRecognition(), 400);
-                }
+                stopAllSpeechAudio();
             };
             window.speechSynthesis.speak(utterance);
         }
@@ -2382,7 +2581,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.pauseSpeech = function(button) {
         if (activeSpeech && activeSpeech.pauseButton === button && !activeSpeech.isPaused) {
-            window.speechSynthesis.pause();
+            if (activeSpeech.isAudio && activeSpeech.audio) {
+                activeSpeech.audio.pause();
+            } else if ('speechSynthesis' in window) {
+                window.speechSynthesis.pause();
+            }
             activeSpeech.isPaused = true;
             setSpeechControls(activeSpeech, false);
         }
@@ -2390,7 +2593,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.resumeSpeech = function(button) {
         if (activeSpeech && activeSpeech.resumeButton === button && activeSpeech.isPaused) {
-            window.speechSynthesis.resume();
+            if (activeSpeech.isAudio && activeSpeech.audio) {
+                activeSpeech.audio.play();
+            } else if ('speechSynthesis' in window) {
+                window.speechSynthesis.resume();
+            }
             activeSpeech.isPaused = false;
             setSpeechControls(activeSpeech, true);
         }
@@ -2707,8 +2914,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 ` : "";
 
+                const isRegionalNews = /[\u0D00-\u0D7F\u0900-\u097F\u0B80-\u0BFF\u0C00-\u0C7F]/.test(
+                    (item.title || "") + " " + (item.summary || "") + " " + (item.parent_tip || "")
+                );
                 return `
-                    <div class="news-card ${item.urgent ? 'urgent-card' : ''}">
+                    <div class="news-card ${item.urgent ? 'urgent-card' : ''} ${isRegionalNews ? 'regional-newsprint' : ''}">
                         <div>
                             <div class="news-card-header">
                                 <div class="news-badge-group">
@@ -2773,8 +2983,11 @@ document.addEventListener("DOMContentLoaded", () => {
                             else if (examLower.includes("neet")) badgeClass = "badge-neet";
                             else if (examLower.includes("cuet")) badgeClass = "badge-cuet";
 
+                            const isRegionalTimeline = /[\u0D00-\u0D7F\u0900-\u097F\u0B80-\u0BFF\u0C00-\u0C7F]/.test(
+                                (item.title || "") + " " + (item.summary || "")
+                            );
                             return `
-                                <div class="timeline-event-card">
+                                <div class="timeline-event-card ${isRegionalTimeline ? 'regional-newsprint' : ''}">
                                     <div class="timeline-date-col">
                                         <span class="timeline-date-day">${dateStr.split("-").pop() || dateStr.split(" ")[0]}</span>
                                         <span class="timeline-date-meta">${dateStr}</span>
